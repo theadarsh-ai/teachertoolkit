@@ -1,0 +1,48 @@
+Create a web application for Empowering teachers in multi-grade classrooms with various features agents. The Features are 
+1. Hyper‑Local Content Generation
+Enables teachers to request culturally and linguistically relevant materials in their students’ mother tongues (Marathi, Hindi, Tamil, Kannada, Malayalam, etc.).
+Dynamic content creation: On‑the‑fly generation of stories, worksheets, reading passages, or assessment items tailored to a given locale or context.
+Speech‑to‑LLM input: Teachers can speak prompts directly (e.g. “Make a folk‑tale about farmers in Marathi”) which are transcribed and sent to the LLM.
+Web search integration: Pulls in recent local news or references to keep content accurate and engaging.
+Toxicity barrier & chat history: Filters out any unsafe or biased outputs and remembers past requests for continuity.
+2 Create Differentiated Materials
+Automatically adapts a single source (textbook page, PDF, DOCX, even CSV datasets) into multiple grade‑level versions.
+Pre‑uploaded multi‑grade book library plus on‑demand upload of any document or image.
+Content → template conversion: LLM fills pre‑designed worksheet templates, tailoring difficulty and question style per grade
+3. AI Lesson Planner
+Helps structure the syllabus into an efficient teaching schedule and tracks progress.
+Automated timetable generation based on curriculum objectives and available class periods.
+Weekly analytics & reporting: Summarizes which topics need reinforcement, flags pacing issues
+4. Instant Knowledge Base
+Acts as a bilingual Q&A engine for both teachers and students.
+Pre‑uploaded knowledge documents (teacher guides, reference texts) plus live web knowledge.
+Concise, analogy‑rich answers in the student’s native language.
+Future scope: Animated explainer videos or AR overlays to deepen understanding
+5. Design Visual Aids
+Automatically generates diagrams, flowcharts or AR content to illustrate concepts.
+Configurable sources: Web search + uploaded files + knowledge base.
+LLM‑generated flows and charts: Easily tweaked for grade‑appropriate complexity.
+6. Gamified Teaching Agent
+Incorporates game elements—quizzes, badges, leaderboards—to boost engagement and retention across multi‑grade cohorts.
+7. Classroom Analytics & Pacing Coach
+Monitors in‑class interaction and performance data to:
+Identify which students or topics need more time.
+Sggest real‑time adjustments to pacing and grouping.
+8. Audio‑Based Reading Assessment
+Listens to student reading aloud, evaluates pronunciation, fluency, and comprehension, then provides actionable feedback.
+9. Master Agent Chatbot
+A central, conversational interface that:
+Routes teacher requests to the appropriate sub‑agent (e.g., lesson planner vs. content generator).
+Maintains context across multiple sessions and modules.
+10. Student Performance Analysis & Recommendations
+Aggregates marksheets and progress metrics to:
+Generate personalized learning path suggestions.
+Recommend alternative teaching methods for topics where students struggle.
+Produce end‑of‑term reports.
+11. AR using sketchfab
+ 
+All these agents are build using langraph and using the firebase and other google tools only
+ 
+In UI, one face there will be LOGIN Page, then we will see the all the agents spearatly , once they select the required agents under that there will checkbox  to select the class from 1 to 12th grade . Also there will option to choose prebook or external , where for prebook already we have all the ncert book will get uploaded in db and external means other tools search. Also agent to agent this option changes .When comes to AR using Sketchfab api not an agent
+  
+And i need a interactive and Advanced UI with more gradient , technolgy specified theme 
