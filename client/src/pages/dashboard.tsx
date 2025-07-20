@@ -30,7 +30,18 @@ export default function Dashboard() {
       if (currentUser) {
         setUser(currentUser);
       } else {
-        setLocation("/");
+        // Check if we're in demo mode or redirect to login
+        const isDemoMode = window.location.pathname === '/dashboard' && !currentUser;
+        if (isDemoMode) {
+          // Set demo user
+          setUser({
+            displayName: 'Demo Teacher',
+            email: 'demo@eduai.platform',
+            uid: 'demo-uid'
+          });
+        } else {
+          setLocation("/");
+        }
       }
     });
 
