@@ -1,0 +1,404 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Answer Key - Grades 10</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          padding: 20px;
+        }
+        
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 15px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+          overflow: hidden;
+        }
+        
+        .header {
+          background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+        }
+        
+        .header h1 {
+          font-size: 2.5rem;
+          margin-bottom: 10px;
+          font-weight: 700;
+        }
+        
+        .header .subtitle {
+          font-size: 1.1rem;
+          opacity: 0.9;
+          margin-bottom: 20px;
+        }
+        
+        .metadata {
+          background: rgba(255,255,255,0.1);
+          padding: 15px;
+          border-radius: 10px;
+          margin-top: 20px;
+        }
+        
+        .metadata-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 15px;
+          text-align: center;
+        }
+        
+        .metadata-item {
+          background: rgba(255,255,255,0.1);
+          padding: 10px;
+          border-radius: 8px;
+        }
+        
+        .metadata-label {
+          font-size: 0.9rem;
+          opacity: 0.8;
+          margin-bottom: 5px;
+        }
+        
+        .metadata-value {
+          font-weight: 600;
+          font-size: 1rem;
+        }
+        
+        .content-section {
+          padding: 40px;
+        }
+        
+        .content-body {
+          font-size: 1.1rem;
+          line-height: 1.8;
+          color: #444;
+        }
+        
+        .content-body h2 {
+          color: #4f46e5;
+          margin: 30px 0 15px 0;
+          font-size: 1.8rem;
+          border-bottom: 3px solid #e5e7eb;
+          padding-bottom: 10px;
+        }
+        
+        .content-body h3 {
+          color: #6366f1;
+          margin: 25px 0 12px 0;
+          font-size: 1.4rem;
+        }
+        
+        .content-body h4 {
+          color: #7c3aed;
+          margin: 20px 0 10px 0;
+          font-size: 1.2rem;
+        }
+        
+        .content-body p {
+          margin-bottom: 15px;
+          text-align: justify;
+        }
+        
+        .content-body ul, .content-body ol {
+          margin: 15px 0;
+          padding-left: 25px;
+        }
+        
+        .content-body li {
+          margin-bottom: 8px;
+        }
+        
+        .content-body blockquote {
+          background: #f8fafc;
+          border-left: 4px solid #4f46e5;
+          padding: 15px 20px;
+          margin: 20px 0;
+          font-style: italic;
+          color: #666;
+        }
+        
+        .content-body table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 20px 0;
+          background: white;
+        }
+        
+        .content-body th, .content-body td {
+          padding: 12px;
+          text-align: left;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .content-body th {
+          background: #f8fafc;
+          font-weight: 600;
+          color: #4f46e5;
+        }
+        
+        .highlight-box {
+          background: linear-gradient(135deg, #fef3c7, #fed7aa);
+          border: 2px solid #f59e0b;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        
+        .highlight-box .icon {
+          font-size: 2rem;
+          margin-bottom: 10px;
+          display: block;
+        }
+        
+        .activity-box {
+          background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+          border: 2px solid #22c55e;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        
+        .cultural-reference {
+          background: linear-gradient(135deg, #fce7f3, #f3e8ff);
+          border: 2px solid #a855f7;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        
+        .footer {
+          background: #f8fafc;
+          padding: 30px;
+          text-align: center;
+          border-top: 2px solid #e5e7eb;
+        }
+        
+        .footer .brand {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #4f46e5;
+          margin-bottom: 10px;
+        }
+        
+        .footer .tagline {
+          color: #666;
+          font-style: italic;
+        }
+        
+        .footer .generation-info {
+          margin-top: 20px;
+          font-size: 0.9rem;
+          color: #888;
+        }
+        
+        .page-break {
+          page-break-before: always;
+        }
+        
+        @media print {
+          body {
+            background: white;
+            padding: 0;
+          }
+          
+          .container {
+            box-shadow: none;
+            border-radius: 0;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Answer Key - Grades 10</h1>
+          <div class="subtitle">AI-Generated Educational Content for Multi-Grade Classrooms</div>
+          
+          <div class="metadata">
+            <div class="metadata-grid">
+              <div class="metadata-item">
+                <div class="metadata-label">Target Grades</div>
+                <div class="metadata-value">10</div>
+              </div>
+              <div class="metadata-item">
+                <div class="metadata-label">Languages</div>
+                <div class="metadata-value">English</div>
+              </div>
+              
+              <div class="metadata-item">
+                <div class="metadata-label">Generated By</div>
+                <div class="metadata-value">Differentiated Materials - Answers</div>
+              </div>
+              <div class="metadata-item">
+                <div class="metadata-label">Generated On</div>
+                <div class="metadata-value">21/7/2025</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="content-section">
+          <div class="content-body">
+            <div class="answer-header">
+      <h1>🔑 Answer Key</h1>
+      <div class="answer-info">
+        <p><strong>Grade Levels:</strong> 10</p>
+        <p><strong>Total Questions:</strong> 25</p>
+      </div>
+    </div><div class="answer-block">
+        <h3>Answer 1</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The text under 'Floral characters' for the Fabaceae family explicitly states that the inflorescence is 'racemose'.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 2</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>Zygomorphic symmetry means the flower is bilaterally symmetrical. It can be divided into two equal halves along only one plane, as mentioned in the description of the flower.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 3</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The prefix 'gamo-' means fused. 'Gamosepalous' therefore means that the sepals (the parts of the calyx) are fused together. This is stated in the description of the Calyx.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 4</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The text describes the corolla as 'papilionaceous', which means butterfly-like. This specific structure with a large posterior standard, two lateral wings, and two fused anterior keel petals is a hallmark of the Fabaceae family.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 5</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The description of the corolla states that the two anterior petals form a 'keel (enclosing stamens and pistil)'. The stamens and pistil are the essential reproductive organs of the flower.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 6</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>'Diadelphous' literally means 'two brothers'. In botany, it refers to the stamens being united by their filaments into two groups or bundles, as described for the Androecium.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 7</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The floral formula notation 'A(9)+1' indicates that the Androecium (A) consists of ten stamens, with nine of them fused (in parentheses) into a single bundle or tube, and one stamen remaining separate or free.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 8</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The prefix 'mono-' means one. 'Monocarpellary' indicates that the gynoecium (female reproductive part) is formed from a single carpel, as stated in the text.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 9</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The text explicitly states under 'Fruit' that the characteristic fruit type for this family is a 'legume'. A pea pod is a classic example of a legume.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 10</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>Non-endospermic (or exalbuminous) seeds are those in which the endosperm is consumed during embryonic development. The food reserves are then transferred and stored in the fleshy cotyledons (seed leaves).</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 11</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>In a floral formula, 'K' stands for Calyx (the whorl of sepals). The number '5' indicates there are five sepals, and the parentheses '( )' around the number signify that they are fused (gamosepalous).</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 12</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>'G' stands for Gynoecium. The number '1' indicates it is monocarpellary. A line drawn below the 'G' (G) signifies that the ovary is superior, meaning it is positioned above the attachment point of the other floral whorls.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 13</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The formula for the corolla, C1+2+(2), breaks down the papilionaceous structure: 1 standard petal, 2 free wing petals, and (2) two fused keel petals. The parentheses indicate fusion.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 14</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>Under 'Economic Importance', the text lists sources of pulses including 'gram, arhar, sem, moong'. Arhar (also known as tur dal) is a very common pulse used in Indian cooking.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 15</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The text lists 'dye (Indigofera)' under the economic importance of the family. Indigofera plants are the original source of the valuable indigo dye.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 16</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The text lists 'soyabean' as a source of pulses and also as a source of edible oil, making it a correct answer for both categories.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 17</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>Under the list of economically important plants, 'medicine (muliathi)' is mentioned. Muliathi is the common Indian/Hindi name for the plant Glycyrrhiza glabra, from which liquorice is extracted.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 18</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The section on 'Economic Importance' lists 'fodder (Sesbania, Trifolium)'. Therefore, Sesbania would be a correct choice for a fodder crop from this family.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 19</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The first sentence under section 5.9.2 Solanaceae states, 'It is a large family, commonly called as the 'potato family'.'.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 20</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The handwritten note points out 'pentamerous -> Solanaceae'. The prefix 'penta-' means five. Pentamerous flowers have their floral parts (sepals, petals, stamens) in sets or multiples of five.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 21</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The diagram shows a unilocular (one-chambered) ovary derived from a single carpel, with ovules attached in a row along the ventral suture or margin. This arrangement is known as marginal placentation, which is characteristic of Fabaceae.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 22</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>All the features mentioned – five fused sepals (K(5)), papilionaceous corolla, and diadelphous stamens (A(9)+1) – are defining characteristics of the family Fabaceae as described on the page.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 23</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The pea plant belongs to Fabaceae, a dicot family. Soyabean is also in the family Fabaceae and is therefore a dicot. Wheat, rice, and sugarcane are all monocots, as listed in the handwritten notes.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 24</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>A legume is defined as a simple, dry fruit that develops from a monocarpellary, superior ovary and typically dehisces (opens) along two sutures. The 'monocarpellary and unilocular' nature is the direct structural precursor to this fruit type.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 25</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> Not specified</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The ability of a plant family to be 'widely distributed' across tropical, subtropical, and temperate zones means it is not limited to a specific climate and can successfully grow and reproduce in a broad spectrum of environmental conditions, showing high adaptability.</p>
+        </div></div>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <div class="brand">EduAI Platform</div>
+          <div class="tagline">Empowering Teachers in Multi-Grade Classrooms with AI</div>
+          <div class="generation-info">
+            Document generated on 21/7/2025, 9:38:01 pm 
+            • NCERT Curriculum Aligned • Culturally Relevant Content
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+    
