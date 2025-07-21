@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["bash", "libxcrypt"]
+packages = ["bash", "libxcrypt", "firebase-tools"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -14,6 +14,27 @@ run = ["npm", "run", "start"]
 [[ports]]
 localPort = 5000
 externalPort = 80
+exposeLocalhost = true
+
+[[ports]]
+localPort = 8027
+externalPort = 3001
+exposeLocalhost = true
+
+[[ports]]
+localPort = 8165
+externalPort = 3002
+exposeLocalhost = true
+
+[[ports]]
+localPort = 8193
+externalPort = 3003
+exposeLocalhost = true
+
+[[ports]]
+localPort = 8698
+externalPort = 4200
+exposeLocalhost = true
 
 [[ports]]
 localPort = 9005
