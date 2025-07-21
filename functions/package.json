@@ -1,3 +1,4 @@
+
 {
   "name": "eduai-platform-functions",
   "version": "1.0.0",
@@ -7,7 +8,7 @@
     "node": "20"
   },
   "scripts": {
-    "build": "esbuild ../server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=.",
+    "build": "esbuild ../server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=. --target=node20",
     "start": "node index.js",
     "deploy": "firebase deploy --only functions"
   },

@@ -1,3 +1,4 @@
+
 {
   "functions": {
     "source": "functions",
@@ -10,7 +11,7 @@
     ]
   },
   "hosting": {
-    "public": "public",
+    "public": "dist/public",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -30,20 +31,20 @@
   "emulators": {
     "functions": {
       "port": 5001,
-      "host": "127.0.0.1"
+      "host": "0.0.0.0"
     },
     "hosting": {
       "port": 5000,
-      "host": "127.0.0.1"
+      "host": "0.0.0.0"
     },
     "ui": {
       "enabled": true,
       "port": 4000,
-      "host": "127.0.0.1"
+      "host": "0.0.0.0"
     },
     "hub": {
       "port": 4400,
-      "host": "127.0.0.1"
+      "host": "0.0.0.0"
     }
   }
 }
