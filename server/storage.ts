@@ -36,6 +36,12 @@ export interface IStorage {
   // Generated content operations
   getGeneratedContent(userId: number, agentType?: string): Promise<GeneratedContent[]>;
   createGeneratedContent(content: InsertGeneratedContent): Promise<GeneratedContent>;
+  
+  // NCERT textbook operations
+  getNCERTTextbooks(): Promise<any[]>;
+  getNCERTTextbooksByClass(classNum: number): Promise<any[]>;
+  getNCERTTextbooksBySubject(subject: string): Promise<any[]>;
+  storeNCERTTextbook(textbook: any): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
