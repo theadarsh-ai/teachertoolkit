@@ -6,13 +6,38 @@ let adminApp;
 try {
   adminApp = getApp();
 } catch {
-  adminApp = initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-  });
+  try {
+    // Parse and format the private key properly for Replit Secrets
+    let privateKey = process.env.FIREBASE_PRIVATE_KEY || '';
+    
+    // Replit Secrets often store keys with literal \n characters that need conversion
+    if (privateKey.includes('\\n')) {
+      privateKey = privateKey.replace(/\\n/g, '\n');
+    }
+    
+    // Remove any surrounding quotes
+    privateKey = privateKey.replace(/^["']|["']$/g, '');
+    
+    // Ensure proper PEM format
+    if (!privateKey.startsWith('-----BEGIN') && !privateKey.startsWith('-----END')) {
+      // If it's just the base64 content, wrap it
+      privateKey = `-----BEGIN PRIVATE KEY-----\n${privateKey}\n-----END PRIVATE KEY-----`;
+    }
+
+    adminApp = initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: privateKey,
+      }),
+    });
+    
+    console.log('✅ Firebase Admin initialized successfully');
+  } catch (error) {
+    console.error('❌ Firebase Admin initialization failed:', error);
+    console.log('Private key format issue. The FIREBASE_PRIVATE_KEY should include the full PEM format including -----BEGIN PRIVATE KEY----- and -----END PRIVATE KEY----- lines.');
+    throw new Error('Firebase Admin credentials are invalid. Please ensure FIREBASE_PRIVATE_KEY is in proper PEM format.');
+  }
 }
 
 export const adminDb = getFirestore(adminApp);
