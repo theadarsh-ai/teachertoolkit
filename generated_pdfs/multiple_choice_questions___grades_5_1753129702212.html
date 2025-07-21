@@ -1,0 +1,284 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Multiple Choice Questions - Grades 5</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          padding: 20px;
+        }
+        
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 15px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+          overflow: hidden;
+        }
+        
+        .header {
+          background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+        }
+        
+        .header h1 {
+          font-size: 2.5rem;
+          margin-bottom: 10px;
+          font-weight: 700;
+        }
+        
+        .header .subtitle {
+          font-size: 1.1rem;
+          opacity: 0.9;
+          margin-bottom: 20px;
+        }
+        
+        .metadata {
+          background: rgba(255,255,255,0.1);
+          padding: 15px;
+          border-radius: 10px;
+          margin-top: 20px;
+        }
+        
+        .metadata-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 15px;
+          text-align: center;
+        }
+        
+        .metadata-item {
+          background: rgba(255,255,255,0.1);
+          padding: 10px;
+          border-radius: 8px;
+        }
+        
+        .metadata-label {
+          font-size: 0.9rem;
+          opacity: 0.8;
+          margin-bottom: 5px;
+        }
+        
+        .metadata-value {
+          font-weight: 600;
+          font-size: 1rem;
+        }
+        
+        .content-section {
+          padding: 40px;
+        }
+        
+        .content-body {
+          font-size: 1.1rem;
+          line-height: 1.8;
+          color: #444;
+        }
+        
+        .content-body h2 {
+          color: #4f46e5;
+          margin: 30px 0 15px 0;
+          font-size: 1.8rem;
+          border-bottom: 3px solid #e5e7eb;
+          padding-bottom: 10px;
+        }
+        
+        .content-body h3 {
+          color: #6366f1;
+          margin: 25px 0 12px 0;
+          font-size: 1.4rem;
+        }
+        
+        .content-body h4 {
+          color: #7c3aed;
+          margin: 20px 0 10px 0;
+          font-size: 1.2rem;
+        }
+        
+        .content-body p {
+          margin-bottom: 15px;
+          text-align: justify;
+        }
+        
+        .content-body ul, .content-body ol {
+          margin: 15px 0;
+          padding-left: 25px;
+        }
+        
+        .content-body li {
+          margin-bottom: 8px;
+        }
+        
+        .content-body blockquote {
+          background: #f8fafc;
+          border-left: 4px solid #4f46e5;
+          padding: 15px 20px;
+          margin: 20px 0;
+          font-style: italic;
+          color: #666;
+        }
+        
+        .content-body table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 20px 0;
+          background: white;
+        }
+        
+        .content-body th, .content-body td {
+          padding: 12px;
+          text-align: left;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .content-body th {
+          background: #f8fafc;
+          font-weight: 600;
+          color: #4f46e5;
+        }
+        
+        .highlight-box {
+          background: linear-gradient(135deg, #fef3c7, #fed7aa);
+          border: 2px solid #f59e0b;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        
+        .highlight-box .icon {
+          font-size: 2rem;
+          margin-bottom: 10px;
+          display: block;
+        }
+        
+        .activity-box {
+          background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+          border: 2px solid #22c55e;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        
+        .cultural-reference {
+          background: linear-gradient(135deg, #fce7f3, #f3e8ff);
+          border: 2px solid #a855f7;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        
+        .footer {
+          background: #f8fafc;
+          padding: 30px;
+          text-align: center;
+          border-top: 2px solid #e5e7eb;
+        }
+        
+        .footer .brand {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #4f46e5;
+          margin-bottom: 10px;
+        }
+        
+        .footer .tagline {
+          color: #666;
+          font-style: italic;
+        }
+        
+        .footer .generation-info {
+          margin-top: 20px;
+          font-size: 0.9rem;
+          color: #888;
+        }
+        
+        .page-break {
+          page-break-before: always;
+        }
+        
+        @media print {
+          body {
+            background: white;
+            padding: 0;
+          }
+          
+          .container {
+            box-shadow: none;
+            border-radius: 0;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Multiple Choice Questions - Grades 5</h1>
+          <div class="subtitle">AI-Generated Educational Content for Multi-Grade Classrooms</div>
+          
+          <div class="metadata">
+            <div class="metadata-grid">
+              <div class="metadata-item">
+                <div class="metadata-label">Target Grades</div>
+                <div class="metadata-value">5</div>
+              </div>
+              <div class="metadata-item">
+                <div class="metadata-label">Languages</div>
+                <div class="metadata-value">English</div>
+              </div>
+              
+              <div class="metadata-item">
+                <div class="metadata-label">Generated By</div>
+                <div class="metadata-value">Differentiated Materials - Questions</div>
+              </div>
+              <div class="metadata-item">
+                <div class="metadata-label">Generated On</div>
+                <div class="metadata-value">21/7/2025</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="content-section">
+          <div class="content-body">
+            <div class="worksheet-header">
+      <h1>📚 Multiple Choice Questions</h1>
+      <div class="worksheet-info">
+        <p><strong>Grade Levels:</strong> 5</p>
+        <p><strong>Number of Questions:</strong> 2</p>
+        <p><strong>Instructions:</strong> Choose the best answer for each question. Mark your answers clearly.</p>
+      </div>
+    </div><div class="question-block">
+        <h3>Question 1</h3>
+        <p class="question-text">The sentence 'The quick brown fox jumps over the lazy dog' is special because it uses every letter of the alphabet. Why might a student or someone learning to type find this sentence very useful for practice?</p><div class="options"><p class="option"><strong>A.</strong> It tells an exciting story about animals that live in forests.</p><p class="option"><strong>B.</strong> It helps them practice using all the letters from A to Z.</p><p class="option"><strong>C.</strong> It teaches them about different kinds of foxes and dogs.</p><p class="option"><strong>D.</strong> It is a very long sentence to practice reading aloud quickly.</p></div></div><div class="question-block">
+        <h3>Question 2</h3>
+        <p class="question-text">Imagine you are an artist from India who paints beautiful scenes of nature and animals. If you were asked to create a painting based on the sentence, 'The quick brown fox jumps over the lazy dog,' what two main details from the sentence would be most important to show clearly in your artwork?</p><div class="options"><p class="option"><strong>A.</strong> A large banyan tree and a small pond in the background.</p><p class="option"><strong>B.</strong> The fox's brown color and the dog's sleepy or relaxed posture.</p><p class="option"><strong>C.</strong> A tall mountain like the Himalayas and a fast-flowing river nearby.</p><p class="option"><strong>D.</strong> A busy Indian village market and a temple in the distance.</p></div></div>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <div class="brand">EduAI Platform</div>
+          <div class="tagline">Empowering Teachers in Multi-Grade Classrooms with AI</div>
+          <div class="generation-info">
+            Document generated on 21/7/2025, 8:28:22 pm 
+            • NCERT Curriculum Aligned • Culturally Relevant Content
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+    

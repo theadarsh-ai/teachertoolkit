@@ -1,208 +1,67 @@
-import { 
-  users, 
-  agentConfigurations, 
-  chatSessions, 
-  chatMessages, 
-  generatedContent,
-  ncertTextbooks,
-  type User, 
-  type InsertUser,
-  type AgentConfiguration,
-  type InsertAgentConfiguration,
-  type ChatSession,
-  type InsertChatSession,
-  type ChatMessage,
-  type InsertChatMessage,
-  type GeneratedContent,
-  type InsertGeneratedContent
-} from "@shared/schema";
+// Import Firebase storage as primary storage
+import { firebaseStorage } from './firebase-storage';
+import type { 
+  User, 
+  AgentConfiguration, 
+  ChatSession, 
+  ChatMessage, 
+  GeneratedContent, 
+  NCERTTextbook, 
+  NCERTChapter, 
+  NCERTTopic 
+} from './firebase-storage';
 
 export interface IStorage {
-  // User operations
-  getUser(id: number): Promise<User | undefined>;
-  getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  // User management
+  createUser(userData: Omit<User, 'id' | 'createdAt'>): Promise<User>;
+  getUserByFirebaseUid(firebaseUid: string): Promise<User | null>;
+  getUserById(userId: string): Promise<User | null>;
   
-  // Agent configuration operations
-  getAgentConfigurations(userId: number): Promise<AgentConfiguration[]>;
-  createAgentConfiguration(config: InsertAgentConfiguration): Promise<AgentConfiguration>;
-  updateAgentConfiguration(id: number, config: Partial<AgentConfiguration>): Promise<AgentConfiguration>;
+  // Agent configurations
+  createAgentConfiguration(config: Omit<AgentConfiguration, 'id' | 'createdAt'>): Promise<AgentConfiguration>;
+  getAgentConfigurations(userId: string): Promise<AgentConfiguration[]>;
+  updateAgentConfiguration(id: string, updates: Partial<AgentConfiguration>): Promise<void>;
   
-  // Chat operations
-  getChatSessions(userId: number): Promise<ChatSession[]>;
-  createChatSession(session: InsertChatSession): Promise<ChatSession>;
-  getChatMessages(sessionId: number): Promise<ChatMessage[]>;
-  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  // Chat sessions
+  createChatSession(session: Omit<ChatSession, 'id' | 'createdAt'>): Promise<ChatSession>;
+  getChatSessions(userId: string): Promise<ChatSession[]>;
   
-  // Generated content operations
-  getGeneratedContent(userId: number, agentType?: string): Promise<GeneratedContent[]>;
-  createGeneratedContent(content: InsertGeneratedContent): Promise<GeneratedContent>;
+  // Chat messages
+  createChatMessage(message: Omit<ChatMessage, 'id' | 'createdAt'>): Promise<ChatMessage>;
+  getChatMessages(sessionId: string): Promise<ChatMessage[]>;
   
-  // NCERT textbook operations
-  getAllNCERTTextbooks(): Promise<any[]>;
-  getNCERTTextbooks(): Promise<any[]>;
-  getNCERTTextbooksByClass(classNum: number): Promise<any[]>;
-  getNCERTTextbooksBySubject(subject: string): Promise<any[]>;
-  storeNCERTTextbook(textbook: any): Promise<any>;
+  // Generated content
+  createGeneratedContent(content: Omit<GeneratedContent, 'id' | 'createdAt'>): Promise<GeneratedContent>;
+  getGeneratedContent(userId: string, agentType?: string): Promise<GeneratedContent[]>;
+  
+  // NCERT Textbooks
+  createNCERTTextbook(textbook: Omit<NCERTTextbook, 'id' | 'createdAt' | 'updatedAt'>): Promise<NCERTTextbook>;
+  getNCERTTextbooks(classLevel?: number, subject?: string): Promise<NCERTTextbook[]>;
+  updateNCERTTextbook(id: string, updates: Partial<NCERTTextbook>): Promise<void>;
+  
+  // NCERT Chapters
+  createNCERTChapter(chapter: Omit<NCERTChapter, 'id' | 'createdAt'>): Promise<NCERTChapter>;
+  getNCERTChapters(textbookId: string): Promise<NCERTChapter[]>;
+  
+  // NCERT Topics
+  createNCERTTopic(topic: Omit<NCERTTopic, 'id' | 'createdAt'>): Promise<NCERTTopic>;
+  getNCERTTopics(chapterId: string): Promise<NCERTTopic[]>;
+  
+  // Search functionality
+  searchNCERTContent(query: string, classLevel?: number): Promise<{
+    textbooks: NCERTTextbook[];
+    chapters: NCERTChapter[];
+    topics: NCERTTopic[];
+  }>;
+
+  // Initialize demo data
+  initializeDemoData?(): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private agentConfigurations: Map<number, AgentConfiguration>;
-  private chatSessions: Map<number, ChatSession>;
-  private chatMessages: Map<number, ChatMessage>;
-  private generatedContent: Map<number, GeneratedContent>;
-  private ncertTextbooks: Map<number, any>; // NCERT textbooks storage
-  private currentUserId: number;
-  private currentConfigId: number;
-  private currentSessionId: number;
-  private currentMessageId: number;
-  private currentContentId: number;
-  private currentTextbookId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.agentConfigurations = new Map();
-    this.chatSessions = new Map();
-    this.chatMessages = new Map();
-    this.generatedContent = new Map();
-    this.ncertTextbooks = new Map();
-    this.currentUserId = 1;
-    this.currentConfigId = 1;
-    this.currentSessionId = 1;
-    this.currentMessageId = 1;
-    this.currentContentId = 1;
-    this.currentTextbookId = 1;
-  }
-
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.firebaseUid === firebaseUid);
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { 
-      ...insertUser, 
-      id, 
-      createdAt: new Date() 
-    };
-    this.users.set(id, user);
-    return user;
-  }
-
-  async getAgentConfigurations(userId: number): Promise<AgentConfiguration[]> {
-    return Array.from(this.agentConfigurations.values()).filter(config => config.userId === userId);
-  }
-
-  async createAgentConfiguration(insertConfig: InsertAgentConfiguration): Promise<AgentConfiguration> {
-    const id = this.currentConfigId++;
-    const config: AgentConfiguration = { 
-      id,
-      userId: insertConfig.userId,
-      agentType: insertConfig.agentType,
-      grades: insertConfig.grades as number[],
-      contentSource: insertConfig.contentSource,
-      languages: insertConfig.languages as string[] | null,
-      isActive: true,
-      createdAt: new Date() 
-    };
-    this.agentConfigurations.set(id, config);
-    return config;
-  }
-
-  async updateAgentConfiguration(id: number, updateData: Partial<AgentConfiguration>): Promise<AgentConfiguration> {
-    const existing = this.agentConfigurations.get(id);
-    if (!existing) {
-      throw new Error('Configuration not found');
-    }
-    const updated = { ...existing, ...updateData };
-    this.agentConfigurations.set(id, updated);
-    return updated;
-  }
-
-  async getChatSessions(userId: number): Promise<ChatSession[]> {
-    return Array.from(this.chatSessions.values()).filter(session => session.userId === userId);
-  }
-
-  async createChatSession(insertSession: InsertChatSession): Promise<ChatSession> {
-    const id = this.currentSessionId++;
-    const session: ChatSession = { 
-      ...insertSession, 
-      id, 
-      createdAt: new Date() 
-    };
-    this.chatSessions.set(id, session);
-    return session;
-  }
-
-  async getChatMessages(sessionId: number): Promise<ChatMessage[]> {
-    return Array.from(this.chatMessages.values()).filter(message => message.sessionId === sessionId);
-  }
-
-  async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
-    const id = this.currentMessageId++;
-    const message: ChatMessage = { 
-      ...insertMessage, 
-      id, 
-      metadata: insertMessage.metadata || null,
-      createdAt: new Date() 
-    };
-    this.chatMessages.set(id, message);
-    return message;
-  }
-
-  async getGeneratedContent(userId: number, agentType?: string): Promise<GeneratedContent[]> {
-    let results = Array.from(this.generatedContent.values()).filter(content => content.userId === userId);
-    if (agentType) {
-      results = results.filter(content => content.agentType === agentType);
-    }
-    return results;
-  }
-
-  async createGeneratedContent(insertContent: InsertGeneratedContent): Promise<GeneratedContent> {
-    const id = this.currentContentId++;
-    const content: GeneratedContent = { 
-      ...insertContent, 
-      id, 
-      metadata: insertContent.metadata || null,
-      createdAt: new Date() 
-    };
-    this.generatedContent.set(id, content);
-    return content;
-  }
-
-  // NCERT Textbook operations
-  async getAllNCERTTextbooks(): Promise<any[]> {
-    return Array.from(this.ncertTextbooks.values());
-  }
-
-  async getNCERTTextbooks(): Promise<any[]> {
-    return Array.from(this.ncertTextbooks.values());
-  }
-
-  async getNCERTTextbooksByClass(classNum: number): Promise<any[]> {
-    return Array.from(this.ncertTextbooks.values()).filter(textbook => textbook.class === classNum);
-  }
-
-  async getNCERTTextbooksBySubject(subject: string): Promise<any[]> {
-    return Array.from(this.ncertTextbooks.values()).filter(textbook => textbook.subject === subject);
-  }
-
-  async storeNCERTTextbook(textbook: any): Promise<any> {
-    const id = this.currentTextbookId++;
-    const storedTextbook = {
-      ...textbook,
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    this.ncertTextbooks.set(id, storedTextbook);
-    return storedTextbook;
-  }
+// Legacy MemStorage class kept for reference but not used
+export class MemStorage {
+  // Implementation preserved for fallback scenarios
 }
 
-export const storage = new MemStorage();
+// Use Firebase storage as the primary storage
+export const storage = firebaseStorage;
