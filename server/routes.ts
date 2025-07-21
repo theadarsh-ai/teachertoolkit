@@ -383,7 +383,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("📄 Generating question and answer PDFs...");
         
         // Generate Questions PDF
-        console.log('🔍 Materials structure:', typeof materials.questionsContent, materials.questionsContent?.substring(0, 100));
+        console.log('🔍 Materials structure:', { 
+          questionsType: typeof materials.questionsContent,
+          answersType: typeof materials.answersContent,
+          questionsPreview: materials.questionsContent?.substring(0, 200) || 'UNDEFINED',
+          answersPreview: materials.answersContent?.substring(0, 200) || 'UNDEFINED'
+        });
         
         const questionsResult = await pdfGenerator.generatePDF({
           title: `${questionType === 'multiple-choice' ? 'Multiple Choice' : 'Mixed'} Questions - Grades ${parsedGrades.join(', ')}`,

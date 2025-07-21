@@ -379,6 +379,8 @@ Return the response in JSON format with separate questions and answers arrays.`;
   }
 
   private formatQuestionsForPDF(questions: any[], options: any): string {
+    console.log('📝 Formatting questions for PDF:', { questionsCount: questions.length, firstQuestion: questions[0] });
+    
     let content = `<div class="worksheet-header">
       <h1>📚 ${options.questionType === 'multiple-choice' ? 'Multiple Choice Questions' : 'Mixed Worksheet'}</h1>
       <div class="worksheet-info">
@@ -391,14 +393,25 @@ Return the response in JSON format with separate questions and answers arrays.`;
     questions.forEach((q, index) => {
       content += `<div class="question-block">
         <h3>Question ${index + 1}</h3>
-        <p class="question-text">${q.question || q.text}</p>`;
+        <p class="question-text">${q.question || q.question_text || q.text || q.questionText || 'No question text available'}</p>`;
       
-      if (q.options) {
+      // Handle options - can be object {A: "text", B: "text"} or array
+      const options_data = q.options || q.choices || q.answers || {};
+      if (typeof options_data === 'object' && Object.keys(options_data).length > 0) {
         content += `<div class="options">`;
-        q.options.forEach((option: string, optIndex: number) => {
-          const letter = String.fromCharCode(65 + optIndex); // A, B, C, D
-          content += `<p class="option"><strong>${letter}.</strong> ${option}</p>`;
-        });
+        if (Array.isArray(options_data)) {
+          // Array format
+          options_data.forEach((option: any, optIndex: number) => {
+            const letter = String.fromCharCode(65 + optIndex); // A, B, C, D
+            const optionText = typeof option === 'string' ? option : option.text || option.option || option;
+            content += `<p class="option"><strong>${letter}.</strong> ${optionText}</p>`;
+          });
+        } else {
+          // Object format {A: "text", B: "text"}
+          Object.entries(options_data).forEach(([key, value]) => {
+            content += `<p class="option"><strong>${key}.</strong> ${value}</p>`;
+          });
+        }
         content += `</div>`;
       }
       
@@ -409,6 +422,8 @@ Return the response in JSON format with separate questions and answers arrays.`;
   }
 
   private formatAnswersForPDF(answers: any[], options: any): string {
+    console.log('🔑 Formatting answers for PDF:', { answersCount: answers.length, firstAnswer: answers[0] });
+    
     let content = `<div class="answer-header">
       <h1>🔑 Answer Key</h1>
       <div class="answer-info">
@@ -420,12 +435,13 @@ Return the response in JSON format with separate questions and answers arrays.`;
     answers.forEach((a, index) => {
       content += `<div class="answer-block">
         <h3>Answer ${index + 1}</h3>
-        <p class="correct-answer"><strong>Correct Answer:</strong> ${a.correctAnswer || a.answer}</p>`;
+        <p class="correct-answer"><strong>Correct Answer:</strong> ${a.correctAnswer || a.correct_answer || a.correct_option || a.answer || a.correct || a.solution || 'Not specified'}</p>`;
       
-      if (a.explanation) {
+      const explanation = a.explanation || a.rationale || a.reasoning || a.details || '';
+      if (explanation) {
         content += `<div class="explanation">
           <h4>Explanation:</h4>
-          <p>${a.explanation}</p>
+          <p>${explanation}</p>
         </div>`;
       }
       
@@ -499,14 +515,21 @@ Return in JSON format with questions and answers arrays.`;
       }
 
       const parsedData = JSON.parse(rawJson);
+      console.log('🔍 Parsed Gemini response structure:', JSON.stringify(parsedData, null, 2));
+      
+      // Ensure we have valid arrays
+      const questions = parsedData.questions || parsedData.data?.questions || [];
+      const answers = parsedData.answers || parsedData.data?.answers || [];
+      
+      console.log('📊 Processing:', { questionsCount: questions.length, answersCount: answers.length });
       
       // Format content for PDF generation  
-      const questionsContent = this.formatQuestionsForPDF(parsedData.questions, { ...options, grades });
-      const answersContent = this.formatAnswersForPDF(parsedData.answers, { ...options, grades });
+      const questionsContent = this.formatQuestionsForPDF(questions, { ...options, grades });
+      const answersContent = this.formatAnswersForPDF(answers, { ...options, grades });
 
       return {
-        questions: parsedData.questions,
-        answers: parsedData.answers,
+        questions,
+        answers,
         questionsContent,
         answersContent
       };
