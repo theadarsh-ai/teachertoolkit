@@ -75,6 +75,11 @@ export class FirebaseNCERTStorage {
       })) as NCERTTextbook[];
     } catch (error) {
       console.error("Error fetching NCERT textbooks from Firebase:", error);
+      // If database doesn't exist, return empty array instead of failing
+      if (error.code === 5 && error.details === '') {
+        console.log("Firestore collection doesn't exist yet, returning empty array");
+        return [];
+      }
       return [];
     }
   }

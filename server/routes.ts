@@ -48,14 +48,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true,
         count: textbooks.length,
         data: textbooks,
-        source: "Firebase Firestore"
+        source: "Firebase Firestore",
+        status: textbooks.length === 0 ? "Database empty - run scraping to populate" : "Data loaded"
       });
     } catch (error) {
       console.error("Error fetching NCERT textbooks from Firebase:", error);
       res.status(500).json({
         success: false,
-        error: "Failed to fetch textbooks from Firebase Firestore. Make sure the Firestore API is enabled.",
-        hint: "Visit https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=genzion-ai to enable Firestore API"
+        error: "Failed to fetch textbooks from Firebase Firestore",
+        details: error.message
       });
     }
   });
@@ -63,6 +64,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ncert/scrape", async (req, res) => {
     try {
       console.log("🚀 Starting NCERT scraping to Firebase Firestore...");
+      
+      // First, initialize Firestore with a test document
+      const { firebaseNCERTStorage } = await import('./firebase-admin-ncert');
+      await firebaseNCERTStorage.logScrapingActivity('init', 'started', 'Initializing Firestore database');
+      
       const { scrapeNCERTTextbooksToFirebase } = await import('./ncert-scraper-firebase');
       const result = await scrapeNCERTTextbooksToFirebase();
       res.json({
@@ -77,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         error: `Failed to scrape NCERT textbooks to Firebase: ${error.message}`,
-        hint: "Make sure Firebase Admin credentials are set and Firestore API is enabled"
+        details: error.stack
       });
     }
   });
