@@ -4,6 +4,7 @@ import {
   chatSessions, 
   chatMessages, 
   generatedContent,
+  ncertTextbooks,
   type User, 
   type InsertUser,
   type AgentConfiguration,
@@ -38,6 +39,7 @@ export interface IStorage {
   createGeneratedContent(content: InsertGeneratedContent): Promise<GeneratedContent>;
   
   // NCERT textbook operations
+  getAllNCERTTextbooks(): Promise<any[]>;
   getNCERTTextbooks(): Promise<any[]>;
   getNCERTTextbooksByClass(classNum: number): Promise<any[]>;
   getNCERTTextbooksBySubject(subject: string): Promise<any[]>;
@@ -50,11 +52,13 @@ export class MemStorage implements IStorage {
   private chatSessions: Map<number, ChatSession>;
   private chatMessages: Map<number, ChatMessage>;
   private generatedContent: Map<number, GeneratedContent>;
+  private ncertTextbooks: Map<number, any>; // NCERT textbooks storage
   private currentUserId: number;
   private currentConfigId: number;
   private currentSessionId: number;
   private currentMessageId: number;
   private currentContentId: number;
+  private currentTextbookId: number;
 
   constructor() {
     this.users = new Map();
@@ -62,11 +66,13 @@ export class MemStorage implements IStorage {
     this.chatSessions = new Map();
     this.chatMessages = new Map();
     this.generatedContent = new Map();
+    this.ncertTextbooks = new Map();
     this.currentUserId = 1;
     this.currentConfigId = 1;
     this.currentSessionId = 1;
     this.currentMessageId = 1;
     this.currentContentId = 1;
+    this.currentTextbookId = 1;
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -167,6 +173,35 @@ export class MemStorage implements IStorage {
     };
     this.generatedContent.set(id, content);
     return content;
+  }
+
+  // NCERT Textbook operations
+  async getAllNCERTTextbooks(): Promise<any[]> {
+    return Array.from(this.ncertTextbooks.values());
+  }
+
+  async getNCERTTextbooks(): Promise<any[]> {
+    return Array.from(this.ncertTextbooks.values());
+  }
+
+  async getNCERTTextbooksByClass(classNum: number): Promise<any[]> {
+    return Array.from(this.ncertTextbooks.values()).filter(textbook => textbook.class === classNum);
+  }
+
+  async getNCERTTextbooksBySubject(subject: string): Promise<any[]> {
+    return Array.from(this.ncertTextbooks.values()).filter(textbook => textbook.subject === subject);
+  }
+
+  async storeNCERTTextbook(textbook: any): Promise<any> {
+    const id = this.currentTextbookId++;
+    const storedTextbook = {
+      ...textbook,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.ncertTextbooks.set(id, storedTextbook);
+    return storedTextbook;
   }
 }
 

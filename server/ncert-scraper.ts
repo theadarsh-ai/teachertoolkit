@@ -1,5 +1,4 @@
-import { db, COLLECTIONS, NCERTTextbook, ScrapingLog } from './firebase-admin';
-import { collection, addDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { storage } from './storage';
 
 interface NCERTBookInfo {
   class: number;
@@ -31,22 +30,10 @@ export class NCERTScraper {
   private readonly LANGUAGES = ['English', 'Hindi', 'Urdu'];
 
   async logAction(action: string, status: 'started' | 'completed' | 'error', message: string, data?: any) {
-    const logEntry: ScrapingLog = {
-      action,
-      status,
-      message,
-      data,
-      timestamp: new Date()
-    };
-    
-    try {
-      await addDoc(collection(db, COLLECTIONS.SCRAPING_LOGS), logEntry);
-    } catch (error) {
-      console.error('Failed to log action:', error);
-    }
+    console.log(`[${status.toUpperCase()}] ${action}: ${message}`, data ? JSON.stringify(data) : '');
   }
 
-  async scrapeAllTextbooks(): Promise<NCERTBookInfo[]> {
+  async scrapeAllTextbooks(): Promise<{ scrapedCount: number; storedCount: number; books: NCERTBookInfo[] }> {
     await this.logAction('scrape_all_textbooks', 'started', 'Starting comprehensive NCERT textbook scraping');
     
     const allBooks: NCERTBookInfo[] = [];
@@ -63,6 +50,20 @@ export class NCERTScraper {
               if (bookInfo) {
                 allBooks.push(bookInfo);
                 console.log(`✓ Found: Class ${classNum} ${subject} (${language})`);
+                
+                // Store each book immediately in our storage
+                await storage.storeNCERTTextbook({
+                  class: bookInfo.class,
+                  subject: bookInfo.subject,
+                  bookTitle: bookInfo.bookTitle,
+                  language: bookInfo.language,
+                  pdfUrl: bookInfo.pdfUrl,
+                  contentExtracted: false,
+                  metadata: {
+                    scrapedAt: new Date(),
+                    source: 'ncert_scraper'
+                  }
+                });
               }
             } catch (error) {
               console.log(`✗ Not found: Class ${classNum} ${subject} (${language})`);
@@ -71,8 +72,8 @@ export class NCERTScraper {
         }
       }
 
-      await this.logAction('scrape_all_textbooks', 'completed', `Successfully scraped ${allBooks.length} textbooks`, { count: allBooks.length });
-      return allBooks;
+      await this.logAction('scrape_all_textbooks', 'completed', `Successfully scraped and stored ${allBooks.length} textbooks`, { count: allBooks.length });
+      return { scrapedCount: allBooks.length, storedCount: allBooks.length, books: allBooks };
     } catch (error) {
       await this.logAction('scrape_all_textbooks', 'error', `Error during scraping: ${error}`, { error: String(error) });
       throw error;
@@ -161,91 +162,4 @@ export class NCERTScraper {
     return `${this.BASE_URL}/textbook/pdf/${classStr}${subjectCode}${langCode}.pdf`;
   }
 
-  async storeTextbooksInFirebase(books: NCERTBookInfo[]): Promise<void> {
-    await this.logAction('store_textbooks', 'started', `Storing ${books.length} textbooks in Firebase`);
-    
-    try {
-      const batch: Promise<any>[] = [];
-      
-      for (const book of books) {
-        const textbook: NCERTTextbook = {
-          ...book,
-          contentExtracted: false,
-          metadata: {
-            scrapedAt: new Date(),
-            source: 'ncert.nic.in',
-            verified: false
-          },
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-
-        batch.push(addDoc(collection(db, COLLECTIONS.TEXTBOOKS), textbook));
-      }
-
-      await Promise.all(batch);
-      
-      await this.logAction('store_textbooks', 'completed', `Successfully stored ${books.length} textbooks in Firebase`);
-      console.log(`✓ Stored ${books.length} textbooks in Firebase Firestore`);
-    } catch (error) {
-      await this.logAction('store_textbooks', 'error', `Error storing textbooks: ${error}`, { error: String(error) });
-      throw error;
-    }
-  }
-
-  async getAllStoredTextbooks(): Promise<NCERTTextbook[]> {
-    try {
-      const querySnapshot = await getDocs(
-        query(collection(db, COLLECTIONS.TEXTBOOKS), orderBy('class'), orderBy('subject'))
-      );
-      
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as NCERTTextbook));
-    } catch (error) {
-      console.error('Error fetching textbooks:', error);
-      return [];
-    }
-  }
-
-  async getTextbooksByClass(classNum: number): Promise<NCERTTextbook[]> {
-    try {
-      const querySnapshot = await getDocs(
-        query(
-          collection(db, COLLECTIONS.TEXTBOOKS),
-          where('class', '==', classNum),
-          orderBy('subject')
-        )
-      );
-      
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as NCERTTextbook));
-    } catch (error) {
-      console.error(`Error fetching textbooks for class ${classNum}:`, error);
-      return [];
-    }
-  }
-
-  async getTextbooksBySubject(subject: string): Promise<NCERTTextbook[]> {
-    try {
-      const querySnapshot = await getDocs(
-        query(
-          collection(db, COLLECTIONS.TEXTBOOKS),
-          where('subject', '==', subject),
-          orderBy('class')
-        )
-      );
-      
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as NCERTTextbook));
-    } catch (error) {
-      console.error(`Error fetching textbooks for subject ${subject}:`, error);
-      return [];
-    }
-  }
 }

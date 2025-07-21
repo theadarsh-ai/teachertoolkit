@@ -38,91 +38,57 @@ async function callPythonAgent(endpoint: string, data: any) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // ========== FIREBASE NCERT TEXTBOOKS ROUTES ==========
+  // ========== NCERT TEXTBOOKS WITH POSTGRESQL (WORKING) ==========
   
-  // Test endpoint to initialize Firestore database
-  app.post("/api/ncert/init-firestore", async (req, res) => {
-    try {
-      console.log("🔥 Initializing Firestore database...");
-      const { firebaseNCERTStorage } = await import('./firebase-admin-ncert');
-      
-      // Try to store a simple test document
-      const testBook = await firebaseNCERTStorage.storeTextbook({
-        class: 1,
-        subject: 'Test Subject',
-        bookTitle: 'Test Book - Database Initialization',
-        language: 'English',
-        pdfUrl: 'https://example.com/test.pdf',
-        contentExtracted: false,
-        chapterCount: 1,
-        metadata: { 
-          source: 'initialization_test',
-          description: 'Test document to initialize Firestore database'
-        }
-      });
-      
-      if (testBook) {
-        console.log("✅ Firestore database initialized successfully");
-        res.json({
-          success: true,
-          message: "Firestore database initialized successfully",
-          testDocument: testBook
-        });
-      } else {
-        throw new Error("Failed to create test document");
-      }
-    } catch (error) {
-      console.error("❌ Firestore initialization failed:", error);
-      res.status(500).json({
-        success: false,
-        error: `Failed to initialize Firestore: ${error.message}`,
-        hint: "Make sure Firestore database is created in Firebase Console"
-      });
-    }
-  });
-  
+  // Get all NCERT textbooks from PostgreSQL  
   app.get("/api/ncert/textbooks", async (req, res) => {
     try {
-      const { firebaseNCERTStorage } = await import('./firebase-admin-ncert');
-      const textbooks = await firebaseNCERTStorage.getAllTextbooks();
+      const { NCERTScraper } = await import('./ncert-scraper');
+      const scraper = new NCERTScraper();
+      
+      // Get from database through storage
+      const textbooks = await storage.getAllNCERTTextbooks();
+      
       res.json({
         success: true,
         count: textbooks.length,
         data: textbooks,
-        source: "Firebase Firestore",
-        status: textbooks.length === 0 ? "Database empty - run scraping to populate" : "Data loaded"
+        source: "PostgreSQL Database",
+        status: textbooks.length === 0 ? "Database empty - run scraping to populate" : "Data loaded successfully"
       });
     } catch (error) {
-      console.error("Error fetching NCERT textbooks from Firebase:", error);
+      console.error("Error fetching NCERT textbooks:", error);
       res.status(500).json({
         success: false,
-        error: "Failed to fetch textbooks from Firebase Firestore",
+        error: "Failed to fetch NCERT textbooks from database",
         details: error.message
       });
     }
   });
 
+  // Scrape NCERT textbooks and store in PostgreSQL
   app.post("/api/ncert/scrape", async (req, res) => {
     try {
-      console.log("🚀 Starting NCERT scraping to Firebase Firestore...");
+      console.log("🚀 Starting NCERT textbook scraping to PostgreSQL...");
       
-      // Skip logging for now to avoid undefined issues
-      console.log("Initializing scraping process...");
+      const { NCERTScraper } = await import('./ncert-scraper');
+      const scraper = new NCERTScraper();
       
-      const { scrapeNCERTTextbooksToFirebase } = await import('./ncert-scraper-firebase');
-      const result = await scrapeNCERTTextbooksToFirebase();
+      // Run the scraping process
+      const results = await scraper.scrapeAllTextbooks();
+      
       res.json({
         success: true,
-        count: result.storedCount,
-        scrapedTotal: result.scrapedCount,
-        message: `Successfully scraped ${result.scrapedCount} textbooks and stored ${result.storedCount} in Firebase Firestore`,
-        destination: "Firebase Firestore"
+        message: "NCERT textbook scraping completed successfully",
+        results: results,
+        destination: "PostgreSQL Database"
       });
+      
     } catch (error) {
-      console.error("NCERT Firebase scraping error:", error);
+      console.error("NCERT scraping error:", error);
       res.status(500).json({
         success: false,
-        error: `Failed to scrape NCERT textbooks to Firebase: ${error.message}`,
+        error: `NCERT scraping failed: ${error.message}`,
         details: error.stack
       });
     }
