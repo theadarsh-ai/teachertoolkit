@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EduAI Platform - Firebase Studio</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; text-align: center; }
+        .status { padding: 15px; margin: 10px 0; border-radius: 10px; }
+        .success { background: rgba(40, 167, 69, 0.2); border: 2px solid #28a745; }
+        .info { background: rgba(23, 162, 184, 0.2); border: 2px solid #17a2b8; }
+        .warning { background: rgba(255, 193, 7, 0.2); border: 2px solid #ffc107; color: #212529; }
+        .btn { background: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 10px; display: inline-block; margin: 10px; font-weight: bold; transition: all 0.3s; }
+        .btn:hover { background: #218838; transform: translateY(-2px); }
+        .features { text-align: left; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin: 20px 0; }
+        .loading { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 EduAI Platform</h1>
+        <p>AI-Powered Multi-Grade Teaching Assistant</p>
+        
+        <div class="status success">
+            <strong>✅ Frontend Status:</strong> Firebase Studio Environment Detected
+        </div>
+        
+        <div class="status info">
+            <strong>🔗 Backend API:</strong> <span id="api-status" class="loading">Testing connection...</span>
+        </div>
+        
+        <div class="status info">
+            <strong>📊 Platform:</strong> <span id="platform-status" class="loading">Detecting...</span>
+        </div>
+
+        <div class="features">
+            <h3>🚀 Available Features:</h3>
+            <ul>
+                <li><strong>11 AI Teaching Agents:</strong> Specialized tools for different educational tasks</li>
+                <li><strong>Content Generation:</strong> Hyper-local content with Gemini AI</li>
+                <li><strong>Image Processing:</strong> Upload and analyze educational images</li>
+                <li><strong>PDF Generation:</strong> Create worksheets and answer keys</li>
+                <li><strong>NCERT Database:</strong> Access to 228+ Indian textbooks</li>
+                <li><strong>Multi-language Support:</strong> Content in 8+ Indian languages</li>
+                <li><strong>Grade Differentiation:</strong> Adapted for grades 1-12</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <a href="/dashboard" class="btn">🚀 Launch EduAI Dashboard</a>
+            <a href="/content-generator" class="btn">📝 Content Generator</a>
+            <a href="/differentiated-materials" class="btn">🎯 Materials Generator</a>
+        </div>
+
+        <div style="margin-top: 20px; font-size: 14px; opacity: 0.8;">
+            <p>Firebase Studio Environment | Port: 5000 | Status: <span id="connection-status">Active</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Test API connectivity
+        function testAPI() {
+            fetch('/api/health')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('api-status').innerHTML = '✅ Connected - Server: ' + (data.server || 'Active');
+                    document.getElementById('api-status').className = '';
+                })
+                .catch(error => {
+                    document.getElementById('api-status').innerHTML = '⚠️ Connecting... (' + error.message + ')';
+                    // Retry after 2 seconds
+                    setTimeout(testAPI, 2000);
+                });
+        }
+        
+        // Test platform detection
+        function testPlatform() {
+            fetch('/api/platform')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('platform-status').innerHTML = '✅ ' + (data.platform || 'Firebase Studio');
+                    document.getElementById('platform-status').className = '';
+                })
+                .catch(error => {
+                    document.getElementById('platform-status').innerHTML = '📱 Firebase Studio (Local)';
+                    document.getElementById('platform-status').className = '';
+                });
+        }
+
+        // Update connection status
+        function updateStatus() {
+            const now = new Date().toLocaleTimeString();
+            document.getElementById('connection-status').innerHTML = 'Active - ' + now;
+        }
+
+        // Initialize tests
+        testAPI();
+        testPlatform();
+        setInterval(updateStatus, 1000);
+        
+        console.log('🎓 EduAI Platform - Firebase Studio Environment');
+        console.log('✅ Frontend loaded successfully');
+        console.log('🔗 Testing backend connectivity...');
+    </script>
+</body>
+</html>
