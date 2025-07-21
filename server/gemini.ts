@@ -282,6 +282,240 @@ Keep the response engaging and educational.`;
       throw new Error(`Query processing failed: ${error}`);
     }
   }
+
+  async processImageForWorksheet(options: {
+    imageBuffer: Buffer;
+    imageMimeType: string;
+    grades: number[];
+    questionType: 'multiple-choice' | 'worksheet';
+    questionCount: number;
+  }): Promise<{
+    questions: any[];
+    answers: any[];
+    questionsContent: string;
+    answersContent: string;
+  }> {
+    try {
+      console.log(`📸 Processing image for ${options.questionType} worksheet with ${options.questionCount} questions`);
+
+      // Convert buffer to base64
+      const imageBase64 = options.imageBuffer.toString('base64');
+
+      const systemPrompt = `You are an expert educator creating differentiated worksheets from textbook pages. 
+
+Your task:
+1. Analyze the uploaded textbook page image carefully
+2. Extract key educational concepts, topics, and information
+3. Create ${options.questionCount} ${options.questionType === 'multiple-choice' ? 'multiple choice questions' : 'mixed questions'} suitable for grades ${options.grades.join(', ')}
+4. Ensure questions test understanding, not just memorization
+5. Include Indian cultural context where appropriate
+6. Provide detailed answer explanations
+
+Format your response as JSON with:
+- questions: array of question objects
+- answers: array of corresponding answer objects with explanations
+
+For multiple choice questions, include:
+- question text
+- 4 options (A, B, C, D)
+- correct answer
+- explanation
+
+Make questions progressively more challenging if multiple grades are selected.`;
+
+      const userPrompt = `Please analyze this textbook page image and create ${options.questionCount} ${options.questionType === 'multiple-choice' ? 'multiple choice questions' : 'mixed questions'} for grades ${options.grades.join(', ')}.
+
+Focus on the main educational content and concepts shown in the image. Make sure questions are:
+- Grade-appropriate for levels ${options.grades.join(', ')}
+- Clear and unambiguous
+- Educationally valuable
+- Include Indian context where relevant
+
+Return the response in JSON format with separate questions and answers arrays.`;
+
+      const contents = [
+        {
+          inlineData: {
+            data: imageBase64,
+            mimeType: options.imageMimeType,
+          },
+        },
+        userPrompt
+      ];
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-pro", // Using Pro for complex multimodal analysis
+        config: {
+          systemInstruction: systemPrompt,
+          responseMimeType: "application/json",
+        },
+        contents: contents,
+      });
+
+      const rawJson = response.text;
+      console.log("📝 Gemini image analysis response received");
+
+      if (!rawJson) {
+        throw new Error("Empty response from Gemini model");
+      }
+
+      const parsedData = JSON.parse(rawJson);
+      
+      // Format content for PDF generation
+      const questionsContent = this.formatQuestionsForPDF(parsedData.questions, { ...options, grades: options.grades });
+      const answersContent = this.formatAnswersForPDF(parsedData.answers, { ...options, grades: options.grades });
+
+      return {
+        questions: parsedData.questions,
+        answers: parsedData.answers,
+        questionsContent,
+        answersContent
+      };
+
+    } catch (error) {
+      console.error('Image processing error:', error);
+      throw new Error(`Failed to process image for worksheet generation: ${error.message}`);
+    }
+  }
+
+  private formatQuestionsForPDF(questions: any[], options: any): string {
+    let content = `<div class="worksheet-header">
+      <h1>📚 ${options.questionType === 'multiple-choice' ? 'Multiple Choice Questions' : 'Mixed Worksheet'}</h1>
+      <div class="worksheet-info">
+        <p><strong>Grade Levels:</strong> ${Array.isArray(options.grades) ? options.grades.join(', ') : options.grades}</p>
+        <p><strong>Number of Questions:</strong> ${questions.length}</p>
+        <p><strong>Instructions:</strong> Choose the best answer for each question. Mark your answers clearly.</p>
+      </div>
+    </div>`;
+
+    questions.forEach((q, index) => {
+      content += `<div class="question-block">
+        <h3>Question ${index + 1}</h3>
+        <p class="question-text">${q.question || q.text}</p>`;
+      
+      if (q.options) {
+        content += `<div class="options">`;
+        q.options.forEach((option: string, optIndex: number) => {
+          const letter = String.fromCharCode(65 + optIndex); // A, B, C, D
+          content += `<p class="option"><strong>${letter}.</strong> ${option}</p>`;
+        });
+        content += `</div>`;
+      }
+      
+      content += `</div>`;
+    });
+
+    return content;
+  }
+
+  private formatAnswersForPDF(answers: any[], options: any): string {
+    let content = `<div class="answer-header">
+      <h1>🔑 Answer Key</h1>
+      <div class="answer-info">
+        <p><strong>Grade Levels:</strong> ${Array.isArray(options.grades) ? options.grades.join(', ') : options.grades}</p>
+        <p><strong>Total Questions:</strong> ${answers.length}</p>
+      </div>
+    </div>`;
+
+    answers.forEach((a, index) => {
+      content += `<div class="answer-block">
+        <h3>Answer ${index + 1}</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> ${a.correctAnswer || a.answer}</p>`;
+      
+      if (a.explanation) {
+        content += `<div class="explanation">
+          <h4>Explanation:</h4>
+          <p>${a.explanation}</p>
+        </div>`;
+      }
+      
+      content += `</div>`;
+    });
+
+    return content;
+  }
+
+  async createDifferentiatedMaterials(
+    sourceContent: string, 
+    grades: number[], 
+    options: {
+      questionType: 'multiple-choice' | 'worksheet';
+      questionCount: number;
+    }
+  ): Promise<{
+    questions: any[];
+    answers: any[];
+    questionsContent: string;
+    answersContent: string;
+  }> {
+    try {
+      console.log(`📝 Creating ${options.questionType} materials from text content`);
+
+      const systemPrompt = `You are an expert educator creating differentiated worksheets from educational content.
+
+Your task:
+1. Analyze the provided text content carefully
+2. Create ${options.questionCount} ${options.questionType === 'multiple-choice' ? 'multiple choice questions' : 'mixed questions'} suitable for grades ${grades.join(', ')}
+3. Ensure questions test understanding and application
+4. Include Indian cultural examples where appropriate
+5. Provide detailed explanations for all answers
+
+Format your response as JSON with:
+- questions: array of question objects
+- answers: array of corresponding answer objects with explanations
+
+For multiple choice questions, include:
+- question text
+- 4 options (A, B, C, D)
+- correct answer
+- explanation`;
+
+      const userPrompt = `Based on this educational content, create ${options.questionCount} ${options.questionType === 'multiple-choice' ? 'multiple choice questions' : 'mixed questions'} for grades ${grades.join(', ')}:
+
+"${sourceContent}"
+
+Make questions that:
+- Test key concepts and understanding
+- Are appropriate for grades ${grades.join(', ')}
+- Include practical applications
+- Use Indian context where relevant
+
+Return in JSON format with questions and answers arrays.`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        config: {
+          systemInstruction: systemPrompt,
+          responseMimeType: "application/json",
+        },
+        contents: userPrompt,
+      });
+
+      const rawJson = response.text;
+      console.log("📝 Gemini text analysis response received");
+
+      if (!rawJson) {
+        throw new Error("Empty response from Gemini model");
+      }
+
+      const parsedData = JSON.parse(rawJson);
+      
+      // Format content for PDF generation  
+      const questionsContent = this.formatQuestionsForPDF(parsedData.questions, { ...options, grades });
+      const answersContent = this.formatAnswersForPDF(parsedData.answers, { ...options, grades });
+
+      return {
+        questions: parsedData.questions,
+        answers: parsedData.answers,
+        questionsContent,
+        answersContent
+      };
+
+    } catch (error) {
+      console.error('Text processing error:', error);
+      throw new Error(`Failed to create differentiated materials: ${error.message}`);
+    }
+  }
 }
 
 export const geminiEduService = new GeminiEduService();

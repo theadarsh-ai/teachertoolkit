@@ -310,6 +310,17 @@ export class PDFGeneratorService {
   }
 
   private formatContent(content: string): string {
+    // Handle undefined or null content
+    if (!content || typeof content !== 'string') {
+      console.warn('formatContent received invalid content:', typeof content);
+      return '<p>No content available</p>';
+    }
+
+    // If content is already HTML (contains tags), return as-is
+    if (content.includes('<div') || content.includes('<h1') || content.includes('<p')) {
+      return content;
+    }
+    
     // Enhanced content formatting with special boxes and styling
     let formattedContent = content
       // Convert markdown-style headers

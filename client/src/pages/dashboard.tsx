@@ -55,6 +55,9 @@ export default function Dashboard() {
     } else if (agent.id === 'content-generation') {
       // Direct navigation to Content Generator page
       setLocation('/content-generator');
+    } else if (agent.id === 'differentiated-materials') {
+      // Direct navigation to Differentiated Materials page
+      setLocation('/differentiated-materials');
     } else {
       setSelectedAgent(agent);
       setShowAgentModal(true);

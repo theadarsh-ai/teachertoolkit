@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
 import { storage } from "./storage";
 import { geminiEduService } from "./gemini";
 import { pdfGenerator } from "./pdf-generator";
@@ -36,6 +37,21 @@ async function callPythonAgent(endpoint: string, data: any) {
     throw error;
   }
 }
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -324,34 +340,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/agents/differentiated-materials", async (req, res) => {
+  app.post("/api/agents/differentiated-materials", upload.single('uploadedImage'), async (req, res) => {
     try {
-      const { sourceContent, grades, generatePDF = true } = req.body;
-      const materials = await geminiEduService.createDifferentiatedMaterials(sourceContent, grades);
+      const { sourceContent, grades, questionType, questionCount, userId, generatePDF = "true" } = req.body;
+      const uploadedImage = req.file;
       
-      if (generatePDF) {
-        const pdfResult = await pdfGenerator.generatePDF({
-          title: `Differentiated Learning Materials (Grades ${grades.join(', ')})`,
-          content: JSON.stringify(materials.materials, null, 2),
-          grades,
-          languages: ['English'], // Default for differentiated materials
-          agentType: 'Differentiated Materials Generator',
+      console.log("🎯 Starting differentiated materials generation...");
+      console.log("Input:", { 
+        hasImage: !!uploadedImage, 
+        hasText: !!sourceContent, 
+        grades: JSON.parse(grades || '[]'),
+        questionType,
+        questionCount: parseInt(questionCount || '25')
+      });
+
+      let materials;
+      const parsedGrades = JSON.parse(grades || '[]');
+      const numQuestions = parseInt(questionCount || '25');
+
+      if (uploadedImage) {
+        // Process image with Gemini multimodal
+        console.log("📸 Processing uploaded image with Gemini...");
+        materials = await geminiEduService.processImageForWorksheet({
+          imageBuffer: uploadedImage.buffer,
+          imageMimeType: uploadedImage.mimetype,
+          grades: parsedGrades,
+          questionType: questionType || 'multiple-choice',
+          questionCount: numQuestions
+        });
+      } else if (sourceContent) {
+        // Process text content
+        console.log("📝 Processing text content...");
+        materials = await geminiEduService.createDifferentiatedMaterials(sourceContent, parsedGrades, {
+          questionType: questionType || 'multiple-choice',
+          questionCount: numQuestions
+        });
+      } else {
+        throw new Error('Either image or text content is required');
+      }
+      
+      if (generatePDF === "true") {
+        console.log("📄 Generating question and answer PDFs...");
+        
+        // Generate Questions PDF
+        console.log('🔍 Materials structure:', typeof materials.questionsContent, materials.questionsContent?.substring(0, 100));
+        
+        const questionsResult = await pdfGenerator.generatePDF({
+          title: `${questionType === 'multiple-choice' ? 'Multiple Choice' : 'Mixed'} Questions - Grades ${parsedGrades.join(', ')}`,
+          content: materials.questionsContent || 'No questions content generated',
+          grades: parsedGrades,
+          languages: ['English'],
+          agentType: 'Differentiated Materials - Questions',
           generatedAt: new Date()
+        });
+
+        // Generate Answers PDF  
+        const answersResult = await pdfGenerator.generatePDF({
+          title: `Answer Key - Grades ${parsedGrades.join(', ')}`,
+          content: materials.answersContent || 'No answers content generated',
+          grades: parsedGrades,
+          languages: ['English'],
+          agentType: 'Differentiated Materials - Answers',
+          generatedAt: new Date()
+        });
+
+        // Store in database
+        await storage.createGeneratedContent({
+          userId: parseInt(userId || '1'),
+          agentType: 'differentiated-materials',
+          title: `Differentiated Materials (${numQuestions} Questions)`,
+          content: JSON.stringify(materials),
+          metadata: { 
+            grades: parsedGrades, 
+            questionType,
+            questionCount: numQuestions,
+            questionsFile: questionsResult.fileName,
+            answersFile: answersResult.fileName,
+            hasImage: !!uploadedImage
+          }
         });
         
         res.json({
           success: true,
-          materials,
+          message: `Generated ${numQuestions} ${questionType === 'multiple-choice' ? 'multiple choice questions' : 'mixed questions'} with answer key`,
+          materials: {
+            questions: materials.questions,
+            answers: materials.answers
+          },
           pdf: {
-            fileName: pdfResult.fileName,
-            downloadUrl: `/api/download-pdf/${pdfResult.fileName}`
+            questionsFile: questionsResult.fileName,
+            answersFile: answersResult.fileName,
+            questionsDownloadUrl: `/api/download-pdf/${questionsResult.fileName}`,
+            answersDownloadUrl: `/api/download-pdf/${answersResult.fileName}`
           }
         });
       } else {
-        res.json(materials);
+        res.json({
+          success: true,
+          materials
+        });
       }
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error("Differentiated materials generation error:", error);
+      res.status(500).json({ 
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        details: error.stack
+      });
     }
   });
 

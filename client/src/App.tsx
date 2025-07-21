@@ -7,6 +7,7 @@ import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import NCERTManagement from "@/pages/ncert-management";
 import ContentGenerator from "@/pages/content-generator";
+import DifferentiatedMaterials from "@/pages/differentiated-materials";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/ncert" component={NCERTManagement} />
       <Route path="/content-generator" component={ContentGenerator} />
+      <Route path="/differentiated-materials" component={DifferentiatedMaterials} />
       <Route component={NotFound} />
     </Switch>
   );

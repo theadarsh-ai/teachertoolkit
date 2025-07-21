@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Differentiated Materials</title>
+</head>
+<body>
+    <h1>Test Differentiated Materials Agent</h1>
+    
+    <form id="testForm">
+        <h3>Text Input Test</h3>
+        <textarea id="content" rows="4" cols="50">
+The water cycle is the continuous movement of water on, above and below the surface of Earth. Water evaporates from oceans, rivers and lakes to form clouds. Then it falls back as rain or snow.
+        </textarea>
+        <br><br>
+        
+        <label>Grades:</label>
+        <select id="grades" multiple>
+            <option value="1">Grade 1</option>
+            <option value="2" selected>Grade 2</option>
+            <option value="3" selected>Grade 3</option>
+            <option value="4">Grade 4</option>
+            <option value="5">Grade 5</option>
+        </select>
+        <br><br>
+        
+        <label>Question Count:</label>
+        <select id="questionCount">
+            <option value="3" selected>3 Questions</option>
+            <option value="5">5 Questions</option>
+            <option value="10">10 Questions</option>
+        </select>
+        <br><br>
+        
+        <button type="button" onclick="testTextInput()">Test Text Input</button>
+        <br><br>
+        
+        <h3>Image Upload Test</h3>
+        <input type="file" id="imageFile" accept="image/*">
+        <br><br>
+        <button type="button" onclick="testImageUpload()">Test Image Upload</button>
+    </form>
+    
+    <div id="result" style="margin-top: 20px; padding: 10px; background: #f0f0f0; min-height: 100px;">
+        Results will appear here...
+    </div>
+
+    <script>
+        function getSelectedGrades() {
+            const select = document.getElementById('grades');
+            return Array.from(select.selectedOptions).map(option => parseInt(option.value));
+        }
+
+        async function testTextInput() {
+            const content = document.getElementById('content').value;
+            const grades = getSelectedGrades();
+            const questionCount = parseInt(document.getElementById('questionCount').value);
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing text input...';
+            
+            const formData = new FormData();
+            formData.append('sourceContent', content);
+            formData.append('grades', JSON.stringify(grades));
+            formData.append('questionType', 'multiple-choice');
+            formData.append('questionCount', questionCount.toString());
+            formData.append('userId', '1');
+            
+            try {
+                const response = await fetch('/api/agents/differentiated-materials', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <h4>Success!</h4>
+                        <p>${data.message}</p>
+                        <div>
+                            <a href="${data.pdf.questionsDownloadUrl}" target="_blank">Download Questions PDF</a> | 
+                            <a href="${data.pdf.answersDownloadUrl}" target="_blank">Download Answers PDF</a>
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h4>Error</h4>
+                        <p>${data.error}</p>
+                        <pre>${data.details || ''}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<h4>Network Error</h4><p>${error.message}</p>`;
+            }
+        }
+
+        async function testImageUpload() {
+            const fileInput = document.getElementById('imageFile');
+            const grades = getSelectedGrades();
+            const questionCount = parseInt(document.getElementById('questionCount').value);
+            
+            if (!fileInput.files[0]) {
+                alert('Please select an image file first');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing image upload...';
+            
+            const formData = new FormData();
+            formData.append('uploadedImage', fileInput.files[0]);
+            formData.append('grades', JSON.stringify(grades));
+            formData.append('questionType', 'multiple-choice');
+            formData.append('questionCount', questionCount.toString());
+            formData.append('userId', '1');
+            
+            try {
+                const response = await fetch('/api/agents/differentiated-materials', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <h4>Success!</h4>
+                        <p>${data.message}</p>
+                        <div>
+                            <a href="${data.pdf.questionsDownloadUrl}" target="_blank">Download Questions PDF</a> | 
+                            <a href="${data.pdf.answersDownloadUrl}" target="_blank">Download Answers PDF</a>
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h4>Error</h4>
+                        <p>${data.error}</p>
+                        <pre>${data.details || ''}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<h4>Network Error</h4><p>${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
