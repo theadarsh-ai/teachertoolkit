@@ -47,6 +47,47 @@ export const generatedContent = pgTable("generated_content", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// NCERT Textbooks Database Schema
+export const ncertTextbooks = pgTable("ncert_textbooks", {
+  id: serial("id").primaryKey(),
+  class: integer("class").notNull(), // 1-12
+  subject: text("subject").notNull(),
+  bookTitle: text("book_title").notNull(),
+  language: text("language").notNull(), // Hindi, English, Urdu
+  pdfUrl: text("pdf_url").notNull(),
+  downloadedAt: timestamp("downloaded_at"),
+  contentExtracted: boolean("content_extracted").default(false).notNull(),
+  metadata: jsonb("metadata").$type<Record<string, any>>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const ncertChapters = pgTable("ncert_chapters", {
+  id: serial("id").primaryKey(),
+  textbookId: integer("textbook_id").references(() => ncertTextbooks.id).notNull(),
+  chapterNumber: integer("chapter_number").notNull(),
+  chapterTitle: text("chapter_title").notNull(),
+  content: text("content"), // Extracted text content
+  pageStart: integer("page_start"),
+  pageEnd: integer("page_end"),
+  topics: jsonb("topics").$type<string[]>(),
+  keywords: jsonb("keywords").$type<string[]>(),
+  learningObjectives: jsonb("learning_objectives").$type<string[]>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const ncertTopics = pgTable("ncert_topics", {
+  id: serial("id").primaryKey(),
+  chapterId: integer("chapter_id").references(() => ncertChapters.id).notNull(),
+  topicTitle: text("topic_title").notNull(),
+  content: text("content").notNull(),
+  difficulty: text("difficulty").notNull(), // basic, intermediate, advanced
+  concepts: jsonb("concepts").$type<string[]>(),
+  examples: jsonb("examples").$type<string[]>(),
+  exercises: jsonb("exercises").$type<string[]>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   name: true,
@@ -79,6 +120,39 @@ export const insertGeneratedContentSchema = createInsertSchema(generatedContent)
   title: true,
   content: true,
   metadata: true,
+});
+
+export const insertNCERTTextbookSchema = createInsertSchema(ncertTextbooks).pick({
+  class: true,
+  subject: true,
+  bookTitle: true,
+  language: true,
+  pdfUrl: true,
+  downloadedAt: true,
+  contentExtracted: true,
+  metadata: true,
+});
+
+export const insertNCERTChapterSchema = createInsertSchema(ncertChapters).pick({
+  textbookId: true,
+  chapterNumber: true,
+  chapterTitle: true,
+  content: true,
+  pageStart: true,
+  pageEnd: true,
+  topics: true,
+  keywords: true,
+  learningObjectives: true,
+});
+
+export const insertNCERTTopicSchema = createInsertSchema(ncertTopics).pick({
+  chapterId: true,
+  topicTitle: true,
+  content: true,
+  difficulty: true,
+  concepts: true,
+  examples: true,
+  exercises: true,
 });
 
 export type User = typeof users.$inferSelect;
