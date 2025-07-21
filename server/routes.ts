@@ -38,6 +38,50 @@ async function callPythonAgent(endpoint: string, data: any) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // ========== FIREBASE NCERT TEXTBOOKS ROUTES ==========
+  
+  app.get("/api/ncert/textbooks", async (req, res) => {
+    try {
+      const { firebaseNCERTStorage } = await import('./firebase-admin-ncert');
+      const textbooks = await firebaseNCERTStorage.getAllTextbooks();
+      res.json({
+        success: true,
+        count: textbooks.length,
+        data: textbooks,
+        source: "Firebase Firestore"
+      });
+    } catch (error) {
+      console.error("Error fetching NCERT textbooks from Firebase:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to fetch textbooks from Firebase Firestore. Make sure the Firestore API is enabled.",
+        hint: "Visit https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=genzion-ai to enable Firestore API"
+      });
+    }
+  });
+
+  app.post("/api/ncert/scrape", async (req, res) => {
+    try {
+      console.log("🚀 Starting NCERT scraping to Firebase Firestore...");
+      const { scrapeNCERTTextbooksToFirebase } = await import('./ncert-scraper-firebase');
+      const result = await scrapeNCERTTextbooksToFirebase();
+      res.json({
+        success: true,
+        count: result.storedCount,
+        scrapedTotal: result.scrapedCount,
+        message: `Successfully scraped ${result.scrapedCount} textbooks and stored ${result.storedCount} in Firebase Firestore`,
+        destination: "Firebase Firestore"
+      });
+    } catch (error) {
+      console.error("NCERT Firebase scraping error:", error);
+      res.status(500).json({
+        success: false,
+        error: `Failed to scrape NCERT textbooks to Firebase: ${error.message}`,
+        hint: "Make sure Firebase Admin credentials are set and Firestore API is enabled"
+      });
+    }
+  });
+  
   // User routes
   app.post("/api/users", async (req, res) => {
     try {
