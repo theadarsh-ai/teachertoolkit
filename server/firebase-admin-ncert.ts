@@ -24,13 +24,14 @@ try {
       privateKey = `-----BEGIN PRIVATE KEY-----\n${privateKey}\n-----END PRIVATE KEY-----`;
     }
 
+    console.log('🔧 Initializing Firebase with project:', process.env.FIREBASE_PROJECT_ID);
+    
     adminApp = initializeApp({
       credential: cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey: privateKey,
       }),
-      // Remove databaseURL - only needed for Realtime Database
     });
     
     console.log('✅ Firebase Admin initialized successfully');
@@ -41,7 +42,28 @@ try {
   }
 }
 
-export const adminDb = getFirestore(adminApp);
+// Initialize Firestore with explicit settings - try different database names
+let adminDb: any;
+try {
+  // Try default database
+  adminDb = getFirestore(adminApp);
+  console.log('🔥 Connected to default Firestore database');
+} catch (error) {
+  console.log('⚠️  Default database failed, trying named database...');
+  try {
+    // Try with explicit database name
+    adminDb = getFirestore(adminApp, 'genzion-ai');
+    console.log('🔥 Connected to named Firestore database: genzion-ai');
+  } catch (error2) {
+    console.error('❌ Failed to connect to any Firestore database:', error2);
+    throw error2;
+  }
+}
+
+export { adminDb };
+
+// Debug connection
+console.log('🔥 Firestore instance initialized successfully');
 
 // NCERT Textbook interface for Firebase
 export interface NCERTTextbook {
