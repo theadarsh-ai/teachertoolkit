@@ -5,7 +5,8 @@ import { GradientCard, GradientIcon, Badge } from "@/components/ui/gradient-card
 import { AgentConfigModal } from "@/components/agent-config-modal";
 import { AgentWorkspace } from "@/components/agent-workspace";
 import { MasterChatbot } from "@/components/master-chatbot";
-import { Bell, Users, Book, TrendingUp, Clock } from "lucide-react";
+import { Bell, Users, Book, TrendingUp, Clock, BookOpen } from "lucide-react";
+import { Link } from "wouter";
 import { AGENTS, type Agent } from "@/types/agents";
 import { auth, signOutUser } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -125,6 +126,12 @@ export default function Dashboard() {
             </div>
             
             <div className="flex items-center space-x-4">
+              <Link href="/ncert">
+                <Button variant="outline" size="sm" className="flex items-center space-x-2">
+                  <BookOpen className="w-4 h-4" />
+                  <span>NCERT Database</span>
+                </Button>
+              </Link>
               <Button variant="ghost" size="sm">
                 <Bell className="h-5 w-5 text-gray-600" />
                 <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>

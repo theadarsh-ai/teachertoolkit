@@ -9,6 +9,7 @@ import {
   insertChatMessageSchema,
   insertGeneratedContentSchema 
 } from "@shared/schema";
+import { NCERTScraper } from "./ncert-scraper";
 
 // Python LangGraph Agents API Configuration
 const PYTHON_AGENTS_URL = "http://localhost:8000";
@@ -402,6 +403,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
+
+  // NCERT Textbooks Management
+  const ncertScraper = new NCERTScraper();
+
+  // Scrape and store all NCERT textbooks
+  app.post("/api/ncert/scrape", async (req, res) => {
+    try {
+      console.log('🚀 Starting NCERT textbook scraping...');
+      
+      const books = await ncertScraper.scrapeAllTextbooks();
+      await ncertScraper.storeTextbooksInFirebase(books);
+      
+      res.json({
+        success: true,
+        message: `Successfully scraped and stored ${books.length} NCERT textbooks`,
+        count: books.length,
+        data: books
+      });
+    } catch (error) {
+      console.error('NCERT scraping error:', error);
+      res.status(500).json({ 
+        error: 'Failed to scrape NCERT textbooks',
+        details: String(error)
+      });
+    }
+  });
+
+  // Get all stored NCERT textbooks
+  app.get("/api/ncert/textbooks", async (req, res) => {
+    try {
+      const textbooks = await ncertScraper.getAllStoredTextbooks();
+      res.json({
+        success: true,
+        count: textbooks.length,
+        data: textbooks
+      });
+    } catch (error) {
+      console.error('Error fetching textbooks:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch NCERT textbooks',
+        details: String(error)
+      });
+    }
+  });
+
+  // Get NCERT textbooks by class
+  app.get("/api/ncert/textbooks/class/:classNum", async (req, res) => {
+    try {
+      const classNum = parseInt(req.params.classNum);
+      const textbooks = await ncertScraper.getTextbooksByClass(classNum);
+      res.json({
+        success: true,
+        class: classNum,
+        count: textbooks.length,
+        data: textbooks
+      });
+    } catch (error) {
+      console.error(`Error fetching class ${req.params.classNum} textbooks:`, error);
+      res.status(500).json({ 
+        error: `Failed to fetch class ${req.params.classNum} textbooks`,
+        details: String(error)
+      });
+    }
+  });
+
+  // Get NCERT textbooks by subject
+  app.get("/api/ncert/textbooks/subject/:subject", async (req, res) => {
+    try {
+      const subject = req.params.subject;
+      const textbooks = await ncertScraper.getTextbooksBySubject(subject);
+      res.json({
+        success: true,
+        subject,
+        count: textbooks.length,
+        data: textbooks
+      });
+    } catch (error) {
+      console.error(`Error fetching ${req.params.subject} textbooks:`, error);
+      res.status(500).json({ 
+        error: `Failed to fetch ${req.params.subject} textbooks`,
+        details: String(error)
+      });
     }
   });
 

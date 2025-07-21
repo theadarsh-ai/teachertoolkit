@@ -4,6 +4,7 @@ Common functionality and interfaces for all educational agents
 """
 import os
 from typing import Dict, List, Any, Optional
+from .ncert_integration import get_ncert_context, validate_content_alignment
 from abc import ABC, abstractmethod
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, END
