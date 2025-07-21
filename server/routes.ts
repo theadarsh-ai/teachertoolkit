@@ -10,6 +10,31 @@ import {
   insertGeneratedContentSchema 
 } from "@shared/schema";
 
+// Python LangGraph Agents API Configuration
+const PYTHON_AGENTS_URL = "http://localhost:8000";
+
+// Helper function to call Python agents
+async function callPythonAgent(endpoint: string, data: any) {
+  try {
+    const response = await fetch(`${PYTHON_AGENTS_URL}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Python agent request failed: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Python agent error:', error);
+    throw error;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // User routes
@@ -196,6 +221,177 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(analysis);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
+
+  // ========== PYTHON LANGGRAPH AGENT ROUTES ==========
+  
+  // Python LangGraph Agent routes
+  app.post("/api/langgraph/agents/:agentType/generate", async (req, res) => {
+    try {
+      const { agentType } = req.params;
+      const { prompt, grades, languages, contentSource, metadata } = req.body;
+      
+      // Validate input
+      if (!agentType || !prompt || !grades || !Array.isArray(grades)) {
+        res.status(400).json({ error: "Missing required fields: agentType, prompt, grades" });
+        return;
+      }
+
+      const agentData = {
+        prompt,
+        grades,
+        languages: languages || ["English"],
+        content_source: contentSource || "prebook",
+        metadata: metadata || {}
+      };
+
+      const result = await callPythonAgent(`/agents/${agentType}/generate`, agentData);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Python LangGraph agent error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Python agent generation failed',
+        fallback_message: "Python AI agents are starting up. Please try again in a moment."
+      });
+    }
+  });
+
+  // Lesson planner specific route
+  app.post("/api/langgraph/agents/lesson-planner/create-plan", async (req, res) => {
+    try {
+      const { topic, grades, duration, languages, contentSource } = req.body;
+      
+      if (!topic || !grades || !duration) {
+        res.status(400).json({ error: "Missing required fields: topic, grades, duration" });
+        return;
+      }
+
+      const planData = {
+        topic,
+        grades,
+        duration,
+        languages: languages || ["English"],
+        content_source: contentSource || "prebook"
+      };
+
+      const result = await callPythonAgent('/agents/lesson-planner/create-plan', planData);
+      res.json(result);
+    } catch (error) {
+      console.error("Lesson planner error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Lesson planning failed',
+        fallback_message: "Python AI agents are starting up. Please try again in a moment."
+      });
+    }
+  });
+
+  // Performance analysis route
+  app.post("/api/langgraph/agents/performance-analysis/analyze", async (req, res) => {
+    try {
+      const { studentData, grades, subject } = req.body;
+      
+      if (!studentData || !grades || !subject) {
+        res.status(400).json({ error: "Missing required fields: studentData, grades, subject" });
+        return;
+      }
+
+      const analysisData = {
+        student_data: studentData,
+        grades,
+        subject
+      };
+
+      const result = await callPythonAgent('/agents/performance-analysis/analyze', analysisData);
+      res.json(result);
+    } catch (error) {
+      console.error("Performance analysis error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Performance analysis failed',
+        fallback_message: "Python AI agents are starting up. Please try again in a moment."
+      });
+    }
+  });
+
+  // Master chatbot route
+  app.post("/api/langgraph/agents/master-chatbot/chat", async (req, res) => {
+    try {
+      const { prompt, grades, languages, metadata } = req.body;
+      
+      if (!prompt || !grades) {
+        res.status(400).json({ error: "Missing required fields: prompt, grades" });
+        return;
+      }
+
+      const chatData = {
+        prompt,
+        grades,
+        languages: languages || ["English"],
+        content_source: metadata?.contentSource || "prebook",
+        metadata: metadata || {}
+      };
+
+      const result = await callPythonAgent('/agents/master-chatbot/chat', chatData);
+      res.json(result);
+    } catch (error) {
+      console.error("Master chatbot error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Master chatbot failed',
+        fallback_message: "Python AI agents are starting up. Please try again in a moment."
+      });
+    }
+  });
+
+  // Agent status route
+  app.get("/api/langgraph/agents/:agentType/status", async (req, res) => {
+    try {
+      const { agentType } = req.params;
+      
+      const response = await fetch(`${PYTHON_AGENTS_URL}/agents/${agentType}/status`);
+      
+      if (!response.ok) {
+        res.status(503).json({ 
+          error: "Python agents not available", 
+          status: "starting"
+        });
+        return;
+      }
+      
+      const status = await response.json();
+      res.json(status);
+    } catch (error) {
+      res.status(503).json({ 
+        error: "Python agents not available", 
+        status: "starting"
+      });
+    }
+  });
+
+  // Python agents health check
+  app.get("/api/langgraph/agents/health", async (req, res) => {
+    try {
+      const response = await fetch(`${PYTHON_AGENTS_URL}/`);
+      
+      if (!response.ok) {
+        res.status(503).json({ 
+          status: "unavailable", 
+          message: "Python AI agents are starting up"
+        });
+        return;
+      }
+      
+      const health = await response.json();
+      res.json({ 
+        status: "available", 
+        python_agents: health,
+        available_agents: health.available_agents || []
+      });
+    } catch (error) {
+      res.status(503).json({ 
+        status: "unavailable", 
+        message: "Python AI agents are starting up. Please wait a moment."
+      });
     }
   });
 
