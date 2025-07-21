@@ -313,22 +313,29 @@ export default function ContentGenerator() {
                     </AlertDescription>
                   </Alert>
 
-                  {/* PDF Download */}
+                  {/* Document Download */}
                   {generatedContent.pdf && (
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Download className="w-5 h-5 text-blue-600" />
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-green-100 dark:bg-green-800 rounded-full">
+                            <FileText className="w-5 h-5 text-green-600 dark:text-green-400" />
+                          </div>
                           <div>
-                            <p className="font-medium">PDF Generated Successfully</p>
-                            <p className="text-sm text-muted-foreground">
-                              {generatedContent.pdf.fileName}
+                            <p className="font-semibold text-green-800 dark:text-green-200">Document Ready for Download</p>
+                            <p className="text-sm text-green-600 dark:text-green-400">
+                              Structured educational content with Indian cultural examples
                             </p>
                           </div>
                         </div>
-                        <Button asChild>
+                        <Button 
+                          asChild 
+                          size="lg"
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
                           <a href={generatedContent.pdf.downloadUrl} download>
-                            Download PDF
+                            <Download className="w-5 h-5 mr-2" />
+                            Download
                           </a>
                         </Button>
                       </div>
@@ -348,37 +355,34 @@ export default function ContentGenerator() {
                   </div>
 
                   {/* Content Preview */}
-                  <Tabs defaultValue="preview" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="preview">Content Preview</TabsTrigger>
-                      <TabsTrigger value="details">Generation Details</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="preview" className="space-y-4">
-                      <div className="max-h-64 overflow-y-auto p-4 bg-white dark:bg-gray-900 rounded-lg border">
-                        <div className="prose prose-sm max-w-none">
-                          {generatedContent.content.split('\n').map((line, index) => (
-                            <p key={index} className="mb-2">{line}</p>
-                          ))}
-                        </div>
+                  <div className="space-y-4">
+                    <div className="max-h-64 overflow-y-auto p-4 bg-white dark:bg-gray-900 rounded-lg border">
+                      <div className="prose prose-sm max-w-none">
+                        {generatedContent.content.split('\n').slice(0, 15).map((line, index) => (
+                          <p key={index} className="mb-2">{line.length > 100 ? line.substring(0, 100) + '...' : line}</p>
+                        ))}
+                        {generatedContent.content.split('\n').length > 15 && (
+                          <p className="text-muted-foreground italic">... and more content available in the downloadable document</p>
+                        )}
                       </div>
-                    </TabsContent>
-                    <TabsContent value="details" className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <strong>Grades:</strong> {selectedGrades.join(', ')}
-                        </div>
-                        <div>
-                          <strong>Languages:</strong> {selectedLanguages.join(', ')}
-                        </div>
-                        <div>
-                          <strong>Source:</strong> {contentSource === 'prebook' ? 'NCERT Textbooks' : 'External Resources'}
-                        </div>
-                        <div>
-                          <strong>AI Model:</strong> Gemini 2.5 Flash
-                        </div>
+                    </div>
+                    
+                    {/* Generation Details */}
+                    <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                      <div>
+                        <strong>Grades:</strong> {selectedGrades.join(', ')}
                       </div>
-                    </TabsContent>
-                  </Tabs>
+                      <div>
+                        <strong>Languages:</strong> {selectedLanguages.join(', ')}
+                      </div>
+                      <div>
+                        <strong>Source:</strong> {contentSource === 'prebook' ? 'NCERT Textbooks' : 'External Resources'}
+                      </div>
+                      <div>
+                        <strong>AI Model:</strong> Gemini 2.5 Flash
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </CardContent>

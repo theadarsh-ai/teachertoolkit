@@ -52,6 +52,9 @@ export default function Dashboard() {
   const handleAgentClick = (agent: Agent) => {
     if (agent.id === 'master-chatbot') {
       setShowMasterChat(true);
+    } else if (agent.id === 'content-generation') {
+      // Direct navigation to Content Generator page
+      setLocation('/content-generator');
     } else {
       setSelectedAgent(agent);
       setShowAgentModal(true);
