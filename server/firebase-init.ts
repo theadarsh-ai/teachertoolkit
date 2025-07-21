@@ -5,6 +5,12 @@ export async function initializeFirebaseData() {
   try {
     console.log('🔥 Setting up Firebase for EduAI Platform...');
     
+    // Set emulator environment for local development
+    if (process.env.NODE_ENV === 'development') {
+      process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+      console.log('🔧 Using Firebase Emulator for local development');
+    }
+    
     if (firebaseStorage.initializeDemoData) {
       await firebaseStorage.initializeDemoData();
       console.log('✅ Firebase demo data initialized successfully');
@@ -17,7 +23,7 @@ export async function initializeFirebaseData() {
     return true;
   } catch (error) {
     console.error('❌ Firebase initialization failed:', error);
-    console.log('💡 Make sure Firebase credentials are properly configured');
+    console.log('💡 Make sure Firebase emulators are running: npx firebase-tools emulators:start --only firestore');
     return false;
   }
 }
