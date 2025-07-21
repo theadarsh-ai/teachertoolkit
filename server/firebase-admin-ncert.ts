@@ -30,6 +30,7 @@ try {
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey: privateKey,
       }),
+      // Remove databaseURL - only needed for Realtime Database
     });
     
     console.log('✅ Firebase Admin initialized successfully');
