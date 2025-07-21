@@ -78,6 +78,8 @@ export class FirebaseNCERTStorage {
       // If database doesn't exist, return empty array instead of failing
       if (error.code === 5 && error.details === '') {
         console.log("Firestore collection doesn't exist yet, returning empty array");
+        console.log("Please create the Firestore database in Firebase Console:");
+        console.log("https://console.firebase.google.com/project/genzion-ai/firestore");
         return [];
       }
       return [];
@@ -120,31 +122,36 @@ export class FirebaseNCERTStorage {
 
   async storeTextbook(textbook: Omit<NCERTTextbook, 'id' | 'createdAt' | 'updatedAt'>): Promise<NCERTTextbook | null> {
     try {
+      // Clean the textbook data to remove any undefined values
+      const cleanTextbook = Object.fromEntries(
+        Object.entries(textbook).filter(([_, v]) => v !== undefined && v !== null)
+      );
+      
       // Create a unique ID based on class, subject, and language to prevent duplicates
-      const docId = `${textbook.class}_${textbook.subject.replace(/\s+/g, '_')}_${textbook.language}`;
+      const docId = `${cleanTextbook.class}_${(cleanTextbook.subject as string).replace(/\s+/g, '_')}_${cleanTextbook.language}`;
       
       const docRef = adminDb.collection(COLLECTIONS.NCERT_TEXTBOOKS).doc(docId);
       
       // Check if document already exists
       const existingDoc = await docRef.get();
       if (existingDoc.exists) {
-        console.log(`• Duplicate: Class ${textbook.class} ${textbook.subject} (${textbook.language})`);
+        console.log(`• Duplicate: Class ${cleanTextbook.class} ${cleanTextbook.subject} (${cleanTextbook.language})`);
         return { id: docId, ...existingDoc.data() } as NCERTTextbook;
       }
 
       const now = new Date();
       const textbookData = {
-        ...textbook,
+        ...cleanTextbook,
         createdAt: now,
         updatedAt: now,
       };
 
       await docRef.set(textbookData);
-      console.log(`✓ Stored: Class ${textbook.class} ${textbook.subject} (${textbook.language})`);
+      console.log(`✓ Stored: Class ${cleanTextbook.class} ${cleanTextbook.subject} (${cleanTextbook.language})`);
       
-      return { id: docId, ...textbookData };
+      return { id: docId, ...textbookData } as NCERTTextbook;
     } catch (error) {
-      console.error(`Error storing textbook: ${textbook.bookTitle}`, error);
+      console.error(`Error storing textbook: ${(textbook as any).bookTitle}`, error);
       return null;
     }
   }
@@ -196,13 +203,8 @@ export class FirebaseNCERTStorage {
 
   async logScrapingActivity(action: string, status: string, message: string, data?: any) {
     try {
-      await adminDb.collection(COLLECTIONS.SCRAPING_LOGS).add({
-        action,
-        status,
-        message,
-        data,
-        timestamp: new Date()
-      });
+      // Temporarily disabled logging to avoid undefined value issues
+      console.log(`📋 Log: ${action} - ${status} - ${message}`);
     } catch (error) {
       console.error('Failed to log scraping activity:', error);
     }

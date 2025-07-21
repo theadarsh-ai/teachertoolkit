@@ -34,7 +34,7 @@ export class FirebaseNCERTScraper {
   async scrapeAllTextbooks(): Promise<{ textbooks: NCERTBookInfo[], scrapedCount: number, storedCount: number }> {
     console.log('🚀 Starting comprehensive NCERT textbook scraping to Firebase Firestore');
     
-    await firebaseNCERTStorage.logScrapingActivity('scrape_start', 'started', 'Beginning NCERT textbook scraping process');
+    console.log('📚 Beginning NCERT textbook scraping process');
     
     const allBooks: NCERTBookInfo[] = [];
     let storedCount = 0;

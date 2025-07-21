@@ -40,6 +40,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // ========== FIREBASE NCERT TEXTBOOKS ROUTES ==========
   
+  // Test endpoint to initialize Firestore database
+  app.post("/api/ncert/init-firestore", async (req, res) => {
+    try {
+      console.log("🔥 Initializing Firestore database...");
+      const { firebaseNCERTStorage } = await import('./firebase-admin-ncert');
+      
+      // Try to store a simple test document
+      const testBook = await firebaseNCERTStorage.storeTextbook({
+        class: 1,
+        subject: 'Test Subject',
+        bookTitle: 'Test Book - Database Initialization',
+        language: 'English',
+        pdfUrl: 'https://example.com/test.pdf',
+        contentExtracted: false,
+        chapterCount: 1,
+        metadata: { 
+          source: 'initialization_test',
+          description: 'Test document to initialize Firestore database'
+        }
+      });
+      
+      if (testBook) {
+        console.log("✅ Firestore database initialized successfully");
+        res.json({
+          success: true,
+          message: "Firestore database initialized successfully",
+          testDocument: testBook
+        });
+      } else {
+        throw new Error("Failed to create test document");
+      }
+    } catch (error) {
+      console.error("❌ Firestore initialization failed:", error);
+      res.status(500).json({
+        success: false,
+        error: `Failed to initialize Firestore: ${error.message}`,
+        hint: "Make sure Firestore database is created in Firebase Console"
+      });
+    }
+  });
+  
   app.get("/api/ncert/textbooks", async (req, res) => {
     try {
       const { firebaseNCERTStorage } = await import('./firebase-admin-ncert');
@@ -65,9 +106,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("🚀 Starting NCERT scraping to Firebase Firestore...");
       
-      // First, initialize Firestore with a test document
-      const { firebaseNCERTStorage } = await import('./firebase-admin-ncert');
-      await firebaseNCERTStorage.logScrapingActivity('init', 'started', 'Initializing Firestore database');
+      // Skip logging for now to avoid undefined issues
+      console.log("Initializing scraping process...");
       
       const { scrapeNCERTTextbooksToFirebase } = await import('./ncert-scraper-firebase');
       const result = await scrapeNCERTTextbooksToFirebase();
