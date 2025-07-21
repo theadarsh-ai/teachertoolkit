@@ -64,7 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const scraper = new NCERTScraper();
       
       // Get from database through storage
-      const textbooks = await storage.getNCERTTextbooks();
+      const textbooks = await storage.getAllNCERTTextbooks();
       
       res.json({
         success: true,
@@ -262,7 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Store in database with PDF info
         const generatedContent = await storage.createGeneratedContent({
-          userId: userId || 'demo-user-id',
+          userId: userId || 1,
           agentType: 'content-generation',
           title: `Generated Educational Content: ${prompt.substring(0, 50)}...`,
           content: content.content, // Store actual content, not JSON
@@ -411,7 +411,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Store in database
         await storage.createGeneratedContent({
-          userId: userId || 'demo-user-id',
+          userId: parseInt(userId || '1'),
           agentType: 'differentiated-materials',
           title: `Differentiated Materials (${numQuestions} Questions)`,
           content: JSON.stringify(materials),

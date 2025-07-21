@@ -1,7 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { initializeFirebaseData, showFirebaseSetup } from "./firebase-init";
 
 const app = express();
 app.use(express.json());
@@ -38,17 +37,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Setup Firebase integration
-  showFirebaseSetup();
-  
-  // Initialize Firebase data
-  const firebaseReady = await initializeFirebaseData();
-  if (firebaseReady) {
-    console.log('🎉 Firebase integration complete - EduAI Platform ready!');
-  } else {
-    console.log('⚠️ Firebase setup incomplete - some features may not work');
-  }
-
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
