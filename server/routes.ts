@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { geminiEduService } from "./gemini";
+import { pdfGenerator } from "./pdf-generator";
 import { 
   insertUserSchema, 
   insertAgentConfigSchema, 
@@ -218,7 +219,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Agent-specific routes with Gemini
   app.post("/api/agents/content-generation", async (req, res) => {
     try {
-      const { prompt, grades, languages, contentSource } = req.body;
+      const { prompt, grades, languages, contentSource, userId, generatePDF = true } = req.body;
+      
+      console.log("🎯 Starting content generation with PDF output...");
+      
       const content = await geminiEduService.generateLocalizedContent({
         prompt,
         agentType: 'content-generation',
@@ -226,17 +230,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
         languages,
         contentSource
       });
-      res.json(content);
+      
+      // Generate PDF if requested (default behavior)
+      if (generatePDF) {
+        console.log("📄 Generating PDF for content...");
+        
+        const pdfResult = await pdfGenerator.generatePDF({
+          title: `Generated Educational Content: ${prompt.substring(0, 50)}...`,
+          content: content.content,
+          grades,
+          languages,
+          agentType: 'Hyper-Local Content Generator',
+          generatedAt: new Date()
+        });
+        
+        // Store in database with PDF info
+        const generatedContent = await storage.createGeneratedContent({
+          userId: userId || 1,
+          agentType: 'content-generation',
+          title: `Generated Educational Content: ${prompt.substring(0, 50)}...`,
+          content: content.content, // Store actual content, not JSON
+          metadata: { 
+            grades, 
+            languages, 
+            contentSource,
+            pdfFileName: pdfResult.fileName,
+            pdfPath: pdfResult.filePath,
+            culturallyRelevant: content.metadata?.culturallyRelevant,
+            ncertAligned: content.metadata?.ncertAligned
+          }
+        });
+        
+        res.json({
+          success: true,
+          message: "Educational content generated successfully",
+          content: content.content,
+          pdf: {
+            fileName: pdfResult.fileName,
+            downloadUrl: `/api/download-pdf/${pdfResult.fileName}`
+          },
+          metadata: content.metadata,
+          generatedContent
+        });
+      } else {
+        // Return JSON content only
+        res.json(content);
+      }
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error("Content generation error:", error);
+      res.status(500).json({ 
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        details: error.stack
+      });
+    }
+  });
+
+  // PDF Download route
+  app.get("/api/download-pdf/:fileName", async (req, res) => {
+    try {
+      const { fileName } = req.params;
+      
+      // Security check - ensure file exists and is valid type
+      if (!fileName.endsWith('.pdf') && !fileName.endsWith('.html')) {
+        return res.status(400).json({ error: "Invalid file type" });
+      }
+      
+      // Set headers based on file type
+      if (fileName.endsWith('.html')) {
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      } else {
+        res.setHeader('Content-Type', 'application/pdf');  
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      }
+      res.setHeader('Cache-Control', 'no-cache');
+      
+      // Send the file
+      res.sendFile(fileName, { root: 'generated_pdfs' }, (err) => {
+        if (err) {
+          console.error("PDF download error:", err);
+          if (!res.headersSent) {
+            res.status(404).json({ error: "PDF file not found" });
+          }
+        } else {
+          console.log(`✅ PDF downloaded: ${fileName}`);
+        }
+      });
+      
+    } catch (error) {
+      console.error("PDF download error:", error);
+      res.status(500).json({ error: "PDF download failed" });
     }
   });
 
   app.post("/api/agents/differentiated-materials", async (req, res) => {
     try {
-      const { sourceContent, grades } = req.body;
+      const { sourceContent, grades, generatePDF = true } = req.body;
       const materials = await geminiEduService.createDifferentiatedMaterials(sourceContent, grades);
-      res.json(materials);
+      
+      if (generatePDF) {
+        const pdfResult = await pdfGenerator.generatePDF({
+          title: `Differentiated Learning Materials (Grades ${grades.join(', ')})`,
+          content: JSON.stringify(materials.materials, null, 2),
+          grades,
+          languages: ['English'], // Default for differentiated materials
+          agentType: 'Differentiated Materials Generator',
+          generatedAt: new Date()
+        });
+        
+        res.json({
+          success: true,
+          materials,
+          pdf: {
+            fileName: pdfResult.fileName,
+            downloadUrl: `/api/download-pdf/${pdfResult.fileName}`
+          }
+        });
+      } else {
+        res.json(materials);
+      }
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
