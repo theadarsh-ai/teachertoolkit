@@ -59,14 +59,13 @@ app.use((req, res, next) => {
 
   // Get platform-specific configuration
   const config = getPlatformConfig();
-
+  
   server.listen({
-    port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
+    port: config.port,
     host: config.host,
     reusePort: true,
   }, () => {
     logPlatformInfo();
-    log(`serving on port ${process.env.PORT ? parseInt(process.env.PORT) : 3000}`);
+    log(`serving on port ${config.port}`);
   });
 })();
-`
