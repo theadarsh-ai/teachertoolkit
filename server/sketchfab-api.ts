@@ -68,10 +68,9 @@ class SketchfabService {
     } = {}
   ): Promise<SketchfabSearchResponse> {
     try {
-      const url = new URL(`${this.baseUrl}/search`);
+      const url = new URL(`${this.baseUrl}/models`);
       
       // Basic search parameters
-      url.searchParams.append('type', 'models');
       url.searchParams.append('q', query);
       url.searchParams.append('sort_by', options.sort || 'relevance');
       url.searchParams.append('count', (options.count || 24).toString());
@@ -101,6 +100,8 @@ class SketchfabService {
         url.searchParams.append('max_face_count', options.maxFaceCount.toString());
       }
 
+      console.log('🔗 Sketchfab API URL:', url.toString());
+      
       const response = await fetch(url.toString(), {
         headers: {
           'Authorization': `Token ${this.apiKey}`,
@@ -108,14 +109,20 @@ class SketchfabService {
         }
       });
 
+      console.log('📡 Sketchfab API Response:', response.status, response.statusText);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Sketchfab API Error:', response.status, errorText);
+        
         if (response.status === 401) {
           throw new Error(`Sketchfab API authentication failed. Please check your API key.`);
         }
-        throw new Error(`Sketchfab API error: ${response.status}`);
+        throw new Error(`Sketchfab API error: ${response.status} - ${errorText}`);
       }
 
       const data: SketchfabSearchResponse = await response.json();
+      console.log('📊 Sketchfab Data:', { count: data.count, results: data.results?.length || 0 });
       return data;
 
     } catch (error) {

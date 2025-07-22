@@ -832,6 +832,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         results.push(...standardizedSketchfab);
         
         console.log(`📦 Sketchfab found ${sketchfabResults.results.length} models`);
+        
+        // If no results from API, use demo models
+        if (sketchfabResults.results.length === 0) {
+          console.log('🎭 No API results, using demo educational models');
+          const mockService = new SketchfabService('demo');
+          const mockResults = await mockService.searchModels(query);
+          const mockModels = mockResults.results.map(model => 
+            mockService.convertToStandardModel(model)
+          );
+          results.push(...mockModels);
+        }
       } catch (error) {
         console.error('Sketchfab search failed:', error);
         
