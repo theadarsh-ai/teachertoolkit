@@ -50,22 +50,36 @@ export default function VisualAids() {
 
       const data = await response.json();
       
-      if (data.success && data.imageUrl) {
-        const newImage: GeneratedImage = {
-          url: data.imageUrl,
-          prompt: imagePrompt,
-          timestamp: Date.now()
-        };
-        
-        setCurrentImage(newImage);
-        setGeneratedImages(prev => [newImage, ...prev].slice(0, 10)); // Keep last 10 images
-        
-        toast({
-          title: "Image Generated!",
-          description: "Your visual aid has been created successfully",
-        });
+      if (data.success) {
+        if (data.imageUrl) {
+          const newImage: GeneratedImage = {
+            url: data.imageUrl,
+            prompt: imagePrompt,
+            timestamp: Date.now()
+          };
+          
+          setCurrentImage(newImage);
+          setGeneratedImages(prev => [newImage, ...prev].slice(0, 10)); // Keep last 10 images
+          
+          toast({
+            title: "Image Generated!",
+            description: `Visual aid created successfully${data.model ? ` using ${data.model}` : ''}`,
+          });
+        } else if (data.textDescription) {
+          // Handle fallback mode with text description
+          toast({
+            title: "Description Generated",
+            description: "A detailed text description was created for your visual aid",
+            variant: "default",
+          });
+          
+          // You could display the text description in the UI here
+          console.log('Generated description:', data.textDescription);
+        } else {
+          throw new Error('No image or description generated');
+        }
       } else {
-        throw new Error(data.message || 'Failed to generate image');
+        throw new Error(data.message || 'Failed to generate visual aid');
       }
     } catch (error) {
       console.error('Image generation error:', error);
@@ -111,14 +125,14 @@ export default function VisualAids() {
   };
 
   const suggestedPrompts = [
-    "Solar system with planets and their orbits",
-    "Human heart anatomy with labeled parts",
-    "Water cycle diagram with evaporation and precipitation",
-    "Plant cell structure with organelles",
-    "Food chain in a forest ecosystem",
-    "Mathematical geometric shapes and their properties",
-    "Chemical bonds between atoms and molecules",
-    "India map showing different states and capitals"
+    "Solar system diagram with clearly labeled planets, orbits, and distances",
+    "Human heart anatomy with bold labels for all chambers and vessels",
+    "Water cycle process with large text labels for evaporation, condensation, precipitation",
+    "Plant cell structure with clearly marked organelles and their functions",
+    "Food chain diagram showing energy flow with readable species names",
+    "Mathematical geometric shapes with angle measurements and property labels",
+    "Chemical bond types with clear molecular diagrams and bond labels",
+    "India political map with state names in large, readable fonts"
   ];
 
   return (

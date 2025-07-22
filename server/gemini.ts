@@ -76,17 +76,25 @@ Generate educational content based on: ${prompt}`;
   async generateVisualAid(options: VisualAidsOptions): Promise<any> {
     const { prompt, style = 'educational', size = '1024x1024' } = options;
     
-    // Enhanced prompt for educational context
-    const enhancedPrompt = `Educational illustration: ${prompt}. 
-Style: Clean, clear, and suitable for classroom use. 
-Context: Indian educational setting with culturally appropriate elements.
-Quality: High-quality, professional educational diagram or image.
-Colors: Vibrant but educational, easy to read labels if needed.`;
+    // Enhanced prompt for educational context with emphasis on text clarity
+    const enhancedPrompt = `Create a detailed educational diagram: ${prompt}
+
+Requirements:
+- Style: Clean, professional educational illustration suitable for classroom display
+- Text: Large, clear, bold fonts for all labels and text elements
+- Colors: High contrast colors for maximum readability (dark text on light backgrounds)
+- Layout: Well-organized with proper spacing between elements
+- Labels: All important parts should be clearly labeled with readable text
+- Context: Appropriate for Indian educational curriculum and cultural context
+- Quality: High-resolution professional diagram with crisp, clear text
+- Typography: Use sans-serif fonts for better readability at any size
+
+Make sure all text elements are clearly visible and easy to read even when the image is displayed on a projector or printed.`;
     
     try {
-      // Using Gemini 2.0 Flash for image generation
+      // First try with Gemini 2.5 Pro for better accuracy
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash-preview-image-generation",
+        model: "gemini-2.5-pro",
         contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
         config: {
           responseModalities: ["TEXT", "IMAGE"],
@@ -121,11 +129,70 @@ Colors: Vibrant but educational, easy to read labels if needed.`;
         }
       }
 
-      throw new Error("No image data found in response");
+      // If no image found, try alternative approach with text-based description
+      console.log('No direct image generated, trying text-based generation...');
+      
+      // Fallback: Generate descriptive text for the visual aid
+      const textResponse = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `Create a detailed text description for an educational visual aid: ${prompt}. 
+        Include specific details about layout, colors, labels, and educational elements that would make this an effective classroom visual aid.`
+      });
+
+      return {
+        success: true,
+        imageUrl: null,
+        textDescription: textResponse.text || 'Description generation failed',
+        prompt: prompt,
+        style,
+        size,
+        timestamp: Date.now(),
+        fallbackMode: true
+      };
       
     } catch (error) {
       console.error('Visual aid generation error:', error);
-      throw new Error(`Failed to generate visual aid: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Try fallback with Gemini 2.5 Flash
+      try {
+        console.log('Retrying with Gemini 2.5 Flash...');
+        const fallbackResponse = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
+          config: {
+            responseModalities: ["TEXT", "IMAGE"],
+          },
+        });
+
+        const fallbackCandidates = fallbackResponse.candidates;
+        if (fallbackCandidates && fallbackCandidates.length > 0) {
+          const fallbackContent = fallbackCandidates[0].content;
+          if (fallbackContent && fallbackContent.parts) {
+            for (const part of fallbackContent.parts) {
+              if (part.inlineData && part.inlineData.data) {
+                const mimeType = part.inlineData.mimeType || 'image/png';
+                const dataUrl = `data:${mimeType};base64,${part.inlineData.data}`;
+                
+                return {
+                  success: true,
+                  imageUrl: dataUrl,
+                  prompt: prompt,
+                  style,
+                  size,
+                  timestamp: Date.now(),
+                  model: "gemini-2.5-flash"
+                };
+              }
+            }
+          }
+        }
+        
+        throw new Error("Fallback generation also failed");
+        
+      } catch (fallbackError) {
+        console.error('Fallback generation error:', fallbackError);
+        throw new Error(`Failed to generate visual aid with both models: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     }
   }
 
