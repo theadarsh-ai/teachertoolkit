@@ -100,9 +100,13 @@ export class FirebaseNCERTStorage {
       console.error("Error fetching NCERT textbooks from Firebase:", error);
       // If database doesn't exist, return empty array instead of failing
       if (error.code === 5 && error.details === '') {
-        console.log("Firestore collection doesn't exist yet, returning empty array");
-        console.log("Please create the Firestore database in Firebase Console:");
-        console.log("https://console.firebase.google.com/project/genzion-ai/firestore");
+        console.log("📋 Firestore database needs to be created manually");
+        console.log("🔗 Please visit: https://console.firebase.google.com/project/genzion-ai/firestore");
+        console.log("1. Click 'Create database'");
+        console.log("2. Choose 'Start in test mode' for development");
+        console.log("3. Select your preferred location");
+        console.log("4. Click 'Done'");
+        console.log("5. Then run the scraping again");
         return [];
       }
       return [];

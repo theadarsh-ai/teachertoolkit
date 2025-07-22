@@ -1,56 +1,48 @@
+// Direct test to create Firestore database without going through collections
 import { adminDb } from './firebase-admin-ncert';
 
-async function testFirestoreConnection() {
+async function createFirestoreDatabase() {
   try {
-    console.log('🔥 Testing direct Firestore connection...');
+    console.log('🔥 Testing direct Firestore database creation...');
     
-    // Try to create a simple document
+    // Try to write a single document to force database creation
     const testRef = adminDb.collection('test').doc('init');
-    
     await testRef.set({
-      message: 'Hello Firestore!',
+      message: 'Database created successfully',
       timestamp: new Date(),
-      initialized: true
+      purpose: 'Force database creation'
     });
     
-    console.log('✅ Document created successfully');
+    console.log('✅ Database created! Now creating NCERT collection...');
     
-    // Try to read it back
-    const doc = await testRef.get();
-    if (doc.exists) {
-      console.log('✅ Document retrieved successfully:', doc.data());
-      
-      // Now try NCERT collection
-      const ncertRef = adminDb.collection('ncert_textbooks').doc('test-book');
-      await ncertRef.set({
-        class: 1,
-        subject: 'Mathematics',
-        bookTitle: 'Test Book',
-        language: 'English',
-        pdfUrl: 'https://example.com/test.pdf',
-        contentExtracted: false,
-        chapterCount: 0,
-        metadata: {},
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-      
-      console.log('✅ NCERT test document created successfully');
-      
-      return { success: true, message: 'Firestore is working!' };
-    } else {
-      throw new Error('Document was not found after creation');
-    }
+    // Create NCERT textbooks collection
+    const ncertRef = adminDb.collection('ncert_textbooks').doc('_init');
+    await ncertRef.set({
+      _initialized: true,
+      createdAt: new Date(),
+      description: 'NCERT textbooks collection initialized'
+    });
+    
+    console.log('✅ NCERT collection created!');
+    
+    // Clean up test document
+    await testRef.delete();
+    console.log('✅ Test document cleaned up');
+    
+    return true;
   } catch (error) {
-    console.error('❌ Firestore test failed:', error);
-    return { success: false, error: error.message };
+    console.error('❌ Database creation failed:', error);
+    console.log('');
+    console.log('🚨 MANUAL SETUP REQUIRED:');
+    console.log('1. Visit: https://console.firebase.google.com/project/genzion-ai/firestore');
+    console.log('2. Click "Create database"');
+    console.log('3. Choose "Start in test mode"');
+    console.log('4. Select location (e.g., us-central1)');
+    console.log('5. Click "Done"');
+    console.log('6. Then run the scraping process');
+    return false;
   }
 }
 
-testFirestoreConnection().then(result => {
-  console.log('Final result:', result);
-  process.exit(result.success ? 0 : 1);
-}).catch(error => {
-  console.error('Test error:', error);
-  process.exit(1);
-});
+// Export for use in routes
+export { createFirestoreDatabase };

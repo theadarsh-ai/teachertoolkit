@@ -63,25 +63,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize Firestore database if needed
   app.post("/api/firestore/init", async (req, res) => {
     try {
-      const { initializeFirestoreDatabase } = await import('./init-firestore');
-      const success = await initializeFirestoreDatabase();
+      console.log('🔥 Attempting to create Firestore database...');
+      
+      const { createFirestoreDatabase } = await import('./test-firestore-direct');
+      const success = await createFirestoreDatabase();
       
       if (success) {
         res.json({
           success: true,
-          message: "Firestore database initialized successfully"
+          message: "Firestore database created successfully! You can now run scraping."
         });
       } else {
         res.status(500).json({
           success: false,
-          error: "Failed to initialize Firestore database"
+          error: "Database creation failed",
+          message: "Please create Firestore database manually in Firebase Console",
+          url: "https://console.firebase.google.com/project/genzion-ai/firestore"
         });
       }
     } catch (error) {
-      console.error('Firestore initialization error:', error);
+      console.error('Firestore creation error:', error);
       res.status(500).json({
         success: false,
-        error: "Failed to initialize Firestore database",
+        error: "Database creation failed",
+        message: "Please create Firestore database manually in Firebase Console", 
+        url: "https://console.firebase.google.com/project/genzion-ai/firestore",
         details: String(error)
       });
     }
@@ -737,7 +743,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true,
           count: 0,
           data: [],
-          message: "Firestore database not initialized. Please run scraping first or initialize database."
+          message: "Firestore database needs manual setup",
+          instructions: "Visit https://console.firebase.google.com/project/genzion-ai/firestore to create database",
+          nextStep: "After creating database, run POST /api/ncert/scrape to populate data"
         });
       }
       
