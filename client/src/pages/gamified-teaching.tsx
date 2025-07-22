@@ -475,7 +475,7 @@ export default function GamifiedTeaching() {
                       <span>{currentGame.title}</span>
                     </div>
                     <Badge className="bg-white/20 text-white">
-                      {currentGame.gameType.toUpperCase()}
+                      {currentGame.gameType?.toUpperCase() || 'QUIZ'}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
