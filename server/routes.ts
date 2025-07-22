@@ -1002,10 +1002,25 @@ Format as JSON with structure:
   }
 }`;
 
-      const response = await geminiEduService.generateContent(gamePrompt);
+      const response = await geminiEduService.generateLocalizedContent({
+        prompt: gamePrompt,
+        agentType: 'gamified-teaching',
+        grades: [grade],
+        languages: ['English'],
+        contentSource: 'external'
+      });
       
       try {
-        const gameData = JSON.parse(response);
+        // Clean up the response by removing markdown code blocks
+        let cleanContent = response.content;
+        if (cleanContent.includes('```json')) {
+          cleanContent = cleanContent.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
+        }
+        if (cleanContent.includes('```')) {
+          cleanContent = cleanContent.replace(/```[\s\S]*?```/g, '').trim();
+        }
+        
+        const gameData = JSON.parse(cleanContent);
         
         // Add unique IDs
         const game = {

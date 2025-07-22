@@ -97,10 +97,8 @@ export default function GamifiedTeaching() {
   // Game Generation Mutation
   const generateGameMutation = useMutation({
     mutationFn: async (config: GameConfig) => {
-      return await apiRequest('/api/agents/gamified-teaching/generate-game', {
-        method: 'POST',
-        body: JSON.stringify(config)
-      });
+      const response = await apiRequest('POST', '/api/agents/gamified-teaching/generate-game', config);
+      return await response.json();
     },
     onSuccess: (data) => {
       setCurrentGame(data.game);
