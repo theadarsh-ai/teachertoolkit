@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { spawn } from "child_process";
 import multer from "multer";
 import { storage } from "./storage";
 import { geminiEduService } from "./gemini";
@@ -815,7 +816,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🔍 DIRECT: Searching 3D models for: "${query}"`);
 
       // Call Python script directly for faster results
-      const { spawn } = require('child_process');
       const pythonProcess = spawn('python3', ['server/ar-integration-direct.py', query], {
         env: { ...process.env }
       });
