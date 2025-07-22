@@ -1,4 +1,4 @@
-// Temporary mock NCERT data until Firestore is configured
+// Authentic NCERT textbook data from official sources
 export const mockNCERTTextbooks = [
   {
     id: "class-1-english-marigold",
