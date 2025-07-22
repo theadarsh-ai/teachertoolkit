@@ -75,10 +75,10 @@ class SketchfabService {
       url.searchParams.append('sort_by', options.sort || 'relevance');
       url.searchParams.append('count', (options.count || 24).toString());
       
-      // Educational filters
-      if (options.categories) {
-        url.searchParams.append('categories', options.categories.join(','));
-      }
+      // Educational filters - remove for now to avoid API errors
+      // if (options.categories) {
+      //   url.searchParams.append('categories', options.categories.join(','));
+      // }
       
       if (options.tags) {
         url.searchParams.append('tags', options.tags.join(','));
@@ -167,13 +167,13 @@ class SketchfabService {
     const params = new URLSearchParams();
     
     // Default educational settings
-    params.append('autostart', (options.autostart ?? true).toString());
-    params.append('transparent', (options.transparent ?? false).toString());
-    params.append('ui_controls', (options.ui_controls ?? true).toString());
-    params.append('ui_infos', (options.ui_infos ?? true).toString());
-    params.append('ui_inspector', (options.ui_inspector ?? true).toString());
-    params.append('ui_stop', (options.ui_stop ?? true).toString());
-    params.append('ui_watermark', (options.ui_watermark ?? false).toString());
+    params.append('autostart', '1');
+    params.append('ui_controls', '1');
+    params.append('ui_infos', '1');
+    params.append('ui_inspector', '1');
+    params.append('ui_stop', '1');
+    params.append('ui_watermark', '0');
+    params.append('preload', '1');
     
     return `${baseUrl}?${params.toString()}`;
   }
@@ -378,11 +378,10 @@ class SketchfabService {
   // Get educational categories for filtering
   getEducationalCategories() {
     return [
-      'science-nature',
-      'education', 
-      'medical',
-      'architecture-buildings',
-      'history-archaeology'
+      'science',
+      'medicine-health', 
+      'history-archaeology',
+      'nature-plants'
     ];
   }
 

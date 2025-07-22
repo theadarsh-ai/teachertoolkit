@@ -819,7 +819,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use Sketchfab as primary 3D model source
       try {
         const sketchfabOptions = educational ? {
-          categories: sketchfabService.getEducationalCategories(),
+          // categories: sketchfabService.getEducationalCategories(), // Disabled due to API issues
           downloadable: true,
           sort: 'relevance' as const,
           count: 20
