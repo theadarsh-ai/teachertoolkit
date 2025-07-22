@@ -105,9 +105,9 @@ Keep labels concise, educational, and appropriate for Indian curriculum.`;
     try {
       console.log('🎨 Generating clean image without text...');
       
-      // Generate the base image without text
+      // Generate the base image without text using Gemini 2.0 Flash (only model that supports images)
       const imageResponse = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.0-flash-exp",
         contents: [{ role: "user", parts: [{ text: noTextPrompt }] }],
         config: {
           responseModalities: ["TEXT", "IMAGE"],
@@ -134,10 +134,10 @@ Keep labels concise, educational, and appropriate for Indian curriculum.`;
         throw new Error("Failed to generate base image");
       }
 
-      // Generate labels separately
+      // Generate labels separately using text-only model
       console.log('📝 Generating text labels...');
       const labelsResponse = await ai.models.generateContent({
-        model: "gemini-2.5-pro",
+        model: "gemini-2.5-flash",
         contents: labelsPrompt,
       });
 
@@ -163,7 +163,7 @@ Keep labels concise, educational, and appropriate for Indian curriculum.`;
         style,
         size,
         timestamp: Date.now(),
-        model: "gemini-hybrid-clean",
+        model: "gemini-2.0-flash-clean",
         format: "clean-base"
       };
 
