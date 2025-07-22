@@ -58,7 +58,61 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // ========== NCERT TEXTBOOKS WITH FIREBASE FIRESTORE ==========
+  // ========== NCERT TEXTBOOKS WITH POSTGRESQL (WORKING) ==========
+  
+  // Get all NCERT textbooks from PostgreSQL  
+  app.get("/api/ncert/textbooks", async (req, res) => {
+    try {
+      const { NCERTScraper } = await import('./ncert-scraper');
+      const scraper = new NCERTScraper();
+      
+      // Get from database through storage
+      const textbooks = await storage.getAllNCERTTextbooks();
+      
+      res.json({
+        success: true,
+        count: textbooks.length,
+        data: textbooks,
+        source: "PostgreSQL Database",
+        status: textbooks.length === 0 ? "Database empty - run scraping to populate" : "Data loaded successfully"
+      });
+    } catch (error) {
+      console.error("Error fetching NCERT textbooks:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to fetch NCERT textbooks from database",
+        details: error.message
+      });
+    }
+  });
+
+  // Scrape NCERT textbooks and store in PostgreSQL
+  app.post("/api/ncert/scrape", async (req, res) => {
+    try {
+      console.log("🚀 Starting NCERT textbook scraping to PostgreSQL...");
+      
+      const { NCERTScraper } = await import('./ncert-scraper');
+      const scraper = new NCERTScraper();
+      
+      // Run the scraping process
+      const results = await scraper.scrapeAllTextbooks();
+      
+      res.json({
+        success: true,
+        message: "NCERT textbook scraping completed successfully",
+        results: results,
+        destination: "PostgreSQL Database"
+      });
+      
+    } catch (error) {
+      console.error("NCERT scraping error:", error);
+      res.status(500).json({
+        success: false,
+        error: `NCERT scraping failed: ${error.message}`,
+        details: error.stack
+      });
+    }
+  });
   
   // Visual Aids Agent - Image Generation
   app.post("/api/agents/visual-aids", async (req, res) => {
@@ -659,57 +713,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // NCERT Textbooks Management with Firebase
-  
-  // Scrape and store all NCERT textbooks to Firestore
+  // NCERT Textbooks Management
+  const ncertScraper = new NCERTScraper();
+
+  // Scrape and store all NCERT textbooks
   app.post("/api/ncert/scrape", async (req, res) => {
     try {
-      console.log('🚀 Starting NCERT textbook scraping to Firebase Firestore...');
+      console.log('🚀 Starting NCERT textbook scraping...');
       
-      const { scrapeNCERTTextbooksToFirebase } = await import('./ncert-scraper-firebase');
-      const result = await scrapeNCERTTextbooksToFirebase();
+      const books = await ncertScraper.scrapeAllTextbooks();
+      await ncertScraper.storeTextbooksInFirebase(books);
       
       res.json({
         success: true,
-        message: `Successfully scraped and stored ${result.storedCount} NCERT textbooks to Firestore`,
-        scrapedCount: result.scrapedCount,
-        storedCount: result.storedCount,
-        data: result.textbooks
+        message: `Successfully scraped and stored ${books.length} NCERT textbooks`,
+        count: books.length,
+        data: books
       });
     } catch (error) {
-      console.error('NCERT Firebase scraping error:', error);
+      console.error('NCERT scraping error:', error);
       res.status(500).json({ 
-        error: 'Failed to scrape NCERT textbooks to Firebase',
+        error: 'Failed to scrape NCERT textbooks',
         details: String(error)
       });
     }
   });
 
-  // Get all stored NCERT textbooks from Firestore
+  // Get all stored NCERT textbooks
   app.get("/api/ncert/textbooks", async (req, res) => {
     try {
-      const { firebaseNCERTStorage } = await import('./firebase-admin-ncert');
-      const textbooks = await firebaseNCERTStorage.getAllTextbooks();
+      const textbooks = await ncertScraper.getAllStoredTextbooks();
       res.json({
         success: true,
         count: textbooks.length,
         data: textbooks
       });
     } catch (error) {
-      console.error('Error fetching textbooks from Firebase:', error);
+      console.error('Error fetching textbooks:', error);
       res.status(500).json({ 
-        error: 'Failed to fetch NCERT textbooks from Firebase',
+        error: 'Failed to fetch NCERT textbooks',
         details: String(error)
       });
     }
   });
 
-  // Get NCERT textbooks by class from Firestore
+  // Get NCERT textbooks by class
   app.get("/api/ncert/textbooks/class/:classNum", async (req, res) => {
     try {
       const classNum = parseInt(req.params.classNum);
-      const { firebaseNCERTStorage } = await import('./firebase-admin-ncert');
-      const textbooks = await firebaseNCERTStorage.getTextbooksByClass(classNum);
+      const textbooks = await ncertScraper.getTextbooksByClass(classNum);
       res.json({
         success: true,
         class: classNum,
@@ -717,20 +769,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         data: textbooks
       });
     } catch (error) {
-      console.error(`Error fetching class ${req.params.classNum} textbooks from Firebase:`, error);
+      console.error(`Error fetching class ${req.params.classNum} textbooks:`, error);
       res.status(500).json({ 
-        error: `Failed to fetch class ${req.params.classNum} textbooks from Firebase`,
+        error: `Failed to fetch class ${req.params.classNum} textbooks`,
         details: String(error)
       });
     }
   });
 
-  // Get NCERT textbooks by subject from Firestore
+  // Get NCERT textbooks by subject
   app.get("/api/ncert/textbooks/subject/:subject", async (req, res) => {
     try {
       const subject = req.params.subject;
-      const { firebaseNCERTStorage } = await import('./firebase-admin-ncert');
-      const textbooks = await firebaseNCERTStorage.getTextbooksBySubject(subject);
+      const textbooks = await ncertScraper.getTextbooksBySubject(subject);
       res.json({
         success: true,
         subject,
@@ -738,9 +789,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         data: textbooks
       });
     } catch (error) {
-      console.error(`Error fetching ${req.params.subject} textbooks from Firebase:`, error);
+      console.error(`Error fetching ${req.params.subject} textbooks:`, error);
       res.status(500).json({ 
-        error: `Failed to fetch ${req.params.subject} textbooks from Firebase`,
+        error: `Failed to fetch ${req.params.subject} textbooks`,
         details: String(error)
       });
     }
