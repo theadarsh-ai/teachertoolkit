@@ -24,13 +24,12 @@ export function detectPlatform(): string {
 
 export function getPlatformConfig(): PlatformConfig {
   const platform = detectPlatform();
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
+
   const config: PlatformConfig = {
     platform,
-    port: parseInt(process.env.PORT || '5000', 10),
-    host: '0.0.0.0',
-    isDevelopment,
+    port: process.env.PORT ? parseInt(process.env.PORT) : 5000,
+    host: '0.0.0.0', // Always bind to 0.0.0.0 for accessibility
+    isDevelopment: process.env.NODE_ENV === 'development',
     databaseUrl: process.env.DATABASE_URL || '',
   };
 
@@ -40,23 +39,23 @@ export function getPlatformConfig(): PlatformConfig {
       config.host = '0.0.0.0';
       config.port = parseInt(process.env.PORT || '5000', 10);
       break;
-      
+
     case 'firebase':
     case 'firebase-emulator':
       config.host = 'localhost';
       config.port = parseInt(process.env.PORT || '5000', 10);
       break;
-      
+
     case 'vercel':
       // Vercel handles port automatically
       config.port = parseInt(process.env.PORT || '3000', 10);
       break;
-      
+
     case 'heroku':
       config.port = parseInt(process.env.PORT || '5000', 10);
       config.host = '0.0.0.0';
       break;
-      
+
     case 'local':
     default:
       config.host = 'localhost';
@@ -69,7 +68,7 @@ export function getPlatformConfig(): PlatformConfig {
 
 export function getEnvironmentVariables() {
   const platform = detectPlatform();
-  
+
   // Common environment variables
   const env = {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
@@ -89,15 +88,15 @@ export function getEnvironmentVariables() {
         GEMINI_API_KEY: functions.config().gemini?.api_key || env.GEMINI_API_KEY,
         DATABASE_URL: functions.config().database?.url || env.DATABASE_URL,
       };
-      
+
     case 'vercel':
       // Vercel automatically handles environment variables
       return env;
-      
+
     case 'heroku':
       // Heroku config vars
       return env;
-      
+
     default:
       return env;
   }
@@ -108,7 +107,7 @@ export function logPlatformInfo() {
   console.log(`🚀 Platform: ${config.platform.toUpperCase()}`);
   console.log(`🌐 Server: ${config.host}:${config.port}`);
   console.log(`🔧 Environment: ${config.isDevelopment ? 'Development' : 'Production'}`);
-  
+
   if (config.platform !== 'replit') {
     console.log(`📋 Platform detected: ${config.platform}`);
     console.log(`💡 Use platform-specific commands for optimal experience`);
