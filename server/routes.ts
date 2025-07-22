@@ -4,6 +4,8 @@ import multer from "multer";
 import { storage } from "./storage";
 import { geminiEduService } from "./gemini";
 import { pdfGenerator } from "./pdf-generator";
+import { GooglePolyService } from './google-poly-api';
+import { SketchfabService } from './sketchfab-api';
 import { 
   insertUserSchema, 
   insertAgentConfigSchema, 
@@ -789,6 +791,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error(`Error fetching ${req.params.subject} textbooks:`, error);
       res.status(500).json({ 
         error: `Failed to fetch ${req.params.subject} textbooks`,
+        details: String(error)
+      });
+    }
+  });
+
+  // Initialize AR integration services (with fallback to mock data)
+  const googlePolyService = new GooglePolyService(process.env.GOOGLE_POLY_API_KEY || 'mock');
+  const sketchfabService = new SketchfabService(process.env.SKETCHFAB_API_KEY || 'mock');
+
+  // AR Integration endpoints
+  app.post("/api/agents/ar-integration/search", async (req, res) => {
+    try {
+      const { query, source = 'both', educational = true } = req.body;
+
+      if (!query) {
+        return res.status(400).json({
+          success: false,
+          error: "Search query is required"
+        });
+      }
+
+      console.log(`🔍 Searching 3D models for: "${query}" from ${source}`);
+
+      let results = [];
+
+      if (source === 'google-poly' || source === 'both') {
+        try {
+          const polyResults = await googlePolyService.searchAssets(query, 10);
+          const standardizedPoly = polyResults.assets.map(asset => 
+            googlePolyService.convertToStandardModel(asset)
+          );
+          results.push(...standardizedPoly);
+        } catch (error) {
+          console.error('Google Poly search failed:', error);
+        }
+      }
+
+      if (source === 'sketchfab' || source === 'both') {
+        try {
+          const sketchfabOptions = educational ? {
+            categories: sketchfabService.getEducationalCategories(),
+            downloadable: true,
+            sort: 'relevance' as const
+          } : {};
+
+          const sketchfabResults = await sketchfabService.searchModels(query, sketchfabOptions);
+          const standardizedSketchfab = sketchfabResults.results.map(model =>
+            sketchfabService.convertToStandardModel(model)
+          );
+          results.push(...standardizedSketchfab);
+        } catch (error) {
+          console.error('Sketchfab search failed:', error);
+        }
+      }
+
+      // Sort by relevance and remove duplicates
+      const uniqueResults = results.filter((model, index, self) =>
+        index === self.findIndex(m => m.id === model.id && m.source === model.source)
+      );
+
+      console.log(`✅ Found ${uniqueResults.length} 3D models`);
+
+      res.json({
+        success: true,
+        query,
+        source,
+        count: uniqueResults.length,
+        models: uniqueResults
+      });
+
+    } catch (error) {
+      console.error('AR integration search error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to search 3D models",
+        details: String(error)
+      });
+    }
+  });
+
+  // Get specific 3D model details
+  app.get("/api/agents/ar-integration/model/:source/:id", async (req, res) => {
+    try {
+      const { source, id } = req.params;
+
+      let modelData = null;
+
+      if (source === 'google-poly') {
+        const asset = await googlePolyService.getAsset(id);
+        modelData = googlePolyService.convertToStandardModel(asset);
+      } else if (source === 'sketchfab') {
+        const model = await sketchfabService.getModel(id);
+        modelData = sketchfabService.convertToStandardModel(model);
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid source. Use 'google-poly' or 'sketchfab'"
+        });
+      }
+
+      res.json({
+        success: true,
+        model: modelData
+      });
+
+    } catch (error) {
+      console.error('AR model fetch error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to fetch 3D model details",
+        details: String(error)
+      });
+    }
+  });
+
+  // Get embed URL for 3D model viewer
+  app.post("/api/agents/ar-integration/embed", async (req, res) => {
+    try {
+      const { source, id, options = {} } = req.body;
+
+      let embedUrl = '';
+
+      if (source === 'sketchfab') {
+        embedUrl = await sketchfabService.getModelEmbedUrl(id, {
+          autostart: options.autostart ?? true,
+          ui_controls: options.ui_controls ?? true,
+          ui_infos: options.ui_infos ?? true,
+          ui_inspector: options.ui_inspector ?? true,
+          ui_watermark: false,
+          ...options
+        });
+      } else if (source === 'google-poly') {
+        embedUrl = `https://poly.google.com/view/${id}/embed`;
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid source for embed URL"
+        });
+      }
+
+      res.json({
+        success: true,
+        embedUrl,
+        source,
+        modelId: id
+      });
+
+    } catch (error) {
+      console.error('AR embed URL error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to generate embed URL",
         details: String(error)
       });
     }

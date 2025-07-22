@@ -9,6 +9,7 @@ import NCERTManagement from "@/pages/ncert-management";
 import ContentGenerator from "@/pages/content-generator";
 import DifferentiatedMaterials from "@/pages/differentiated-materials";
 import VisualAids from "@/pages/visual-aids";
+import ArIntegration from "@/pages/ar-integration";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/content-generator" component={ContentGenerator} />
       <Route path="/differentiated-materials" component={DifferentiatedMaterials} />
       <Route path="/visual-aids" component={VisualAids} />
+      <Route path="/ar-integration" component={ArIntegration} />
       <Route component={NotFound} />
     </Switch>
   );

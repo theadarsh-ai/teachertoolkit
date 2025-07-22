@@ -61,6 +61,9 @@ export default function Dashboard() {
     } else if (agent.id === 'visual-aids') {
       // Direct navigation to Visual Aids page
       setLocation('/visual-aids');
+    } else if (agent.id === 'ar-integration') {
+      // Direct navigation to AR Integration page
+      setLocation('/ar-integration');
     } else {
       setSelectedAgent(agent);
       setShowAgentModal(true);

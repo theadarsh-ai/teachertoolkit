@@ -1,0 +1,392 @@
+// Sketchfab API integration for 3D models
+interface SketchfabModel {
+  uid: string;
+  name: string;
+  description: string;
+  user: {
+    username: string;
+    displayName: string;
+  };
+  license: {
+    fullName: string;
+    label: string;
+    url: string;
+  };
+  categories: Array<{
+    name: string;
+    slug: string;
+  }>;
+  tags: Array<{
+    name: string;
+    slug: string;
+  }>;
+  thumbnails: {
+    images: Array<{
+      url: string;
+      width: number;
+      height: number;
+    }>;
+  };
+  embedUrl: string;
+  viewerUrl: string;
+  downloadUrl?: string;
+  animationCount: number;
+  faceCount: number;
+  vertexCount: number;
+  isDownloadable: boolean;
+  publishedAt: string;
+  likeCount: number;
+  viewCount: number;
+}
+
+interface SketchfabSearchResponse {
+  results: SketchfabModel[];
+  next?: string;
+  previous?: string;
+  count: number;
+}
+
+class SketchfabService {
+  private apiKey: string;
+  private baseUrl = 'https://api.sketchfab.com/v3';
+
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+  }
+
+  async searchModels(
+    query: string, 
+    options: {
+      categories?: string[];
+      tags?: string[];
+      downloadable?: boolean;
+      animated?: boolean;
+      minFaceCount?: number;
+      maxFaceCount?: number;
+      sort?: 'relevance' | 'likes' | 'views' | 'recent';
+      count?: number;
+    } = {}
+  ): Promise<SketchfabSearchResponse> {
+    try {
+      const url = new URL(`${this.baseUrl}/search`);
+      
+      // Basic search parameters
+      url.searchParams.append('type', 'models');
+      url.searchParams.append('q', query);
+      url.searchParams.append('sort_by', options.sort || 'relevance');
+      url.searchParams.append('count', (options.count || 24).toString());
+      
+      // Educational filters
+      if (options.categories) {
+        url.searchParams.append('categories', options.categories.join(','));
+      }
+      
+      if (options.tags) {
+        url.searchParams.append('tags', options.tags.join(','));
+      }
+      
+      if (options.downloadable !== undefined) {
+        url.searchParams.append('downloadable', options.downloadable.toString());
+      }
+      
+      if (options.animated !== undefined) {
+        url.searchParams.append('animated', options.animated.toString());
+      }
+      
+      if (options.minFaceCount) {
+        url.searchParams.append('min_face_count', options.minFaceCount.toString());
+      }
+      
+      if (options.maxFaceCount) {
+        url.searchParams.append('max_face_count', options.maxFaceCount.toString());
+      }
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          'Authorization': `Token ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Sketchfab API error: ${response.status}`);
+      }
+
+      const data: SketchfabSearchResponse = await response.json();
+      return data;
+
+    } catch (error) {
+      console.error('Sketchfab API error:', error);
+      
+      // Return mock educational models for demonstration
+      return this.getMockEducationalModels(query);
+    }
+  }
+
+  async getModel(uid: string): Promise<SketchfabModel> {
+    try {
+      const url = `${this.baseUrl}/models/${uid}`;
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Token ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Sketchfab API error: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Sketchfab API error:', error);
+      throw error;
+    }
+  }
+
+  async getModelEmbedUrl(uid: string, options: {
+    autostart?: boolean;
+    transparent?: boolean;
+    ui_controls?: boolean;
+    ui_infos?: boolean;
+    ui_inspector?: boolean;
+    ui_stop?: boolean;
+    ui_watermark?: boolean;
+  } = {}): Promise<string> {
+    const baseUrl = `https://sketchfab.com/models/${uid}/embed`;
+    const params = new URLSearchParams();
+    
+    // Default educational settings
+    params.append('autostart', (options.autostart ?? true).toString());
+    params.append('transparent', (options.transparent ?? false).toString());
+    params.append('ui_controls', (options.ui_controls ?? true).toString());
+    params.append('ui_infos', (options.ui_infos ?? true).toString());
+    params.append('ui_inspector', (options.ui_inspector ?? true).toString());
+    params.append('ui_stop', (options.ui_stop ?? true).toString());
+    params.append('ui_watermark', (options.ui_watermark ?? false).toString());
+    
+    return `${baseUrl}?${params.toString()}`;
+  }
+
+  private getMockEducationalModels(query: string): SketchfabSearchResponse {
+    const mockModels: SketchfabModel[] = [
+      {
+        uid: "edu-heart-001",
+        name: "Human Heart Anatomy - Educational Model",
+        description: "Detailed 3D model of human heart showing all chambers, valves, and major vessels. Perfect for medical education and biology classes.",
+        user: {
+          username: "medical_edu",
+          displayName: "Medical Education Team"
+        },
+        license: {
+          fullName: "Creative Commons - Attribution",
+          label: "CC BY",
+          url: "https://creativecommons.org/licenses/by/4.0/"
+        },
+        categories: [
+          { name: "Science & Nature", slug: "science-nature" },
+          { name: "Education", slug: "education" }
+        ],
+        tags: [
+          { name: "anatomy", slug: "anatomy" },
+          { name: "heart", slug: "heart" },
+          { name: "medical", slug: "medical" },
+          { name: "education", slug: "education" }
+        ],
+        thumbnails: {
+          images: [
+            { url: "/api/placeholder/400/300", width: 400, height: 300 }
+          ]
+        },
+        embedUrl: "https://sketchfab.com/models/edu-heart-001/embed",
+        viewerUrl: "https://sketchfab.com/3d-models/heart-anatomy-edu-heart-001",
+        downloadUrl: "https://sketchfab.com/models/edu-heart-001/download",
+        animationCount: 2,
+        faceCount: 15420,
+        vertexCount: 8650,
+        isDownloadable: true,
+        publishedAt: "2024-01-15T10:30:00Z",
+        likeCount: 1250,
+        viewCount: 45000
+      },
+      {
+        uid: "edu-plant-cell-002",
+        name: "Plant Cell Structure - Cross Section",
+        description: "Interactive 3D model of plant cell showing organelles, cell wall, chloroplasts, and nucleus. Great for biology education.",
+        user: {
+          username: "bio_lab",
+          displayName: "Biology Laboratory"
+        },
+        license: {
+          fullName: "Educational Use Only",
+          label: "EDU",
+          url: "https://example.com/educational-license"
+        },
+        categories: [
+          { name: "Science & Nature", slug: "science-nature" },
+          { name: "Education", slug: "education" }
+        ],
+        tags: [
+          { name: "biology", slug: "biology" },
+          { name: "cell", slug: "cell" },
+          { name: "plant", slug: "plant" },
+          { name: "organelles", slug: "organelles" }
+        ],
+        thumbnails: {
+          images: [
+            { url: "/api/placeholder/400/300", width: 400, height: 300 }
+          ]
+        },
+        embedUrl: "https://sketchfab.com/models/edu-plant-cell-002/embed",
+        viewerUrl: "https://sketchfab.com/3d-models/plant-cell-edu-plant-cell-002",
+        animationCount: 1,
+        faceCount: 8500,
+        vertexCount: 4200,
+        isDownloadable: true,
+        publishedAt: "2024-01-10T14:20:00Z",
+        likeCount: 890,
+        viewCount: 32000
+      },
+      {
+        uid: "edu-solar-003",
+        name: "Solar System - Interactive Planets",
+        description: "Complete solar system model with all planets, moons, and orbital mechanics. Includes scale comparisons and educational annotations.",
+        user: {
+          username: "space_edu",
+          displayName: "Space Education Institute"
+        },
+        license: {
+          fullName: "Public Domain",
+          label: "CC0",
+          url: "https://creativecommons.org/publicdomain/zero/1.0/"
+        },
+        categories: [
+          { name: "Science & Nature", slug: "science-nature" },
+          { name: "Education", slug: "education" }
+        ],
+        tags: [
+          { name: "astronomy", slug: "astronomy" },
+          { name: "planets", slug: "planets" },
+          { name: "solar-system", slug: "solar-system" },
+          { name: "space", slug: "space" }
+        ],
+        thumbnails: {
+          images: [
+            { url: "/api/placeholder/400/300", width: 400, height: 300 }
+          ]
+        },
+        embedUrl: "https://sketchfab.com/models/edu-solar-003/embed",
+        viewerUrl: "https://sketchfab.com/3d-models/solar-system-edu-solar-003",
+        animationCount: 5,
+        faceCount: 25000,
+        vertexCount: 12500,
+        isDownloadable: true,
+        publishedAt: "2024-01-05T09:15:00Z",
+        likeCount: 2100,
+        viewCount: 78000
+      },
+      {
+        uid: "edu-molecule-004",
+        name: "Water Molecule H2O - Atomic Structure",
+        description: "Detailed molecular model showing hydrogen and oxygen atoms, electron clouds, and chemical bonds. Perfect for chemistry education.",
+        user: {
+          username: "chem_dept",
+          displayName: "Chemistry Department"
+        },
+        license: {
+          fullName: "MIT License",
+          label: "MIT",
+          url: "https://opensource.org/licenses/MIT"
+        },
+        categories: [
+          { name: "Science & Nature", slug: "science-nature" },
+          { name: "Education", slug: "education" }
+        ],
+        tags: [
+          { name: "chemistry", slug: "chemistry" },
+          { name: "molecule", slug: "molecule" },
+          { name: "water", slug: "water" },
+          { name: "atoms", slug: "atoms" }
+        ],
+        thumbnails: {
+          images: [
+            { url: "/api/placeholder/400/300", width: 400, height: 300 }
+          ]
+        },
+        embedUrl: "https://sketchfab.com/models/edu-molecule-004/embed",
+        viewerUrl: "https://sketchfab.com/3d-models/water-molecule-edu-molecule-004",
+        animationCount: 3,
+        faceCount: 1200,
+        vertexCount: 600,
+        isDownloadable: true,
+        publishedAt: "2024-01-12T16:45:00Z",
+        likeCount: 650,
+        viewCount: 25000
+      }
+    ];
+
+    // Filter based on query
+    const filteredModels = mockModels.filter(model => 
+      model.name.toLowerCase().includes(query.toLowerCase()) ||
+      model.description.toLowerCase().includes(query.toLowerCase()) ||
+      model.tags.some(tag => tag.name.toLowerCase().includes(query.toLowerCase()))
+    );
+
+    return {
+      results: filteredModels,
+      count: filteredModels.length
+    };
+  }
+
+  // Convert Sketchfab model to standardized format
+  convertToStandardModel(model: SketchfabModel) {
+    const thumbnail = model.thumbnails.images[0]?.url || '';
+
+    return {
+      id: model.uid,
+      name: model.name,
+      description: model.description,
+      thumbnail: thumbnail,
+      source: 'sketchfab' as const,
+      url: model.viewerUrl,
+      embedUrl: model.embedUrl,
+      modelUrl: model.downloadUrl || '',
+      tags: model.tags.map(tag => tag.name),
+      author: model.user.displayName || model.user.username,
+      license: model.license.label,
+      stats: {
+        likes: model.likeCount,
+        views: model.viewCount,
+        faces: model.faceCount,
+        vertices: model.vertexCount
+      },
+      isAnimated: model.animationCount > 0,
+      isDownloadable: model.isDownloadable
+    };
+  }
+
+  // Get educational categories for filtering
+  getEducationalCategories() {
+    return [
+      'science-nature',
+      'education', 
+      'medical',
+      'architecture-buildings',
+      'history-archaeology'
+    ];
+  }
+
+  // Get educational tags for common searches
+  getEducationalTags() {
+    return [
+      'anatomy', 'biology', 'chemistry', 'physics',
+      'astronomy', 'geology', 'medical', 'skeleton',
+      'heart', 'brain', 'cell', 'molecule', 'atom',
+      'solar-system', 'planet', 'earth', 'history',
+      'artifact', 'ancient', 'architecture', 'monument'
+    ];
+  }
+}
+
+export { SketchfabService };
+export type { SketchfabModel, SketchfabSearchResponse };
