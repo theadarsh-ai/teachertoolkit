@@ -801,7 +801,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const googlePolyService = new GooglePolyService(process.env.GOOGLE_POLY_API_KEY || 'mock');
   const sketchfabService = new SketchfabService(process.env.SKETCHFAB_API_KEY || 'mock');
 
-  // AR Integration endpoints - Direct Python approach
+  // AR Integration endpoints - Direct Node.js approach
   app.post("/api/agents/ar-integration/search", async (req, res) => {
     try {
       const { query, source = 'sketchfab', educational = true } = req.body;
@@ -815,58 +815,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🔍 DIRECT: Searching 3D models for: "${query}"`);
 
-      // Call Python script directly for faster results
-      const pythonProcess = spawn('python3', ['server/ar-integration-direct.py', query], {
-        env: { ...process.env }
-      });
-
-      let stdout = '';
-      let stderr = '';
-
-      pythonProcess.stdout.on('data', (data: Buffer) => {
-        stdout += data.toString();
-      });
-
-      pythonProcess.stderr.on('data', (data: Buffer) => {
-        stderr += data.toString();
-      });
-
-      pythonProcess.on('close', (code: number) => {
-        if (stderr) {
-          console.log('🐍 Python output:', stderr);
-        }
-
-        if (code !== 0) {
-          console.error('❌ Python script failed with code:', code);
-          return res.status(500).json({
-            success: false,
-            error: 'Failed to search 3D models'
-          });
-        }
-
-        try {
-          const result = JSON.parse(stdout);
-          console.log(`✅ DIRECT: Found ${result.count} models`);
-          console.log(`📤 DIRECT: Sample models:`, result.models?.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
-          
-          res.json(result);
-        } catch (parseError) {
-          console.error('❌ Failed to parse Python output:', parseError);
-          res.status(500).json({
-            success: false,
-            error: 'Failed to parse search results'
-          });
-        }
-      });
-
-      // Handle timeout
-      setTimeout(() => {
-        pythonProcess.kill();
-        res.status(500).json({
+      // Direct Sketchfab API call (simplified)
+      const apiKey = process.env.SKETCHFAB_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({
           success: false,
-          error: 'Search timeout'
+          error: "Sketchfab API key not configured"
         });
-      }, 15000);
+      }
+
+      const params = new URLSearchParams({
+        q: query,
+        sort_by: 'relevance',
+        count: '20',
+        downloadable: 'true'
+      });
+
+      const apiResponse = await fetch(`https://api.sketchfab.com/v3/models?${params}`, {
+        headers: {
+          'Authorization': `Token ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!apiResponse.ok) {
+        return res.status(500).json({
+          success: false,
+          error: `Sketchfab API error: ${apiResponse.status}`
+        });
+      }
+
+      const apiData = await apiResponse.json();
+      const rawModels = apiData.results || [];
+
+      const models = rawModels.map((model: any) => ({
+        id: model.uid,
+        name: model.name || 'Untitled Model',
+        description: model.description || 'Educational 3D model from Sketchfab',
+        thumbnail: model.thumbnails?.images?.[0]?.url || '',
+        source: 'sketchfab',
+        url: `https://sketchfab.com/3d-models/${model.uid}`,
+        embedUrl: `https://sketchfab.com/models/${model.uid}/embed?autostart=1&ui_controls=1&ui_infos=1&ui_inspector=1&ui_stop=1&ui_watermark=0&preload=1`,
+        tags: [],
+        author: model.user?.displayName || 'Unknown Artist',
+        license: model.license?.label || 'Standard License'
+      }));
+
+      console.log(`✅ DIRECT: Found ${models.length} models`);
+      console.log(`📤 DIRECT: Sample models:`, models.slice(0, 2).map(m => ({ name: m.name, author: m.author, id: m.id })));
+
+      res.json({
+        success: true,
+        query,
+        source: 'sketchfab-direct',
+        count: models.length,
+        models
+      });
 
     } catch (error) {
       console.error('AR integration search error:', error);
