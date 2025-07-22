@@ -57,16 +57,22 @@ const ArIntegration = () => {
     setIsSearching(true);
     
     try {
+      // Add cache busting to force fresh data
+      const cacheKey = Date.now();
+      
       // Call the AR integration search API
-      const response = await fetch('/api/agents/ar-integration/search', {
+      const response = await fetch(`/api/agents/ar-integration/search?_t=${cacheKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         },
         body: JSON.stringify({
           query: searchQuery,
           source: 'sketchfab', // Use Sketchfab as primary source
-          educational: true
+          educational: true,
+          timestamp: cacheKey // Force new request
         }),
       });
 
@@ -223,6 +229,15 @@ const ArIntegration = () => {
                   <div className="text-sm text-gray-500 dark:text-gray-400">
                     Try searching: "human anatomy", "solar system", "plant cell", "chemical bonds"
                   </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => window.location.reload()} 
+                    className="w-full mt-2"
+                  >
+                    🔄 Force Refresh Page (Clear Cache)
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -241,6 +256,14 @@ const ArIntegration = () => {
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                       <Box className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>Search for educational 3D models to get started</p>
+                      <p className="text-xs mt-2">Real Sketchfab models will appear here</p>
+                    </div>
+                  )}
+                  
+                  {isSearching && (
+                    <div className="text-center py-8">
+                      <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-blue-500" />
+                      <p className="text-gray-500 dark:text-gray-400">Searching Sketchfab models...</p>
                     </div>
                   )}
                   
