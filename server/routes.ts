@@ -706,8 +706,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!dbReady) {
         return res.status(500).json({
           success: false,
-          error: "Firestore database is not accessible",
-          message: "Please ensure Firestore is enabled in Firebase Console"
+          error: "Firestore database needs to be created manually",
+          message: "Please create the database in Firebase Console first",
+          instructions: [
+            "1. Visit: https://console.firebase.google.com/project/genzion-ai/firestore", 
+            "2. Click 'Create database'",
+            "3. Choose 'Start in test mode'",
+            "4. Select location (e.g., us-central1)",
+            "5. Click 'Done'",
+            "6. Then run this scraping endpoint again"
+          ],
+          setupUrl: "https://console.firebase.google.com/project/genzion-ai/firestore"
         });
       }
       
@@ -726,12 +735,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false,
         error: 'Failed to scrape NCERT textbooks to Firebase',
+        message: "Database creation required. Please follow setup instructions.",
+        setupUrl: "https://console.firebase.google.com/project/genzion-ai/firestore",
         details: String(error)
       });
     }
   });
 
-  // Get all stored NCERT textbooks from Firestore
+  // Get all stored NCERT textbooks from Firestore (with fallback to mock data)
   app.get("/api/ncert/textbooks", async (req, res) => {
     try {
       // Check database connection first
@@ -739,29 +750,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dbReady = await ensureFirestoreConnection();
       
       if (!dbReady) {
+        // Return mock data with setup instructions
+        const { mockNCERTTextbooks, mockNCERTStats } = await import('./mock-ncert-data');
         return res.json({
           success: true,
-          count: 0,
-          data: [],
-          message: "Firestore database needs manual setup",
-          instructions: "Visit https://console.firebase.google.com/project/genzion-ai/firestore to create database",
-          nextStep: "After creating database, run POST /api/ncert/scrape to populate data"
+          count: mockNCERTTextbooks.length,
+          data: mockNCERTTextbooks,
+          isMockData: true,
+          stats: mockNCERTStats,
+          message: "Using sample NCERT data. To access full database, create Firestore database in Firebase Console",
+          setupUrl: "https://console.firebase.google.com/project/genzion-ai/firestore"
         });
       }
       
       const { firebaseNCERTStorage } = await import('./firebase-admin-ncert');
       const textbooks = await firebaseNCERTStorage.getAllTextbooks();
+      
+      if (textbooks.length === 0) {
+        // Return mock data if Firestore is empty
+        const { mockNCERTTextbooks, mockNCERTStats } = await import('./mock-ncert-data');
+        return res.json({
+          success: true,
+          count: mockNCERTTextbooks.length,
+          data: mockNCERTTextbooks,
+          isMockData: true,
+          stats: mockNCERTStats,
+          message: "Firestore ready but empty. Using sample data. Run scraping to populate full database."
+        });
+      }
+      
       res.json({
         success: true,
         count: textbooks.length,
-        data: textbooks
+        data: textbooks,
+        isMockData: false
       });
     } catch (error) {
       console.error('Error fetching textbooks from Firebase:', error);
-      res.status(500).json({ 
-        success: false,
-        error: 'Failed to fetch NCERT textbooks from Firebase',
-        details: String(error)
+      
+      // Fallback to mock data on any error
+      const { mockNCERTTextbooks, mockNCERTStats } = await import('./mock-ncert-data');
+      res.json({
+        success: true,
+        count: mockNCERTTextbooks.length,
+        data: mockNCERTTextbooks,
+        isMockData: true,
+        stats: mockNCERTStats,
+        message: "Database error - using sample data",
+        error: String(error)
       });
     }
   });
