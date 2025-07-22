@@ -76,168 +76,100 @@ Generate educational content based on: ${prompt}`;
   async generateVisualAid(options: VisualAidsOptions): Promise<any> {
     const { prompt, style = 'educational', size = '1024x1024' } = options;
     
-    // Create two different approaches: image generation and SVG creation
-    const imagePrompt = `Create a clean educational diagram: ${prompt}
+    // New approach: Generate image without text, then add labels separately
+    const noTextPrompt = `Create a clean educational diagram: ${prompt}
 
+IMPORTANT: Generate the diagram WITHOUT any text labels or words.
 Visual Requirements:
-- Simple, clear illustration with minimal text overlay
-- High contrast colors (bright colors for elements, white/light backgrounds)
+- Simple, clear illustration with NO TEXT at all
+- High contrast colors (bright colors for elements, white/light backgrounds) 
 - Professional educational style suitable for Indian classrooms
-- Focus on visual elements rather than text labels
+- Focus purely on visual elements, shapes, and colors
 - Clean geometric shapes and clear visual hierarchy
-- Educational diagram style similar to NCERT textbooks`;
+- Educational diagram style similar to NCERT textbooks
+- Leave space for text labels to be added later
+- No words, no letters, no text overlays whatsoever`;
 
-    const svgPrompt = `Generate SVG markup for an educational diagram: ${prompt}
+    // Generate labels separately for overlay
+    const labelsPrompt = `For an educational diagram about "${prompt}", provide a JSON list of text labels that should be added. 
 
-Create clean SVG code with:
-- Clear, readable text labels using Arial or sans-serif fonts
-- Font size 16px or larger for all text
-- High contrast: black text on light backgrounds
-- Proper spacing between elements
-- Educational color scheme (blues, greens, earth tones)
-- Organized layout with clear visual hierarchy
-- All text should be crisp vector text, not rasterized
+Return ONLY a JSON array in this format:
+[
+  {"text": "Label Name", "x": 100, "y": 50, "size": 18},
+  {"text": "Another Label", "x": 200, "y": 150, "size": 16}
+]
 
-Return only the SVG markup starting with <svg> and ending with </svg>.`;
+Where x,y are coordinates (0-1024) and size is font size (14-24).
+Keep labels concise, educational, and appropriate for Indian curriculum.`;
     
     try {
-      // First try generating SVG markup for crisp text
-      console.log('🎨 Attempting SVG generation for crisp text...');
-      const svgResponse = await ai.models.generateContent({
-        model: "gemini-2.5-pro",
-        contents: svgPrompt,
-      });
-
-      if (svgResponse.text && svgResponse.text.includes('<svg')) {
-        // Clean up the SVG response
-        let svgContent = svgResponse.text.trim();
-        
-        // Extract SVG content if wrapped in markdown
-        const svgMatch = svgContent.match(/<svg[^>]*>[\s\S]*?<\/svg>/i);
-        if (svgMatch) {
-          svgContent = svgMatch[0];
-        }
-
-        // Convert SVG to data URL
-        const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent)}`;
-        
-        console.log('✅ SVG generated successfully');
-        return {
-          success: true,
-          imageUrl: svgDataUrl,
-          prompt: prompt,
-          style,
-          size,
-          timestamp: Date.now(),
-          model: "gemini-2.5-pro-svg",
-          format: "svg"
-        };
-      }
-
-      // Fallback to image generation if SVG fails
-      console.log('📸 SVG generation failed, trying image generation...');
-      const response = await ai.models.generateContent({
+      console.log('🎨 Generating clean image without text...');
+      
+      // Generate the base image without text
+      const imageResponse = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: [{ role: "user", parts: [{ text: imagePrompt }] }],
+        contents: [{ role: "user", parts: [{ text: noTextPrompt }] }],
         config: {
           responseModalities: ["TEXT", "IMAGE"],
         },
       });
 
-      const candidates = response.candidates;
-      if (!candidates || candidates.length === 0) {
-        throw new Error("No image generated");
-      }
-
-      const content = candidates[0].content;
-      if (!content || !content.parts) {
-        throw new Error("Invalid response structure");
-      }
-
-      // Find the image part
-      for (const part of content.parts) {
-        if (part.inlineData && part.inlineData.data) {
-          // Convert base64 to data URL
-          const mimeType = part.inlineData.mimeType || 'image/png';
-          const dataUrl = `data:${mimeType};base64,${part.inlineData.data}`;
-          
-          return {
-            success: true,
-            imageUrl: dataUrl,
-            prompt: prompt,
-            style,
-            size,
-            timestamp: Date.now(),
-            model: "gemini-2.5-flash-image",
-            format: "raster"
-          };
+      let baseImageUrl = null;
+      const candidates = imageResponse.candidates;
+      
+      if (candidates && candidates.length > 0) {
+        const content = candidates[0].content;
+        if (content && content.parts) {
+          for (const part of content.parts) {
+            if (part.inlineData && part.inlineData.data) {
+              const mimeType = part.inlineData.mimeType || 'image/png';
+              baseImageUrl = `data:${mimeType};base64,${part.inlineData.data}`;
+              break;
+            }
+          }
         }
       }
 
-      // If no image found, try alternative approach with text-based description
-      console.log('No direct image generated, trying text-based generation...');
-      
-      // Fallback: Generate descriptive text for the visual aid
-      const textResponse = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: `Create a detailed text description for an educational visual aid: ${prompt}. 
-        Include specific details about layout, colors, labels, and educational elements that would make this an effective classroom visual aid.`
+      if (!baseImageUrl) {
+        throw new Error("Failed to generate base image");
+      }
+
+      // Generate labels separately
+      console.log('📝 Generating text labels...');
+      const labelsResponse = await ai.models.generateContent({
+        model: "gemini-2.5-pro",
+        contents: labelsPrompt,
       });
 
+      let labels = [];
+      try {
+        if (labelsResponse.text) {
+          // Extract JSON from response
+          const jsonMatch = labelsResponse.text.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            labels = JSON.parse(jsonMatch[0]);
+          }
+        }
+      } catch (e) {
+        console.log('Labels parsing failed, using base image only');
+      }
+
+      console.log('✅ Generated clean image with text overlay capability');
       return {
         success: true,
-        imageUrl: null,
-        textDescription: textResponse.text || 'Description generation failed',
+        imageUrl: baseImageUrl,
+        labels: labels,
         prompt: prompt,
         style,
         size,
         timestamp: Date.now(),
-        fallbackMode: true
+        model: "gemini-hybrid-clean",
+        format: "clean-base"
       };
-      
+
     } catch (error) {
       console.error('Visual aid generation error:', error);
-      
-      // Try fallback with simplified image generation
-      try {
-        console.log('Retrying with simplified image generation...');
-        const fallbackResponse = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: [{ role: "user", parts: [{ text: imagePrompt }] }],
-          config: {
-            responseModalities: ["TEXT", "IMAGE"],
-          },
-        });
-
-        const fallbackCandidates = fallbackResponse.candidates;
-        if (fallbackCandidates && fallbackCandidates.length > 0) {
-          const fallbackContent = fallbackCandidates[0].content;
-          if (fallbackContent && fallbackContent.parts) {
-            for (const part of fallbackContent.parts) {
-              if (part.inlineData && part.inlineData.data) {
-                const mimeType = part.inlineData.mimeType || 'image/png';
-                const dataUrl = `data:${mimeType};base64,${part.inlineData.data}`;
-                
-                return {
-                  success: true,
-                  imageUrl: dataUrl,
-                  prompt: prompt,
-                  style,
-                  size,
-                  timestamp: Date.now(),
-                  model: "gemini-2.5-flash"
-                };
-              }
-            }
-          }
-        }
-        
-        throw new Error("Fallback generation also failed");
-        
-      } catch (fallbackError) {
-        console.error('Fallback generation error:', fallbackError);
-        throw new Error(`Failed to generate visual aid with both models: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
+      throw new Error(`Failed to generate visual aid: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

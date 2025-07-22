@@ -10,6 +10,7 @@ interface GeneratedImage {
   url: string;
   prompt: string;
   timestamp: number;
+  labels?: Array<{text: string; x: number; y: number; size: number}>;
 }
 
 export default function VisualAids() {
@@ -55,7 +56,8 @@ export default function VisualAids() {
           const newImage: GeneratedImage = {
             url: data.imageUrl,
             prompt: imagePrompt,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            labels: data.labels || []
           };
           
           setCurrentImage(newImage);
@@ -249,10 +251,41 @@ export default function VisualAids() {
                         alt={currentImage.prompt}
                         className="w-full h-auto max-h-96 object-contain"
                       />
+                      {/* Text overlay for clean labels */}
+                      {currentImage.labels && currentImage.labels.length > 0 && (
+                        <svg 
+                          className="absolute top-0 left-0 w-full h-full"
+                          viewBox="0 0 1024 1024"
+                          preserveAspectRatio="xMidYMid meet"
+                        >
+                          {currentImage.labels.map((label: any, index: number) => (
+                            <text
+                              key={index}
+                              x={label.x}
+                              y={label.y}
+                              fontSize={label.size || 18}
+                              fill="black"
+                              fontFamily="Arial, sans-serif"
+                              fontWeight="bold"
+                              textAnchor="middle"
+                              stroke="white"
+                              strokeWidth="3"
+                              paintOrder="stroke"
+                            >
+                              {label.text}
+                            </text>
+                          ))}
+                        </svg>
+                      )}
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <h4 className="font-medium text-gray-900 mb-1">Prompt Used:</h4>
                       <p className="text-gray-600">{currentImage.prompt}</p>
+                      {currentImage.labels && currentImage.labels.length > 0 && (
+                        <p className="text-xs text-green-600 mt-1">
+                          ✓ Enhanced with {currentImage.labels.length} clear text labels
+                        </p>
+                      )}
                       <p className="text-sm text-gray-500 mt-2">
                         Generated on {new Date(currentImage.timestamp).toLocaleString()}
                       </p>
