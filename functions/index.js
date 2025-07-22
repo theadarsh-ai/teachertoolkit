@@ -2090,12 +2090,24 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
   const config = getPlatformConfig();
-  server.listen({
-    port: config.port,
-    host: config.host,
-    reusePort: true
-  }, () => {
-    logPlatformInfo();
-    log(`serving on port ${config.port}`);
+  const tryPort = (port, callback) => {
+    server.listen({
+      port,
+      host: config.host,
+      reusePort: true
+    }).on("listening", () => {
+      logPlatformInfo();
+      log(`serving on port ${port}`);
+      callback();
+    }).on("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        log(`Port ${port} is busy, trying port ${port + 1}`);
+        tryPort(port + 1, callback);
+      } else {
+        throw err;
+      }
+    });
+  };
+  tryPort(config.port, () => {
   });
 })();
