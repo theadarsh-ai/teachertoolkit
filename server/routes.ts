@@ -800,66 +800,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const googlePolyService = new GooglePolyService(process.env.GOOGLE_POLY_API_KEY || 'mock');
   const sketchfabService = new SketchfabService(process.env.SKETCHFAB_API_KEY || 'mock');
 
-  // AR Integration endpoints
+  // AR Integration endpoints - Direct Python approach
   app.post("/api/agents/ar-integration/search", async (req, res) => {
     try {
-      const { query, source = 'both', educational = true } = req.body;
+      const { query, source = 'sketchfab', educational = true } = req.body;
 
-      if (!query) {
+      if (!query || typeof query !== 'string') {
         return res.status(400).json({
           success: false,
-          error: "Search query is required"
+          error: "Query parameter is required and must be a string"
         });
       }
 
-      console.log(`🔍 Searching 3D models for: "${query}" from ${source}`);
+      console.log(`🔍 DIRECT: Searching 3D models for: "${query}"`);
 
-      let results = [];
-
-      // Use Sketchfab as primary 3D model source
-      try {
-        const sketchfabOptions = educational ? {
-          // categories: sketchfabService.getEducationalCategories(), // Disabled due to API issues
-          downloadable: true,
-          sort: 'relevance' as const,
-          count: 20
-        } : { count: 20 };
-
-        const sketchfabResults = await sketchfabService.searchModels(query, sketchfabOptions);
-        console.log('🔍 Raw Sketchfab results sample:', JSON.stringify(sketchfabResults.results?.[0], null, 2));
-        
-        const standardizedSketchfab = sketchfabResults.results.map(model =>
-          sketchfabService.convertToStandardModel(model)
-        );
-        results.push(...standardizedSketchfab);
-        
-        console.log(`📦 Sketchfab found ${sketchfabResults.results.length} models`);
-        console.log(`🔍 First model sample:`, {
-          name: standardizedSketchfab[0]?.name,
-          author: standardizedSketchfab[0]?.author,
-          id: standardizedSketchfab[0]?.id
-        });
-      } catch (error) {
-        console.error('Sketchfab search failed:', error);
-        // Only use fallback if search completely fails
-        results = [];
-      }
-
-      // Sort by relevance and remove duplicates
-      const uniqueResults = results.filter((model, index, self) =>
-        index === self.findIndex(m => m.id === model.id && m.source === model.source)
-      );
-
-      console.log(`✅ Found ${uniqueResults.length} 3D models`);
-      console.log(`📤 Sending models to frontend:`, uniqueResults.slice(0, 2).map(m => ({ name: m.name, author: m.author, id: m.id })));
-
-      res.json({
-        success: true,
-        query,
-        source,
-        count: uniqueResults.length,
-        models: uniqueResults
+      // Call Python script directly for faster results
+      const { spawn } = require('child_process');
+      const pythonProcess = spawn('python3', ['server/ar-integration-direct.py', query], {
+        env: { ...process.env }
       });
+
+      let stdout = '';
+      let stderr = '';
+
+      pythonProcess.stdout.on('data', (data: Buffer) => {
+        stdout += data.toString();
+      });
+
+      pythonProcess.stderr.on('data', (data: Buffer) => {
+        stderr += data.toString();
+      });
+
+      pythonProcess.on('close', (code: number) => {
+        if (stderr) {
+          console.log('🐍 Python output:', stderr);
+        }
+
+        if (code !== 0) {
+          console.error('❌ Python script failed with code:', code);
+          return res.status(500).json({
+            success: false,
+            error: 'Failed to search 3D models'
+          });
+        }
+
+        try {
+          const result = JSON.parse(stdout);
+          console.log(`✅ DIRECT: Found ${result.count} models`);
+          console.log(`📤 DIRECT: Sample models:`, result.models?.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
+          
+          res.json(result);
+        } catch (parseError) {
+          console.error('❌ Failed to parse Python output:', parseError);
+          res.status(500).json({
+            success: false,
+            error: 'Failed to parse search results'
+          });
+        }
+      });
+
+      // Handle timeout
+      setTimeout(() => {
+        pythonProcess.kill();
+        res.status(500).json({
+          success: false,
+          error: 'Search timeout'
+        });
+      }, 15000);
 
     } catch (error) {
       console.error('AR integration search error:', error);
