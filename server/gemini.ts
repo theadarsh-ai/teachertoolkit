@@ -21,9 +21,11 @@ export interface LessonPlanOptions {
 }
 
 export interface VisualAidsOptions {
-  concept: string;
-  grades: number[];
-  type: 'diagram' | 'flowchart' | 'infographic';
+  prompt: string;
+  style?: string;
+  size?: string;
+  grades?: number[];
+  type?: 'diagram' | 'flowchart' | 'infographic' | 'educational';
 }
 
 export class GeminiEduService {
@@ -68,6 +70,62 @@ Generate educational content based on: ${prompt}`;
       };
     } catch (error) {
       throw new Error(`Gemini content generation failed: ${error}`);
+    }
+  }
+
+  async generateVisualAid(options: VisualAidsOptions): Promise<any> {
+    const { prompt, style = 'educational', size = '1024x1024' } = options;
+    
+    // Enhanced prompt for educational context
+    const enhancedPrompt = `Educational illustration: ${prompt}. 
+Style: Clean, clear, and suitable for classroom use. 
+Context: Indian educational setting with culturally appropriate elements.
+Quality: High-quality, professional educational diagram or image.
+Colors: Vibrant but educational, easy to read labels if needed.`;
+    
+    try {
+      // Using Gemini 2.0 Flash for image generation
+      const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash-preview-image-generation",
+        contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
+        config: {
+          responseModalities: ["TEXT", "IMAGE"],
+        },
+      });
+
+      const candidates = response.candidates;
+      if (!candidates || candidates.length === 0) {
+        throw new Error("No image generated");
+      }
+
+      const content = candidates[0].content;
+      if (!content || !content.parts) {
+        throw new Error("Invalid response structure");
+      }
+
+      // Find the image part
+      for (const part of content.parts) {
+        if (part.inlineData && part.inlineData.data) {
+          // Convert base64 to data URL
+          const mimeType = part.inlineData.mimeType || 'image/png';
+          const dataUrl = `data:${mimeType};base64,${part.inlineData.data}`;
+          
+          return {
+            success: true,
+            imageUrl: dataUrl,
+            prompt: prompt,
+            style,
+            size,
+            timestamp: Date.now()
+          };
+        }
+      }
+
+      throw new Error("No image data found in response");
+      
+    } catch (error) {
+      console.error('Visual aid generation error:', error);
+      throw new Error(`Failed to generate visual aid: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

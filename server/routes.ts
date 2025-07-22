@@ -111,6 +111,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Visual Aids Agent - Image Generation
+  app.post("/api/agents/visual-aids", async (req, res) => {
+    try {
+      const { prompt, style, size } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({
+          success: false,
+          error: "Prompt is required"
+        });
+      }
+
+      console.log('🎨 Starting visual aid generation...');
+      console.log('Input:', { prompt, style, size });
+
+      const result = await geminiEduService.generateVisualAid({
+        prompt,
+        style: style || 'educational',
+        size: size || '1024x1024'
+      });
+
+      console.log('✅ Visual aid generated successfully');
+
+      res.json(result);
+      
+    } catch (error) {
+      console.error('Visual aid generation error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to generate visual aid",
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // User routes
   app.post("/api/users", async (req, res) => {
     try {
