@@ -76,26 +76,69 @@ Generate educational content based on: ${prompt}`;
   async generateVisualAid(options: VisualAidsOptions): Promise<any> {
     const { prompt, style = 'educational', size = '1024x1024' } = options;
     
-    // Enhanced prompt for educational context with emphasis on text clarity
-    const enhancedPrompt = `Create a detailed educational diagram: ${prompt}
+    // Create two different approaches: image generation and SVG creation
+    const imagePrompt = `Create a clean educational diagram: ${prompt}
 
-Requirements:
-- Style: Clean, professional educational illustration suitable for classroom display
-- Text: Large, clear, bold fonts for all labels and text elements
-- Colors: High contrast colors for maximum readability (dark text on light backgrounds)
-- Layout: Well-organized with proper spacing between elements
-- Labels: All important parts should be clearly labeled with readable text
-- Context: Appropriate for Indian educational curriculum and cultural context
-- Quality: High-resolution professional diagram with crisp, clear text
-- Typography: Use sans-serif fonts for better readability at any size
+Visual Requirements:
+- Simple, clear illustration with minimal text overlay
+- High contrast colors (bright colors for elements, white/light backgrounds)
+- Professional educational style suitable for Indian classrooms
+- Focus on visual elements rather than text labels
+- Clean geometric shapes and clear visual hierarchy
+- Educational diagram style similar to NCERT textbooks`;
 
-Make sure all text elements are clearly visible and easy to read even when the image is displayed on a projector or printed.`;
+    const svgPrompt = `Generate SVG markup for an educational diagram: ${prompt}
+
+Create clean SVG code with:
+- Clear, readable text labels using Arial or sans-serif fonts
+- Font size 16px or larger for all text
+- High contrast: black text on light backgrounds
+- Proper spacing between elements
+- Educational color scheme (blues, greens, earth tones)
+- Organized layout with clear visual hierarchy
+- All text should be crisp vector text, not rasterized
+
+Return only the SVG markup starting with <svg> and ending with </svg>.`;
     
     try {
-      // First try with Gemini 2.5 Pro for better accuracy
-      const response = await ai.models.generateContent({
+      // First try generating SVG markup for crisp text
+      console.log('🎨 Attempting SVG generation for crisp text...');
+      const svgResponse = await ai.models.generateContent({
         model: "gemini-2.5-pro",
-        contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
+        contents: svgPrompt,
+      });
+
+      if (svgResponse.text && svgResponse.text.includes('<svg')) {
+        // Clean up the SVG response
+        let svgContent = svgResponse.text.trim();
+        
+        // Extract SVG content if wrapped in markdown
+        const svgMatch = svgContent.match(/<svg[^>]*>[\s\S]*?<\/svg>/i);
+        if (svgMatch) {
+          svgContent = svgMatch[0];
+        }
+
+        // Convert SVG to data URL
+        const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent)}`;
+        
+        console.log('✅ SVG generated successfully');
+        return {
+          success: true,
+          imageUrl: svgDataUrl,
+          prompt: prompt,
+          style,
+          size,
+          timestamp: Date.now(),
+          model: "gemini-2.5-pro-svg",
+          format: "svg"
+        };
+      }
+
+      // Fallback to image generation if SVG fails
+      console.log('📸 SVG generation failed, trying image generation...');
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: imagePrompt }] }],
         config: {
           responseModalities: ["TEXT", "IMAGE"],
         },
@@ -124,7 +167,9 @@ Make sure all text elements are clearly visible and easy to read even when the i
             prompt: prompt,
             style,
             size,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            model: "gemini-2.5-flash-image",
+            format: "raster"
           };
         }
       }
@@ -153,12 +198,12 @@ Make sure all text elements are clearly visible and easy to read even when the i
     } catch (error) {
       console.error('Visual aid generation error:', error);
       
-      // Try fallback with Gemini 2.5 Flash
+      // Try fallback with simplified image generation
       try {
-        console.log('Retrying with Gemini 2.5 Flash...');
+        console.log('Retrying with simplified image generation...');
         const fallbackResponse = await ai.models.generateContent({
           model: "gemini-2.5-flash",
-          contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
+          contents: [{ role: "user", parts: [{ text: imagePrompt }] }],
           config: {
             responseModalities: ["TEXT", "IMAGE"],
           },

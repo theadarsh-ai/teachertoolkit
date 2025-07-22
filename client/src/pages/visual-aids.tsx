@@ -62,8 +62,8 @@ export default function VisualAids() {
           setGeneratedImages(prev => [newImage, ...prev].slice(0, 10)); // Keep last 10 images
           
           toast({
-            title: "Image Generated!",
-            description: `Visual aid created successfully${data.model ? ` using ${data.model}` : ''}`,
+            title: "Visual Aid Generated!",
+            description: `${data.format === 'svg' ? 'Vector diagram' : 'Image'} created successfully${data.model ? ` using ${data.model}` : ''}`,
           });
         } else if (data.textDescription) {
           // Handle fallback mode with text description
