@@ -73,8 +73,17 @@ const ArIntegration = () => {
       const data = await response.json();
 
       if (data.success) {
-        console.log('📥 Received models from API:', data.models?.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
-        setModels(data.models || []);
+        console.log('📥 FRONTEND RECEIVED:', data.models?.length, 'models');
+        console.log('📥 First model data:', data.models?.[0]);
+        
+        // Force clear existing models first
+        setModels([]);
+        
+        // Then set new models after a tiny delay to force re-render
+        setTimeout(() => {
+          setModels(data.models || []);
+          console.log('📥 Models set in state:', data.models?.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
+        }, 10);
         
         toast({
           title: "Search Complete",
@@ -235,9 +244,9 @@ const ArIntegration = () => {
                     </div>
                   )}
                   
-                  {models.map((model) => (
+                  {models.map((model, index) => (
                     <div
-                      key={model.id}
+                      key={`${model.id}-${index}`}
                       className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
                         selectedModel?.id === model.id
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
@@ -250,18 +259,21 @@ const ArIntegration = () => {
                           src={model.thumbnail || '/api/placeholder/80/60'} 
                           alt={model.name}
                           className="w-20 h-15 object-cover rounded flex-shrink-0"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/api/placeholder/80/60';
+                          }}
                         />
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-sm truncate mb-1">
-                            {model.name}
+                          <h3 className="font-semibold text-sm truncate mb-1" title={model.name}>
+                            {model.name} {/* DEBUG: {model.id.slice(0, 8)} */}
                           </h3>
                           <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
-                            {model.description}
+                            {model.description || 'Educational 3D model'}
                           </p>
                           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                            <span>by {model.author}</span>
+                            <span>by {model.author || 'Unknown'}</span>
                             <Badge variant="secondary" className="text-xs">
-                              {model.source}
+                              {model.source || 'sketchfab'}
                             </Badge>
                           </div>
                         </div>
