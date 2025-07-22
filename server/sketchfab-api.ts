@@ -109,6 +109,9 @@ class SketchfabService {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error(`Sketchfab API authentication failed. Please check your API key.`);
+        }
         throw new Error(`Sketchfab API error: ${response.status}`);
       }
 

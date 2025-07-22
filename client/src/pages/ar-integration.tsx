@@ -117,7 +117,7 @@ const ArIntegration = () => {
         },
         body: JSON.stringify({
           query: searchQuery,
-          source: 'both', // Search both Google Poly and Sketchfab
+          source: 'sketchfab', // Use Sketchfab as primary source
           educational: true
         }),
       });
@@ -256,7 +256,7 @@ const ArIntegration = () => {
             AR Integration Studio
           </h1>
           <p className="text-xl text-gray-600">
-            Explore 3D educational models with Google Poly API and Sketchfab integration
+            Explore 3D educational models with Sketchfab integration
           </p>
         </div>
 

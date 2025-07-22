@@ -816,34 +816,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let results = [];
 
-      if (source === 'google-poly' || source === 'both') {
-        try {
-          const polyResults = await googlePolyService.searchAssets(query, 10);
-          const standardizedPoly = polyResults.assets.map(asset => 
-            googlePolyService.convertToStandardModel(asset)
-          );
-          results.push(...standardizedPoly);
-        } catch (error) {
-          console.error('Google Poly search failed:', error);
-        }
-      }
+      // Use Sketchfab as primary 3D model source
+      try {
+        const sketchfabOptions = educational ? {
+          categories: sketchfabService.getEducationalCategories(),
+          downloadable: true,
+          sort: 'relevance' as const,
+          count: 20
+        } : { count: 20 };
 
-      if (source === 'sketchfab' || source === 'both') {
-        try {
-          const sketchfabOptions = educational ? {
-            categories: sketchfabService.getEducationalCategories(),
-            downloadable: true,
-            sort: 'relevance' as const
-          } : {};
-
-          const sketchfabResults = await sketchfabService.searchModels(query, sketchfabOptions);
-          const standardizedSketchfab = sketchfabResults.results.map(model =>
-            sketchfabService.convertToStandardModel(model)
-          );
-          results.push(...standardizedSketchfab);
-        } catch (error) {
-          console.error('Sketchfab search failed:', error);
-        }
+        const sketchfabResults = await sketchfabService.searchModels(query, sketchfabOptions);
+        const standardizedSketchfab = sketchfabResults.results.map(model =>
+          sketchfabService.convertToStandardModel(model)
+        );
+        results.push(...standardizedSketchfab);
+        
+        console.log(`📦 Sketchfab found ${sketchfabResults.results.length} models`);
+      } catch (error) {
+        console.error('Sketchfab search failed:', error);
+        
+        // Use mock educational models as fallback
+        const mockService = new SketchfabService('demo');
+        const mockResults = await mockService.searchModels(query);
+        const mockModels = mockResults.results.map(model => 
+          mockService.convertToStandardModel(model)
+        );
+        results.push(...mockModels);
+        
+        console.log(`🎭 Using ${mockModels.length} demo educational models`);
       }
 
       // Sort by relevance and remove duplicates
