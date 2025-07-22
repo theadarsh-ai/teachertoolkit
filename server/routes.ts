@@ -826,6 +826,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } : { count: 20 };
 
         const sketchfabResults = await sketchfabService.searchModels(query, sketchfabOptions);
+        console.log('🔍 Raw Sketchfab results sample:', JSON.stringify(sketchfabResults.results?.[0], null, 2));
+        
         const standardizedSketchfab = sketchfabResults.results.map(model =>
           sketchfabService.convertToStandardModel(model)
         );

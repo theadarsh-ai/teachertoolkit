@@ -121,9 +121,18 @@ class SketchfabService {
         throw new Error(`Sketchfab API error: ${response.status} - ${errorText}`);
       }
 
-      const data: SketchfabSearchResponse = await response.json();
+      const data: any = await response.json();
       console.log('📊 Sketchfab Data:', { count: data.count, results: data.results?.length || 0 });
-      return data;
+      
+      // Transform raw API response to expected format
+      const transformedData: SketchfabSearchResponse = {
+        results: data.results || [],
+        count: data.count || 0,
+        next: data.next,
+        previous: data.previous
+      };
+      
+      return transformedData;
 
     } catch (error) {
       console.error('Sketchfab API error:', error);
@@ -348,30 +357,32 @@ class SketchfabService {
     };
   }
 
-  // Convert Sketchfab model to standardized format
-  convertToStandardModel(model: SketchfabModel) {
-    const thumbnail = model.thumbnails.images[0]?.url || '';
-
+  // Convert real Sketchfab API response to standardized format
+  convertToStandardModel(model: any) {
+    // Handle real API response format
+    const thumbnail = model.thumbnails?.images?.[0]?.url || '';
+    const embedUrl = `https://sketchfab.com/models/${model.uid}/embed?autostart=1&ui_controls=1&ui_infos=1&ui_inspector=1&ui_stop=1&ui_watermark=0&preload=1`;
+    
     return {
-      id: model.uid,
-      name: model.name,
-      description: model.description,
+      id: model.uid || model.id || Math.random().toString(),
+      name: model.name || model.displayName || 'Untitled Model',
+      description: model.description || 'Educational 3D model from Sketchfab',
       thumbnail: thumbnail,
       source: 'sketchfab' as const,
-      url: model.viewerUrl,
-      embedUrl: model.embedUrl,
+      url: model.viewerUrl || `https://sketchfab.com/3d-models/${model.uid}`,
+      embedUrl: embedUrl,
       modelUrl: model.downloadUrl || '',
-      tags: model.tags.map(tag => tag.name),
-      author: model.user.displayName || model.user.username,
-      license: model.license.label,
+      tags: model.tags?.map((tag: any) => typeof tag === 'string' ? tag : tag.name) || [],
+      author: model.user?.displayName || model.user?.username || model.user?.login || 'Unknown Artist',
+      license: model.license?.label || model.license?.fullName || 'Standard License',
       stats: {
-        likes: model.likeCount,
-        views: model.viewCount,
-        faces: model.faceCount,
-        vertices: model.vertexCount
+        likes: model.likeCount || 0,
+        views: model.viewCount || 0,
+        faces: model.faceCount || 0,
+        vertices: model.vertexCount || 0
       },
-      isAnimated: model.animationCount > 0,
-      isDownloadable: model.isDownloadable
+      isAnimated: (model.animationCount || 0) > 0,
+      isDownloadable: model.isDownloadable || false
     };
   }
 
