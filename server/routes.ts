@@ -851,6 +851,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       console.log(`✅ Found ${uniqueResults.length} 3D models`);
+      console.log(`📤 Sending models to frontend:`, uniqueResults.slice(0, 2).map(m => ({ name: m.name, author: m.author, id: m.id })));
 
       res.json({
         success: true,

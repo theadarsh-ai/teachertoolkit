@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,58 +44,6 @@ const ArIntegration = () => {
   const [zoom, setZoom] = useState(1);
   const viewerRef = useRef<HTMLIFrameElement>(null);
 
-  // Sample educational 3D models (these would come from actual APIs)
-  const sampleModels: Model3D[] = [
-    {
-      id: "1",
-      name: "Human Heart Anatomy",
-      description: "Detailed 3D model of human heart showing chambers and vessels",
-      thumbnail: "/api/placeholder/300/200",
-      source: "sketchfab",
-      url: "https://sketchfab.com/models/heart-anatomy",
-      embedUrl: "https://sketchfab.com/models/heart-anatomy/embed",
-      tags: ["anatomy", "biology", "heart", "medical"],
-      author: "Medical Education Team",
-      license: "Educational Use"
-    },
-    {
-      id: "2", 
-      name: "Solar System",
-      description: "Complete solar system with planets and orbital mechanics",
-      thumbnail: "/api/placeholder/300/200",
-      source: "google-poly",
-      url: "https://poly.google.com/view/solar-system",
-      embedUrl: "https://poly.google.com/view/solar-system/embed",
-      tags: ["astronomy", "planets", "space", "physics"],
-      author: "NASA Education",
-      license: "Creative Commons"
-    },
-    {
-      id: "3",
-      name: "Plant Cell Structure", 
-      description: "3D cross-section of plant cell showing organelles",
-      thumbnail: "/api/placeholder/300/200",
-      source: "sketchfab",
-      url: "https://sketchfab.com/models/plant-cell",
-      embedUrl: "https://sketchfab.com/models/plant-cell/embed",
-      tags: ["biology", "cell", "plant", "organelles"],
-      author: "Biology Lab",
-      license: "Educational Use"
-    },
-    {
-      id: "4",
-      name: "Molecular Structure - Water",
-      description: "H2O molecule showing atomic bonds and electron clouds",
-      thumbnail: "/api/placeholder/300/200", 
-      source: "google-poly",
-      url: "https://poly.google.com/view/water-molecule",
-      embedUrl: "https://poly.google.com/view/water-molecule/embed",
-      tags: ["chemistry", "molecule", "water", "atoms"],
-      author: "Chemistry Department", 
-      license: "MIT License"
-    }
-  ];
-
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast({
@@ -125,6 +73,7 @@ const ArIntegration = () => {
       const data = await response.json();
 
       if (data.success) {
+        console.log('📥 Received models from API:', data.models?.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
         setModels(data.models || []);
         
         toast({
@@ -152,346 +101,273 @@ const ArIntegration = () => {
   };
 
   const handleModelSelect = async (model: Model3D) => {
-    setSelectedModel(model);
-    setIsMaximized(false);
-    setZoom(1);
-    setIsRotating(false);
-    
-    // Get enhanced embed URL if available
     try {
+      // Get embed URL for the selected model
       const response = await fetch('/api/agents/ar-integration/embed', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          source: model.source,
-          id: model.id,
-          options: {
-            autostart: true,
-            ui_controls: true,
-            ui_infos: true,
-            ui_inspector: true,
-            ui_watermark: false
-          }
+          modelId: model.id,
+          source: model.source
         }),
       });
 
       const data = await response.json();
       
       if (data.success && data.embedUrl) {
-        // Update the model with the enhanced embed URL
         setSelectedModel({
           ...model,
           embedUrl: data.embedUrl
         });
+      } else {
+        setSelectedModel(model);
       }
+      
     } catch (error) {
-      console.error('Failed to get embed URL:', error);
-      // Continue with existing embed URL
+      console.error('Error getting embed URL:', error);
+      setSelectedModel(model);
     }
-    
-    toast({
-      title: "Model Loaded",
-      description: `Now viewing: ${model.name}`,
-    });
   };
 
-  const toggleMaximize = () => {
+  const handleMaximize = () => {
     setIsMaximized(!isMaximized);
   };
 
-  const toggleRotation = () => {
+  const handleRotate = () => {
     setIsRotating(!isRotating);
-    
+    // In a real implementation, you would send rotation commands to the 3D viewer
     if (viewerRef.current) {
-      // Send rotation command to iframe (this would be implemented with postMessage API)
+      // Add rotation control via postMessage to iframe
       viewerRef.current.contentWindow?.postMessage({
-        action: isRotating ? 'stopRotation' : 'startRotation',
+        type: 'rotate',
+        enabled: !isRotating,
         speed: rotationSpeed
       }, '*');
     }
   };
 
-  const handleZoomIn = () => {
-    setZoom(prev => Math.min(prev + 0.25, 3));
-  };
-
-  const handleZoomOut = () => {
-    setZoom(prev => Math.max(prev - 0.25, 0.5));
-  };
-
-  const handleDownloadModel = (model: Model3D) => {
-    toast({
-      title: "Download Started",
-      description: `Downloading ${model.name} for offline use`,
-    });
+  const handleZoom = (direction: 'in' | 'out') => {
+    const newZoom = direction === 'in' ? zoom * 1.2 : zoom * 0.8;
+    setZoom(Math.max(0.5, Math.min(3.0, newZoom)));
     
-    // This would trigger actual download from the respective API
-    window.open(model.url, '_blank');
+    if (viewerRef.current) {
+      viewerRef.current.contentWindow?.postMessage({
+        type: 'zoom',
+        level: newZoom
+      }, '*');
+    }
   };
 
-  const suggestedSearches = [
-    "human anatomy",
-    "solar system",
-    "molecular structure",
-    "plant cell",
-    "chemical bonds", 
-    "geological formations",
-    "historical artifacts",
-    "mathematical shapes"
-  ];
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            AR Integration Studio
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            AR Integration Agent
           </h1>
-          <p className="text-xl text-gray-600">
-            Explore 3D educational models with Sketchfab integration
+          <p className="text-xl text-gray-600 dark:text-gray-300">
+            Explore educational 3D models with interactive AR capabilities
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Search Panel */}
-          <div className="lg:col-span-1">
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+          <div className="lg:col-span-1 space-y-6">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Search className="w-5 h-5 text-indigo-600" />
+                  <Search className="w-5 h-5" />
                   Search 3D Models
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent>
                 <div className="space-y-4">
-                  <div>
+                  <div className="flex gap-2">
                     <Input
+                      placeholder="Search for 3D models..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="e.g., human heart, solar system..."
-                      className="h-12"
-                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                      onKeyPress={handleKeyPress}
+                      className="flex-1"
                     />
+                    <Button 
+                      onClick={handleSearch}
+                      disabled={isSearching}
+                      size="icon"
+                    >
+                      {isSearching ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Search className="w-4 h-4" />
+                      )}
+                    </Button>
                   </div>
                   
-                  <Button
-                    onClick={handleSearch}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-                    disabled={isSearching}
-                  >
-                    {isSearching ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Searching...
-                      </>
-                    ) : (
-                      <>
-                        <Search className="w-4 h-4 mr-2" />
-                        Search Models
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">
-                    Suggested Searches:
-                  </h3>
-                  <div className="grid grid-cols-1 gap-2">
-                    {suggestedSearches.map((suggestion, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        size="sm"
-                        className="justify-start text-left h-auto py-2 px-3"
-                        onClick={() => setSearchQuery(suggestion)}
-                      >
-                        {suggestion}
-                      </Button>
-                    ))}
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Try searching: "human anatomy", "solar system", "plant cell", "chemical bonds"
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Models List */}
-            {models.length > 0 && (
-              <Card className="mt-6 bg-white/80 backdrop-blur-sm border-0 shadow-xl">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Box className="w-5 h-5 text-indigo-600" />
-                    Found Models ({models.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {models.map((model) => (
-                      <div
-                        key={model.id}
-                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                          selectedModel?.id === model.id 
-                            ? 'border-indigo-500 bg-indigo-50' 
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => handleModelSelect(model)}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <Box className="w-8 h-8 text-gray-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-gray-900 truncate">{model.name}</h4>
-                            <p className="text-sm text-gray-600 mt-1">{model.description}</p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <Badge variant={model.source === 'sketchfab' ? 'default' : 'secondary'}>
-                                {model.source === 'sketchfab' ? 'Sketchfab' : 'Google Poly'}
-                              </Badge>
-                              <span className="text-xs text-gray-500">{model.author}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* 3D Viewer */}
-          <div className="lg:col-span-2">
-            <Card className={`bg-white/80 backdrop-blur-sm border-0 shadow-xl transition-all ${
-              isMaximized ? 'fixed inset-4 z-50' : ''
-            }`}>
+            {/* Model Results */}
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Eye className="w-5 h-5 text-indigo-600" />
-                    3D Model Viewer
-                  </span>
-                  {selectedModel && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleZoomOut}
-                        disabled={zoom <= 0.5}
-                      >
-                        <ZoomOut className="w-4 h-4" />
-                      </Button>
-                      <span className="text-sm text-gray-600 min-w-12 text-center">
-                        {Math.round(zoom * 100)}%
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleZoomIn}
-                        disabled={zoom >= 3}
-                      >
-                        <ZoomIn className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={toggleRotation}
-                      >
-                        {isRotating ? <Pause className="w-4 h-4" /> : <RotateCw className="w-4 h-4" />}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={toggleMaximize}
-                      >
-                        <Maximize2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
+                <CardTitle className="flex items-center gap-2">
+                  <Box className="w-5 h-5" />
+                  Search Results ({models.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {selectedModel ? (
-                  <div className="space-y-4">
-                    <div 
-                      className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden"
-                      style={{ 
-                        height: isMaximized ? 'calc(100vh - 200px)' : '500px',
-                        transform: `scale(${zoom})`,
-                        transformOrigin: 'center center'
-                      }}
-                    >
-                      <iframe
-                        ref={viewerRef}
-                        src={selectedModel.embedUrl}
-                        className="w-full h-full border-0"
-                        title={selectedModel.name}
-                        allow="autoplay; fullscreen; vr"
-                      />
-                      
-                      {/* Overlay Controls */}
-                      <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg p-2">
-                        <div className="flex items-center gap-2 text-white text-sm">
-                          <Badge variant={selectedModel.source === 'sketchfab' ? 'default' : 'secondary'}>
-                            {selectedModel.source === 'sketchfab' ? 'Sketchfab' : 'Google Poly'}
-                          </Badge>
-                          <span>{selectedModel.name}</span>
-                        </div>
-                      </div>
-
-                      {/* Rotation Indicator */}
-                      {isRotating && (
-                        <div className="absolute top-4 right-4 bg-green-500/80 backdrop-blur-sm rounded-full p-2">
-                          <RotateCw className="w-4 h-4 text-white animate-spin" />
-                        </div>
-                      )}
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {models.length === 0 && !isSearching && (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <Box className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Search for educational 3D models to get started</p>
                     </div>
-
-                    {/* Model Info */}
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 mb-1">{selectedModel.name}</h4>
-                          <p className="text-gray-600 text-sm mb-2">{selectedModel.description}</p>
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <span>By {selectedModel.author}</span>
-                            <span>•</span>
-                            <span>{selectedModel.license}</span>
-                          </div>
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {selectedModel.tags.map((tag) => (
-                              <Badge key={tag} variant="outline" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
+                  )}
+                  
+                  {models.map((model) => (
+                    <div
+                      key={model.id}
+                      className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                        selectedModel?.id === model.id
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                      }`}
+                      onClick={() => handleModelSelect(model)}
+                    >
+                      <div className="flex gap-3">
+                        <img 
+                          src={model.thumbnail || '/api/placeholder/80/60'} 
+                          alt={model.name}
+                          className="w-20 h-15 object-cover rounded flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-sm truncate mb-1">
+                            {model.name}
+                          </h3>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
+                            {model.description}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <span>by {model.author}</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {model.source}
+                            </Badge>
                           </div>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownloadModel(selectedModel)}
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Download
-                        </Button>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-16">
-                    <Box className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-500 mb-2">
-                      No 3D model selected
-                    </h3>
-                    <p className="text-gray-400 mb-4">
-                      Search for educational 3D models and select one to view in AR
-                    </p>
-                    <Button
-                      onClick={() => setSearchQuery("human anatomy")}
-                      variant="outline"
-                    >
-                      Try Sample Search
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* 3D Viewer Panel */}
+          <div className="lg:col-span-2">
+            <Card className={`${isMaximized ? 'fixed inset-4 z-50' : 'h-full'}`}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Eye className="w-5 h-5" />
+                    3D Model Viewer
+                    {selectedModel && (
+                      <span className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                        - {selectedModel.name}
+                      </span>
+                    )}
+                  </CardTitle>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => handleZoom('out')}>
+                      <ZoomOut className="w-4 h-4" />
                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleZoom('in')}>
+                      <ZoomIn className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleRotate}
+                      className={isRotating ? 'bg-blue-100 dark:bg-blue-900' : ''}
+                    >
+                      {isRotating ? <Pause className="w-4 h-4" /> : <RotateCw className="w-4 h-4" />}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleMaximize}>
+                      <Maximize2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className={`${isMaximized ? 'h-full' : 'h-96'} bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden`}>
+                  {selectedModel ? (
+                    <iframe
+                      ref={viewerRef}
+                      src={selectedModel.embedUrl}
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      allow="autoplay; fullscreen; xr-spatial-tracking"
+                      title={`3D model: ${selectedModel.name}`}
+                      className="w-full h-full"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                      <div className="text-center">
+                        <Box className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                        <p className="text-lg mb-2">Select a 3D Model</p>
+                        <p className="text-sm">Search and click on a model to view it here</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {selectedModel && (
+                  <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-semibold text-lg">{selectedModel.name}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          by {selectedModel.author}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Badge variant="outline">{selectedModel.source}</Badge>
+                        <Badge variant="outline">{selectedModel.license}</Badge>
+                      </div>
+                    </div>
+                    
+                    <p className="text-gray-700 dark:text-gray-300 mb-3">
+                      {selectedModel.description}
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {selectedModel.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={selectedModel.url} target="_blank" rel="noopener noreferrer">
+                          <Eye className="w-4 h-4 mr-1" />
+                          View Original
+                        </a>
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
