@@ -138,19 +138,13 @@ const ArIntegration = () => {
     } catch (error) {
       console.error('AR search error:', error);
       
-      // Fallback to sample models for demonstration
-      const filteredModels = sampleModels.filter(model => 
-        model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        model.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        model.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-      
-      setModels(filteredModels);
+      // Show empty results instead of demo models
+      setModels([]);
       
       toast({
-        title: "Using Demo Models", 
-        description: `Showing ${filteredModels.length} sample educational models. Real API integration requires valid API keys.`,
-        variant: "default"
+        title: "Search Failed", 
+        description: "Unable to search 3D models. Please check your connection and try again.",
+        variant: "destructive"
       });
     } finally {
       setIsSearching(false);
