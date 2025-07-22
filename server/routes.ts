@@ -1022,13 +1022,18 @@ Format as JSON with structure:
         
         const gameData = JSON.parse(cleanContent);
         
-        // Add unique IDs
+        // Add unique IDs and normalize property names
         const game = {
           id: Date.now().toString(),
           ...gameData,
           questions: gameData.questions?.map((q: any, index: number) => ({
             id: `q_${index}`,
-            ...q
+            question: q.questionText || q.question || `Question ${index + 1}`,
+            options: q.options || ['Option A', 'Option B', 'Option C', 'Option D'],
+            correctAnswer: q.correctAnswerIndex !== undefined ? q.correctAnswerIndex : (q.correctAnswer || 0),
+            explanation: q.educationalExplanation || q.explanation || 'Explanation not provided',
+            points: q.pointsValue || q.points || 20,
+            timeLimit: q.timeLimitSeconds || q.timeLimit || 30
           })) || [],
           rewards: gameData.rewards?.map((r: any, index: number) => ({
             id: `r_${index}`,
