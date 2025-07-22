@@ -10,6 +10,7 @@ import ContentGenerator from "@/pages/content-generator";
 import DifferentiatedMaterials from "@/pages/differentiated-materials";
 import VisualAids from "@/pages/visual-aids";
 import ArIntegration from "@/pages/ar-integration";
+import GamifiedTeaching from "@/pages/gamified-teaching";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/differentiated-materials" component={DifferentiatedMaterials} />
       <Route path="/visual-aids" component={VisualAids} />
       <Route path="/ar-integration" component={ArIntegration} />
+      <Route path="/gamified-teaching" component={GamifiedTeaching} />
       <Route component={NotFound} />
     </Switch>
   );

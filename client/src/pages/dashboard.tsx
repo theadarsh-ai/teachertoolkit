@@ -64,6 +64,9 @@ export default function Dashboard() {
     } else if (agent.id === 'ar-integration') {
       // Direct navigation to AR Integration page
       setLocation('/ar-integration');
+    } else if (agent.id === 'gamified-teaching') {
+      // Direct navigation to Gamified Teaching page
+      setLocation('/gamified-teaching');
     } else {
       setSelectedAgent(agent);
       setShowAgentModal(true);

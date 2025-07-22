@@ -959,6 +959,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Gamified Teaching - Game Generation
+  app.post("/api/agents/gamified-teaching/generate-game", async (req, res) => {
+    try {
+      const { topic, grade, difficulty, gameType, duration, playerCount } = req.body;
+      
+      console.log(`🎮 Generating ${gameType} game for Grade ${grade}: "${topic}"`);
+      
+      const gamePrompt = `Create an educational ${gameType} game for Grade ${grade} students on "${topic}".
+      
+Game Requirements:
+- Difficulty: ${difficulty}
+- Duration: ${duration} minutes
+- Players: ${playerCount}
+- Educational focus: ${topic}
+- Grade level: ${grade}
+
+Generate:
+1. Game title (engaging and educational)
+2. Game description (2-3 sentences)
+3. 10 educational questions with:
+   - Clear question text
+   - 4 multiple choice options
+   - Correct answer index (0-3)
+   - Educational explanation
+   - Points value (10-50 based on difficulty)
+   - Time limit (15-45 seconds)
+4. 5 reward badges with names, descriptions, and rarity
+5. 3 challenge objectives with rewards
+
+Format as JSON with structure:
+{
+  "title": "Game Title",
+  "description": "Description",
+  "questions": [...],
+  "rewards": [...],
+  "challenges": [...],
+  "metadata": {
+    "estimatedTime": ${duration},
+    "difficulty": "${difficulty}",
+    "points": totalMaxPoints
+  }
+}`;
+
+      const response = await geminiEduService.generateContent(gamePrompt);
+      
+      try {
+        const gameData = JSON.parse(response);
+        
+        // Add unique IDs
+        const game = {
+          id: Date.now().toString(),
+          ...gameData,
+          questions: gameData.questions?.map((q: any, index: number) => ({
+            id: `q_${index}`,
+            ...q
+          })) || [],
+          rewards: gameData.rewards?.map((r: any, index: number) => ({
+            id: `r_${index}`,
+            ...r,
+            rarity: r.rarity || 'common'
+          })) || [],
+          challenges: gameData.challenges?.map((c: any, index: number) => ({
+            id: `c_${index}`,
+            ...c
+          })) || []
+        };
+        
+        console.log(`✅ Generated game: "${game.title}" with ${game.questions.length} questions`);
+        
+        res.json({
+          success: true,
+          game
+        });
+        
+      } catch (parseError) {
+        console.error("❌ Failed to parse game JSON:", parseError);
+        
+        // Return a fallback structured game
+        const fallbackGame = {
+          id: Date.now().toString(),
+          title: `${topic} Quiz Challenge`,
+          description: `Test your knowledge of ${topic} with this Grade ${grade} educational game!`,
+          gameType,
+          questions: [
+            {
+              id: 'q_1',
+              question: `What is an important concept related to ${topic}?`,
+              options: ['Option A', 'Option B', 'Option C', 'Option D'],
+              correctAnswer: 0,
+              explanation: 'This is the correct answer because...',
+              points: difficulty === 'easy' ? 10 : difficulty === 'medium' ? 25 : 40,
+              timeLimit: 30
+            }
+          ],
+          rewards: [
+            {
+              id: 'r_1',
+              name: 'Quick Learner',
+              description: 'Answered your first question!',
+              icon: 'star',
+              rarity: 'common' as const,
+              pointsRequired: 10
+            }
+          ],
+          challenges: [
+            {
+              id: 'c_1',
+              title: 'First Steps',
+              description: 'Complete your first question',
+              objective: 'Answer 1 question correctly',
+              reward: 'Quick Learner badge',
+              difficulty: 'easy'
+            }
+          ],
+          metadata: {
+            estimatedTime: duration,
+            difficulty,
+            points: difficulty === 'easy' ? 100 : difficulty === 'medium' ? 250 : 400
+          }
+        };
+        
+        res.json({
+          success: true,
+          game: fallbackGame
+        });
+      }
+      
+    } catch (error) {
+      console.error("❌ Game generation error:", error);
+      res.status(500).json({ 
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate game'
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
