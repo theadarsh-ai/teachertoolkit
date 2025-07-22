@@ -1,53 +1,89 @@
-import { adminDb, firebaseNCERTStorage } from './firebase-admin-ncert';
+import { adminDb } from './firebase-admin-ncert';
 
-async function initializeFirestore() {
+export async function initializeFirestoreDatabase() {
   try {
-    console.log('🔥 Initializing Firestore database...');
+    console.log('🔥 Initializing Firestore database structure...');
     
-    // Create a simple test document to initialize the database
-    await adminDb.collection('_init').doc('test').set({
-      initialized: true,
-      timestamp: new Date(),
-      message: 'Firestore database initialized successfully'
-    });
+    // Create initial collections with a single document to establish the database
+    const collections = [
+      'ncert_textbooks',
+      'ncert_chapters', 
+      'scraping_logs',
+      'users',
+      'agent_configs',
+      'chat_sessions',
+      'chat_messages',
+      'generated_content'
+    ];
     
-    console.log('✅ Firestore database initialized successfully');
-    
-    // Now try to store a sample NCERT textbook
-    const sampleBook = await firebaseNCERTStorage.storeTextbook({
-      class: 1,
-      subject: 'Mathematics',
-      bookTitle: 'Mathematics - Class 1 (Test)',
-      language: 'English',
-      pdfUrl: 'https://ncert.nic.in/textbook/pdf/math1.pdf',
-      contentExtracted: false,
-      chapterCount: 0,
-      metadata: { source: 'initialization_test' }
-    });
-    
-    if (sampleBook) {
-      console.log('✅ Sample textbook stored successfully');
-      
-      // Test retrieval
-      const books = await firebaseNCERTStorage.getAllTextbooks();
-      console.log(`📚 Retrieved ${books.length} textbooks from Firestore`);
-      
-      return { success: true, count: books.length };
-    } else {
-      throw new Error('Failed to store sample textbook');
+    for (const collectionName of collections) {
+      try {
+        // Check if collection exists by trying to get it
+        const snapshot = await adminDb.collection(collectionName).limit(1).get();
+        
+        if (snapshot.empty) {
+          // Create initial document to establish collection
+          const initDoc = {
+            _init: true,
+            createdAt: new Date(),
+            description: `Initial document for ${collectionName} collection`
+          };
+          
+          await adminDb.collection(collectionName).doc('_init').set(initDoc);
+          console.log(`✓ Created collection: ${collectionName}`);
+        } else {
+          console.log(`✓ Collection exists: ${collectionName}`);
+        }
+      } catch (error) {
+        console.log(`⚠️  Error checking collection ${collectionName}:`, error.message);
+      }
     }
     
+    console.log('🎉 Firestore database initialization completed');
+    return true;
+    
   } catch (error) {
-    console.error('❌ Firestore initialization failed:', error);
-    throw error;
+    console.error('❌ Failed to initialize Firestore database:', error);
+    return false;
   }
 }
 
-// Run initialization
-initializeFirestore().then(result => {
-  console.log('Firestore initialization result:', result);
-  process.exit(0);
-}).catch(error => {
-  console.error('Initialization error:', error);
-  process.exit(1);
-});
+export async function ensureFirestoreConnection() {
+  try {
+    // Try to create a simple test document to establish the database
+    const testDocRef = adminDb.collection('_health_check').doc('test');
+    await testDocRef.set({
+      status: 'connected',
+      timestamp: new Date(),
+      message: 'Database connection established'
+    });
+    
+    console.log('🔥 Firestore connection verified and database created');
+    return true;
+  } catch (error) {
+    console.error('❌ Firestore connection failed:', error);
+    
+    // If it's a database not found error, try to create collections
+    if (error.code === 5 && error.details === '') {
+      console.log('🔧 Database not found, attempting to create collections...');
+      try {
+        // Force create collections by writing documents
+        const collections = ['ncert_textbooks', 'scraping_logs', 'users'];
+        for (const collectionName of collections) {
+          await adminDb.collection(collectionName).doc('_init').set({
+            _initialized: true,
+            createdAt: new Date(),
+            description: `Initial document for ${collectionName} collection`
+          });
+          console.log(`✓ Created collection: ${collectionName}`);
+        }
+        return true;
+      } catch (createError) {
+        console.error('❌ Failed to create database:', createError);
+        return false;
+      }
+    }
+    
+    return false;
+  }
+}

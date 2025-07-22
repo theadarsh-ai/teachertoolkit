@@ -60,6 +60,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // ========== NCERT TEXTBOOKS WITH FIREBASE FIRESTORE ==========
   
+  // Initialize Firestore database if needed
+  app.post("/api/firestore/init", async (req, res) => {
+    try {
+      const { initializeFirestoreDatabase } = await import('./init-firestore');
+      const success = await initializeFirestoreDatabase();
+      
+      if (success) {
+        res.json({
+          success: true,
+          message: "Firestore database initialized successfully"
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: "Failed to initialize Firestore database"
+        });
+      }
+    } catch (error) {
+      console.error('Firestore initialization error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to initialize Firestore database",
+        details: String(error)
+      });
+    }
+  });
+  
   // Visual Aids Agent - Image Generation
   app.post("/api/agents/visual-aids", async (req, res) => {
     try {
@@ -666,6 +693,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('🚀 Starting NCERT textbook scraping to Firebase Firestore...');
       
+      // First ensure database is initialized
+      const { ensureFirestoreConnection } = await import('./init-firestore');
+      const dbReady = await ensureFirestoreConnection();
+      
+      if (!dbReady) {
+        return res.status(500).json({
+          success: false,
+          error: "Firestore database is not accessible",
+          message: "Please ensure Firestore is enabled in Firebase Console"
+        });
+      }
+      
       const { scrapeNCERTTextbooksToFirebase } = await import('./ncert-scraper-firebase');
       const result = await scrapeNCERTTextbooksToFirebase();
       
@@ -679,6 +718,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('NCERT Firebase scraping error:', error);
       res.status(500).json({ 
+        success: false,
         error: 'Failed to scrape NCERT textbooks to Firebase',
         details: String(error)
       });
@@ -688,6 +728,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all stored NCERT textbooks from Firestore
   app.get("/api/ncert/textbooks", async (req, res) => {
     try {
+      // Check database connection first
+      const { ensureFirestoreConnection } = await import('./init-firestore');
+      const dbReady = await ensureFirestoreConnection();
+      
+      if (!dbReady) {
+        return res.json({
+          success: true,
+          count: 0,
+          data: [],
+          message: "Firestore database not initialized. Please run scraping first or initialize database."
+        });
+      }
+      
       const { firebaseNCERTStorage } = await import('./firebase-admin-ncert');
       const textbooks = await firebaseNCERTStorage.getAllTextbooks();
       res.json({
@@ -698,6 +751,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching textbooks from Firebase:', error);
       res.status(500).json({ 
+        success: false,
         error: 'Failed to fetch NCERT textbooks from Firebase',
         details: String(error)
       });
