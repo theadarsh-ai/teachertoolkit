@@ -215,7 +215,7 @@ export default function DifferentiatedMaterials() {
 
     generateMaterialsMutation.mutate({
       sourceContent: inputMode === 'text' ? sourceContent : undefined,
-      uploadedImage: inputMode === 'upload' ? uploadedImage : undefined,
+      uploadedImage: inputMode === 'upload' ? uploadedImage || undefined : undefined,
       grades: selectedGrades,
       questionType,
       questionCount,
@@ -472,10 +472,10 @@ export default function DifferentiatedMaterials() {
                     </AlertDescription>
                   </Alert>
 
-                  {/* PDF Downloads */}
+                  {/* HTML Downloads */}
                   {generatedMaterials.pdf && (
                     <div className="space-y-4">
-                      {/* Questions PDF */}
+                      {/* Questions HTML */}
                       <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
@@ -483,7 +483,7 @@ export default function DifferentiatedMaterials() {
                               <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div>
-                              <p className="font-semibold text-blue-800 dark:text-blue-200">Question Paper</p>
+                              <p className="font-semibold text-blue-800 dark:text-blue-200">Question Paper (HTML)</p>
                               <p className="text-sm text-blue-600 dark:text-blue-400">
                                 {questionCount} {questionType === 'multiple-choice' ? 'multiple choice questions' : 'mixed questions'}
                               </p>
@@ -491,19 +491,19 @@ export default function DifferentiatedMaterials() {
                           </div>
                           <Button 
                             onClick={() => handleDownload(
-                              generatedMaterials.pdf.questionsDownloadUrl, 
-                              generatedMaterials.pdf.questionsFile || 'questions.pdf'
+                              generatedMaterials.pdf?.questionsDownloadUrl || '', 
+                              generatedMaterials.pdf?.questionsFile || 'questions.html'
                             )}
                             size="lg"
                             className="bg-blue-600 hover:bg-blue-700 text-white"
                           >
                             <Download className="w-5 h-5 mr-2" />
-                            Download
+                            Download HTML
                           </Button>
                         </div>
                       </div>
 
-                      {/* Answers PDF */}
+                      {/* Answers HTML */}
                       <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
@@ -511,7 +511,7 @@ export default function DifferentiatedMaterials() {
                               <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                             </div>
                             <div>
-                              <p className="font-semibold text-emerald-800 dark:text-emerald-200">Answer Key</p>
+                              <p className="font-semibold text-emerald-800 dark:text-emerald-200">Answer Key (HTML)</p>
                               <p className="text-sm text-emerald-600 dark:text-emerald-400">
                                 Complete solutions and explanations
                               </p>
@@ -519,14 +519,14 @@ export default function DifferentiatedMaterials() {
                           </div>
                           <Button 
                             onClick={() => handleDownload(
-                              generatedMaterials.pdf.answersDownloadUrl,
-                              generatedMaterials.pdf.answersFile || 'answers.pdf'
+                              generatedMaterials.pdf?.answersDownloadUrl || '',
+                              generatedMaterials.pdf?.answersFile || 'answers.html'
                             )}
                             size="lg"
                             className="bg-emerald-600 hover:bg-emerald-700 text-white"
                           >
                             <Download className="w-5 h-5 mr-2" />
-                            Download
+                            Download HTML
                           </Button>
                         </div>
                       </div>

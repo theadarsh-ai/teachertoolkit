@@ -7,6 +7,7 @@ import fs from "fs";
 import { storage } from "./storage";
 import { geminiEduService } from "./gemini";
 import { pdfGenerator } from "./pdf-generator";
+import { htmlGenerator } from "./html-generator";
 import { GooglePolyService } from './google-poly-api';
 import { SketchfabService } from './sketchfab-api';
 import { 
@@ -380,6 +381,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/download-html/:fileName", async (req, res) => {
+    try {
+      const { fileName } = req.params;
+      
+      // Security check - only allow downloading from generated_htmls directory
+      if (fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
+        return res.status(400).json({ error: "Invalid file name" });
+      }
+      
+      const filePath = path.join('generated_htmls', fileName);
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        console.error(`HTML file not found: ${filePath}`);
+        return res.status(404).json({ error: "HTML file not found" });
+      }
+      
+      console.log(`📄 Downloading HTML: ${fileName}`);
+      
+      // Set appropriate headers for HTML download
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Cache-Control', 'no-cache');
+      
+      // Send the file
+      res.sendFile(fileName, { root: 'generated_htmls' }, (err) => {
+        if (err) {
+          console.error("HTML download error:", err);
+          if (!res.headersSent) {
+            res.status(404).json({ error: "HTML file not found" });
+          }
+        } else {
+          console.log(`✅ HTML downloaded: ${fileName}`);
+        }
+      });
+      
+    } catch (error) {
+      console.error("HTML download error:", error);
+      res.status(500).json({ error: "HTML download failed" });
+    }
+  });
+
   app.post("/api/agents/differentiated-materials", upload.single('uploadedImage'), async (req, res) => {
     try {
       const { sourceContent, grades, questionType, questionCount, userId, generatePDF = "true" } = req.body;
@@ -420,9 +463,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (generatePDF === "true") {
-        console.log("📄 Generating question and answer PDFs...");
+        console.log("📄 Generating question and answer HTML files...");
         
-        // Generate Questions PDF
+        // Generate Questions HTML
         console.log('🔍 Materials structure:', { 
           questionsType: typeof materials.questionsContent,
           answersType: typeof materials.answersContent,
@@ -430,23 +473,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           answersPreview: materials.answersContent?.substring(0, 200) || 'UNDEFINED'
         });
         
-        const questionsResult = await pdfGenerator.generatePDF({
+        const questionsResult = await htmlGenerator.generateHTML({
           title: `${questionType === 'multiple-choice' ? 'Multiple Choice' : 'Mixed'} Questions - Grades ${parsedGrades.join(', ')}`,
           content: materials.questionsContent || 'No questions content generated',
           grades: parsedGrades,
           languages: ['English'],
           agentType: 'Differentiated Materials - Questions',
-          generatedAt: new Date()
+          generatedAt: new Date(),
+          questionType: questionType,
+          questionCount: numQuestions
         });
 
-        // Generate Answers PDF  
-        const answersResult = await pdfGenerator.generatePDF({
+        // Generate Answers HTML
+        const answersResult = await htmlGenerator.generateHTML({
           title: `Answer Key - Grades ${parsedGrades.join(', ')}`,
           content: materials.answersContent || 'No answers content generated',
           grades: parsedGrades,
           languages: ['English'],
           agentType: 'Differentiated Materials - Answers',
-          generatedAt: new Date()
+          generatedAt: new Date(),
+          questionType: questionType,
+          questionCount: numQuestions
         });
 
         // Store in database
@@ -461,7 +508,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             questionCount: numQuestions,
             questionsFile: questionsResult.fileName,
             answersFile: answersResult.fileName,
-            hasImage: !!uploadedImage
+            hasImage: !!uploadedImage,
+            fileFormat: 'html'
           }
         });
         
@@ -475,8 +523,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pdf: {
             questionsFile: questionsResult.fileName,
             answersFile: answersResult.fileName,
-            questionsDownloadUrl: `/api/download-pdf/${questionsResult.fileName}`,
-            answersDownloadUrl: `/api/download-pdf/${answersResult.fileName}`
+            questionsDownloadUrl: `/api/download-html/${questionsResult.fileName}`,
+            answersDownloadUrl: `/api/download-html/${answersResult.fileName}`
           }
         });
       } else {
