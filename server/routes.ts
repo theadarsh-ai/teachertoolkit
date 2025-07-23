@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { spawn } from "child_process";
 import multer from "multer";
+import path from "path";
 import { storage } from "./storage";
 import { geminiEduService } from "./gemini";
 import { pdfGenerator } from "./pdf-generator";
@@ -968,7 +969,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, error: 'Subject is required' });
       }
 
-      console.log(`📚 Generating weekly lesson plan for Grade ${grade}: "${subject}"`);
+      console.log(`📚 Generating weekly lesson plan for Grade ${grade}: "${subject}" with NCERT integration`);
+      
+      // Fetch NCERT textbooks for the subject and grade
+      let ncertContent = '';
+      let ncertTextbooks = [];
+      
+      try {
+        // Get NCERT textbooks for this grade and subject
+        const textbooksResponse = await fetch(`http://localhost:5000/api/ncert/textbooks/class/${grade}`);
+        if (textbooksResponse.ok) {
+          const textbooksData = await textbooksResponse.json();
+          ncertTextbooks = textbooksData.data?.filter((book: any) => 
+            book.subject.toLowerCase().includes(subject.toLowerCase()) ||
+            subject.toLowerCase().includes(book.subject.toLowerCase())
+          ) || [];
+          
+          if (ncertTextbooks.length > 0) {
+            ncertContent = `
+NCERT Textbook Reference for Grade ${grade} ${subject}:
+${ncertTextbooks.map((book: any) => `- ${book.bookTitle} (${book.language}): ${book.pdfUrl}`).join('\n')}
+
+Use these NCERT textbook references to align lesson content with official curriculum standards.`;
+            console.log(`📖 Found ${ncertTextbooks.length} NCERT textbooks for Grade ${grade} ${subject}`);
+          }
+        }
+      } catch (ncertError) {
+        console.log('📚 NCERT integration not available, proceeding with standard lesson plan');
+      }
       
       const prompt = `Generate a comprehensive weekly lesson plan for:
       
@@ -980,14 +1008,17 @@ Focus Areas: ${focusAreas.join(', ')}
 Lesson Duration: ${lessonDuration} minutes
 Class Size: ${classSize} students
 
+${ncertContent}
+
 Create a detailed lesson plan that includes:
-1. Clear learning objectives aligned with grade level
+1. Clear learning objectives aligned with NCERT curriculum standards
 2. Daily lesson breakdown (Monday to Friday)
 3. Interactive activities and teaching methods
 4. Assessment strategies
 5. Required materials and resources
-6. Homework assignments
+6. Homework assignments aligned with NCERT exercises
 7. Cultural context and local examples where appropriate
+8. NCERT chapter/section references where applicable
 
 Format the response as a JSON object with this structure:
 {
@@ -1006,7 +1037,8 @@ Format the response as a JSON object with this structure:
       "materials": ["material1", "material2"],
       "objectives": ["daily objective1"],
       "homework": "Homework description",
-      "notes": "Additional notes"
+      "notes": "Additional notes",
+      "ncertReference": "Chapter/Section reference from NCERT textbook if applicable"
     }
   ],
   "assessments": [
@@ -1019,17 +1051,26 @@ Format the response as a JSON object with this structure:
     }
   ],
   "resources": ["resource1", "resource2"],
+  "ncertAlignment": {
+    "textbooks": ${JSON.stringify(ncertTextbooks.map((book: any) => ({
+      title: book.bookTitle,
+      language: book.language,
+      pdfUrl: book.pdfUrl
+    })))},
+    "chapters": "List relevant chapters/sections",
+    "learningOutcomes": "NCERT learning outcomes alignment"
+  },
   "status": "draft"
 }
 
-Make the content culturally relevant to Indian education system and include local examples where appropriate.`;
+Make the content culturally relevant to Indian education system and include local examples where appropriate. Reference NCERT textbook content and structure where possible.`;
 
       const response = await geminiEduService.generateLocalizedContent({
         prompt,
         agentType: 'lesson-planner',
         grades: [grade],
         languages: ['English'],
-        contentSource: 'external'
+        contentSource: ncertTextbooks.length > 0 ? 'prebook' : 'external'
       });
       
       if (!response || !response.content) {
@@ -1090,6 +1131,279 @@ Make the content culturally relevant to Indian education system and include loca
     } catch (error) {
       console.error('Error fetching lesson plans:', error);
       res.status(500).json({ success: false, error: 'Failed to fetch lesson plans' });
+    }
+  });
+
+  // Lesson Planner Agent - Generate PDF for Lesson Plan
+  app.post('/api/agents/lesson-planner/generate-pdf', async (req: Request, res: Response) => {
+    try {
+      const { plan } = req.body;
+      
+      if (!plan) {
+        return res.status(400).json({ success: false, error: 'Lesson plan data is required' });
+      }
+
+      console.log(`📄 Generating PDF for lesson plan: "${plan.title}"`);
+
+      // Format lesson plan content for PDF
+      const formatLessonPlan = (plan: any) => {
+        let content = `
+<div class="lesson-overview">
+  <h2>📚 Lesson Overview</h2>
+  <div class="overview-grid">
+    <div class="overview-item">
+      <strong>Subject:</strong> ${plan.subject}
+    </div>
+    <div class="overview-item">
+      <strong>Grade:</strong> ${plan.grade}
+    </div>
+    <div class="overview-item">
+      <strong>Week:</strong> ${plan.weekNumber}
+    </div>
+    <div class="overview-item">
+      <strong>Curriculum:</strong> ${plan.curriculum}
+    </div>
+  </div>
+</div>
+
+<div class="objectives-section">
+  <h2>🎯 Learning Objectives</h2>
+  <ul>
+    ${plan.objectives?.map((obj: string) => `<li>${obj}</li>`).join('') || '<li>No objectives specified</li>'}
+  </ul>
+</div>
+
+<div class="daily-lessons">
+  <h2>📅 Daily Lesson Breakdown</h2>
+  ${plan.dailyLessons?.map((lesson: any) => `
+    <div class="lesson-day">
+      <h3>${lesson.day} - ${lesson.topic}</h3>
+      <div class="lesson-details">
+        <div class="lesson-section">
+          <h4>🎯 Objectives:</h4>
+          <ul>
+            ${lesson.objectives?.map((obj: string) => `<li>${obj}</li>`).join('') || '<li>No objectives specified</li>'}
+          </ul>
+        </div>
+        
+        <div class="lesson-section">
+          <h4>🎪 Activities (${lesson.duration} minutes):</h4>
+          <ul>
+            ${lesson.activities?.map((activity: string) => `<li>${activity}</li>`).join('') || '<li>No activities specified</li>'}
+          </ul>
+        </div>
+        
+        <div class="lesson-section">
+          <h4>📦 Materials:</h4>
+          <ul>
+            ${lesson.materials?.map((material: string) => `<li>${material}</li>`).join('') || '<li>No materials specified</li>'}
+          </ul>
+        </div>
+        
+        <div class="lesson-section">
+          <h4>📝 Homework:</h4>
+          <p>${lesson.homework || 'No homework assigned'}</p>
+        </div>
+        
+        ${lesson.ncertReference ? `
+        <div class="lesson-section">
+          <h4>📖 NCERT Reference:</h4>
+          <p>${lesson.ncertReference}</p>
+        </div>
+        ` : ''}
+        
+        <div class="lesson-section">
+          <h4>📋 Teaching Notes:</h4>
+          <p>${lesson.notes || 'No additional notes'}</p>
+        </div>
+      </div>
+    </div>
+  `).join('') || '<p>No daily lessons available</p>'}
+</div>
+
+<div class="assessments-section">
+  <h2>📊 Assessments</h2>
+  ${plan.assessments?.map((assessment: any) => `
+    <div class="assessment-item">
+      <h3>${assessment.title} (${assessment.type})</h3>
+      <p><strong>Description:</strong> ${assessment.description}</p>
+      <p><strong>Due Date:</strong> ${assessment.dueDate}</p>
+      <p><strong>Points:</strong> ${assessment.points}</p>
+    </div>
+  `).join('') || '<p>No assessments defined</p>'}
+</div>
+
+<div class="resources-section">
+  <h2>📚 Resources</h2>
+  <ul>
+    ${plan.resources?.map((resource: string) => `<li>${resource}</li>`).join('') || '<li>No resources specified</li>'}
+  </ul>
+</div>
+
+${plan.ncertAlignment ? `
+<div class="ncert-alignment">
+  <h2>📖 NCERT Curriculum Alignment</h2>
+  <div class="ncert-textbooks">
+    <h3>Referenced Textbooks:</h3>
+    <ul>
+      ${plan.ncertAlignment.textbooks?.map((book: any) => `
+        <li><strong>${book.title}</strong> (${book.language})</li>
+      `).join('') || '<li>No NCERT textbooks referenced</li>'}
+    </ul>
+  </div>
+  <div class="ncert-chapters">
+    <h3>Relevant Chapters:</h3>
+    <p>${plan.ncertAlignment.chapters || 'No specific chapters referenced'}</p>
+  </div>
+  <div class="learning-outcomes">
+    <h3>Learning Outcomes Alignment:</h3>
+    <p>${plan.ncertAlignment.learningOutcomes || 'No specific learning outcomes alignment specified'}</p>
+  </div>
+</div>
+` : ''}
+
+<style>
+.lesson-overview {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.overview-item {
+  background: rgba(255,255,255,0.7);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.objectives-section, .daily-lessons, .assessments-section, .resources-section, .ncert-alignment {
+  margin-bottom: 25px;
+  padding: 15px;
+  border-left: 4px solid #4f46e5;
+  background: #f8fafc;
+}
+
+.lesson-day {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.lesson-day h3 {
+  color: #4f46e5;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.lesson-section {
+  margin-bottom: 15px;
+}
+
+.lesson-section h4 {
+  color: #374151;
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.assessment-item {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border-left: 4px solid #10b981;
+}
+
+.ncert-alignment {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left: 4px solid #f59e0b;
+}
+
+.ncert-textbooks, .ncert-chapters, .learning-outcomes {
+  margin-bottom: 15px;
+}
+
+ul {
+  margin-left: 20px;
+}
+
+li {
+  margin-bottom: 5px;
+}
+</style>
+        `;
+        return content;
+      };
+
+      const lessonPlanContent = formatLessonPlan(plan);
+
+      // Import PDF generator
+      const { PDFGeneratorService } = await import('./pdf-generator');
+      const pdfGenerator = new PDFGeneratorService();
+
+      const pdfOptions = {
+        title: plan.title || 'Weekly Lesson Plan',
+        content: lessonPlanContent,
+        grades: [plan.grade],
+        languages: ['English'],
+        subject: plan.subject,
+        agentType: 'lesson-planner',
+        generatedAt: new Date()
+      };
+
+      const result = await pdfGenerator.generatePDF(pdfOptions);
+
+      console.log(`✅ Generated PDF for lesson plan: ${result.filename}`);
+
+      res.json({
+        success: true,
+        filename: result.filename,
+        filePath: result.filePath,
+        downloadUrl: `/api/download/pdf/${result.filename}`,
+        message: 'Lesson plan PDF generated successfully'
+      });
+
+    } catch (error) {
+      console.error('Error generating lesson plan PDF:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to generate lesson plan PDF',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // PDF Download endpoint
+  app.get('/api/download/pdf/:filename', async (req: Request, res: Response) => {
+    try {
+      const { filename } = req.params;
+      const filePath = path.join(process.cwd(), 'generated_pdfs', filename);
+      
+      // Check if file exists
+      if (!require('fs').existsSync(filePath)) {
+        return res.status(404).json({ error: 'PDF file not found' });
+      }
+
+      // Set headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      
+      // Stream the file
+      const fileStream = require('fs').createReadStream(filePath);
+      fileStream.pipe(res);
+      
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      res.status(500).json({ error: 'Failed to download PDF file' });
     }
   });
 

@@ -28,6 +28,7 @@ interface WeeklyPlan {
   resources: string[];
   status: 'draft' | 'active' | 'completed';
   createdAt: string;
+  ncertAlignment?: NCERTAlignment;
 }
 
 interface DailyLesson {
@@ -39,6 +40,19 @@ interface DailyLesson {
   objectives: string[];
   homework: string;
   notes: string;
+  ncertReference?: string;
+}
+
+interface NCERTAlignment {
+  textbooks: NCERTTextbook[];
+  chapters: string;
+  learningOutcomes: string;
+}
+
+interface NCERTTextbook {
+  title: string;
+  language: string;
+  pdfUrl: string;
 }
 
 interface Assessment {
@@ -85,6 +99,7 @@ export default function LessonPlanner() {
   const [selectedPlan, setSelectedPlan] = useState<WeeklyPlan | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [focusAreaInput, setFocusAreaInput] = useState('');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -134,6 +149,58 @@ export default function LessonPlanner() {
       });
     }
   });
+
+  // PDF generation mutation
+  const generatePDFMutation = useMutation({
+    mutationFn: async (plan: WeeklyPlan) => {
+      const response = await fetch('/api/agents/lesson-planner/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      return result;
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast({
+          title: "PDF Generated Successfully!",
+          description: "Your lesson plan PDF is ready for download",
+        });
+        
+        // Trigger download
+        const link = document.createElement('a');
+        link.href = data.downloadUrl;
+        link.download = data.filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      setIsGeneratingPDF(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "PDF Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate PDF",
+        variant: "destructive",
+      });
+      setIsGeneratingPDF(false);
+    }
+  });
+
+  const handleDownloadPDF = () => {
+    if (selectedPlan) {
+      setIsGeneratingPDF(true);
+      generatePDFMutation.mutate(selectedPlan);
+    }
+  };
 
   const handleGeneratePlan = async () => {
     if (!planConfig.subject) {
@@ -394,15 +461,55 @@ export default function LessonPlanner() {
                                 <span className="text-sm text-gray-600">{lesson.duration} min</span>
                               </div>
                               <p className="text-sm text-gray-700 mt-1">{lesson.topic}</p>
+                              {lesson.ncertReference && (
+                                <p className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded mt-2">
+                                  📖 NCERT: {lesson.ncertReference}
+                                </p>
+                              )}
                             </div>
                           ))}
                         </div>
                       </div>
 
+                      {selectedPlan.ncertAlignment && (
+                        <div>
+                          <h4 className="font-semibold text-gray-800 mb-2">📖 NCERT Alignment</h4>
+                          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-3 rounded-lg border border-yellow-200">
+                            {selectedPlan.ncertAlignment.textbooks.length > 0 && (
+                              <div className="mb-2">
+                                <p className="text-sm font-medium text-gray-700 mb-1">Referenced Textbooks:</p>
+                                <ul className="list-disc list-inside text-xs text-gray-600 space-y-1">
+                                  {selectedPlan.ncertAlignment.textbooks.map((book, index) => (
+                                    <li key={index}>{book.title} ({book.language})</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {selectedPlan.ncertAlignment.chapters && (
+                              <div className="mb-2">
+                                <p className="text-sm font-medium text-gray-700">Chapters:</p>
+                                <p className="text-xs text-gray-600">{selectedPlan.ncertAlignment.chapters}</p>
+                              </div>
+                            )}
+                            {selectedPlan.ncertAlignment.learningOutcomes && (
+                              <div>
+                                <p className="text-sm font-medium text-gray-700">Learning Outcomes:</p>
+                                <p className="text-xs text-gray-600">{selectedPlan.ncertAlignment.learningOutcomes}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="flex space-x-2">
-                        <Button size="sm" className="flex-1">
+                        <Button 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={handleDownloadPDF}
+                          disabled={isGeneratingPDF}
+                        >
                           <Download className="w-4 h-4 mr-2" />
-                          Export
+                          {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
                         </Button>
                         <Button size="sm" variant="outline" className="flex-1">
                           <Share2 className="w-4 h-4 mr-2" />

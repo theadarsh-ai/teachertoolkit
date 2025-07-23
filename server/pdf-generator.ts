@@ -376,26 +376,77 @@ export class PDFGeneratorService {
     return formattedContent;
   }
 
-  async generatePDF(options: PDFGenerationOptions): Promise<{ filePath: string; fileName: string }> {
+  async generatePDF(options: PDFGenerationOptions): Promise<{ filePath: string; filename: string }> {
     const html = this.generateHTMLTemplate(options);
     
     // Create unique filename
     const timestamp = Date.now();
     const sanitizedTitle = options.title.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-    const fileName = `${sanitizedTitle}_${timestamp}.html`; // Generate HTML for now
-    const filePath = path.join(this.outputDir, fileName);
+    const filename = `${sanitizedTitle}_${timestamp}.pdf`;
+    const filePath = path.join(this.outputDir, filename);
 
     try {
-      // For now, save as HTML since PDF generation needs Chrome/Puppeteer
-      // This provides a structured, downloadable document
-      await fs.writeFile(filePath, html);
+      // Import jsPDF and html2canvas for PDF generation
+      const { jsPDF } = await import('jspdf');
+      const html2canvas = await import('html2canvas');
       
-      console.log(`✅ HTML document generated successfully: ${fileName}`);
-      return { filePath, fileName };
+      // Create a temporary div to render HTML
+      const tempDiv = `
+        <div id="pdf-content" style="width: 794px; padding: 20px; font-family: Arial, sans-serif;">
+          ${html}
+        </div>
+      `;
+      
+      // For server-side PDF generation, use a simpler approach
+      // Convert HTML to PDF using jsPDF with text content
+      const doc = new jsPDF('p', 'mm', 'a4');
+      
+      // Extract text content and format for PDF
+      const textContent = this.extractTextFromHTML(options.content);
+      
+      // Add title
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      doc.text(options.title, 20, 30);
+      
+      // Add metadata
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Generated: ${options.generatedAt.toLocaleDateString()}`, 20, 40);
+      doc.text(`Subject: ${options.subject || 'General'}`, 20, 45);
+      doc.text(`Grades: ${options.grades.join(', ')}`, 20, 50);
+      
+      // Add content
+      doc.setFontSize(11);
+      const lines = doc.splitTextToSize(textContent, 170);
+      doc.text(lines, 20, 60);
+      
+      // Save PDF
+      const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+      await fs.writeFile(filePath, pdfBuffer);
+      
+      console.log(`✅ PDF generated successfully: ${filename}`);
+      return { filePath, filename };
     } catch (error) {
-      console.error('Document generation error:', error);
-      throw new Error(`Failed to generate document: ${error.message}`);
+      console.error('PDF generation error:', error);
+      throw new Error(`Failed to generate PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  private extractTextFromHTML(htmlContent: string): string {
+    if (!htmlContent) return 'No content available';
+    
+    // Remove HTML tags and format for PDF
+    let text = htmlContent
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    return text || 'Content extraction failed';
   }
 
   async cleanupOldPDFs(maxAge: number = 24 * 60 * 60 * 1000): Promise<void> {
