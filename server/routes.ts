@@ -910,18 +910,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Simple, effective search strategies for Sketchfab
+      // Create targeted educational searches for Sketchfab with better terms
+      let primarySearch = '';
+      let secondarySearch = '';
+      let tertiarySearch = '';
+      
+      if (queryLower.includes('heart')) {
+        primarySearch = 'human heart anatomy';
+        secondarySearch = 'cardiac model';
+        tertiarySearch = 'heart medical';
+      } else if (queryLower.includes('brain')) {
+        primarySearch = 'human brain anatomy';
+        secondarySearch = 'brain model';
+        tertiarySearch = 'neuroscience';
+      } else if (queryLower.includes('cell')) {
+        primarySearch = 'cell biology';
+        secondarySearch = 'cellular structure';
+        tertiarySearch = 'microscopic cell';
+      } else if (queryLower.includes('skeleton')) {
+        primarySearch = 'human skeleton';
+        secondarySearch = 'bone anatomy';
+        tertiarySearch = 'skeletal system';
+      } else if (queryLower.includes('dna')) {
+        primarySearch = 'DNA structure';
+        secondarySearch = 'genetics model';
+        tertiarySearch = 'molecular biology';
+      } else {
+        primarySearch = `${query} anatomy`;
+        secondarySearch = `${query} educational`;
+        tertiarySearch = query;
+      }
+      
       const searchStrategies = [
-        // Strategy 1: Direct query search
+        // Strategy 1: Primary educational search
         {
-          q: query,
+          q: primarySearch,
           sort_by: 'relevance',
-          count: '15'
+          count: '20'
         },
-        // Strategy 2: Popular results for query
+        // Strategy 2: Secondary educational search
         {
-          q: query,
+          q: secondarySearch,
           sort_by: 'popularity',
+          count: '20'
+        },
+        // Strategy 3: Fallback search
+        {
+          q: tertiarySearch,
+          sort_by: 'relevance',
           count: '15'
         }
       ];
@@ -971,11 +1007,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         processedModels = models
           .filter((model: any) => {
-            // Basic filtering for obviously inappropriate content
+            // Basic filtering and quality check
             const name = (model.name || '').toLowerCase();
             const desc = (model.description || '').toLowerCase();
             
-            // Only exclude clearly inappropriate content, be more permissive
+            // Exclude inappropriate content
             const excludeTerms = ['explicit', 'nsfw', 'adult'];
             const hasExcludedTerm = excludeTerms.some(term => 
               name.includes(term) || desc.includes(term)
@@ -986,22 +1022,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return false;
             }
             
+            // More precise educational content detection
+            const educationalKeywords = ['anatomy', 'heart', 'brain', 'human body', 'medical', 'biology', 'science', 'cell', 'organ', 'system', 'skeleton', 'muscle', 'dna', 'molecule'];
+            const spamTerms = ['gift card', 'codes', 'free', 'amazon', 'discount', 'sale', 'promo'];
+            
+            const hasEducationalContent = educationalKeywords.some(keyword => 
+              name.includes(keyword) || desc.includes(keyword)
+            );
+            
+            const hasSpamContent = spamTerms.some(term => 
+              name.includes(term) || desc.includes(term)
+            );
+            
+            // Exclude spam content but allow general models
+            if (hasSpamContent) {
+              console.log(`❌ Excluding spam: "${model.name}"`);
+              return false;
+            }
+            
+            if (hasEducationalContent) {
+              console.log(`✅ Keeping educational: "${model.name}"`);
+            }
+            
             return true;
           })
-          .map((model: any) => ({
-            id: model.uid,
-            name: model.name || 'Untitled Model',
-            description: model.description || 'No description available',
-            thumbnail: model.thumbnails?.images?.[0]?.url || '/api/placeholder/200/150',
-            url: `https://sketchfab.com/models/${model.uid}`,
-            embedUrl: `https://sketchfab.com/models/${model.uid}/embed?autostart=1&ui_controls=1&ui_infos=0&ui_inspector=0&ui_watermark=0`,
-            author: model.user?.displayName || model.user?.username || 'Unknown',
-            tags: (model.tags || []).map((tag: any) => tag.name || tag).slice(0, 5),
-            viewCount: model.viewCount || 0,
-            likeCount: model.likeCount || 0,
-            license: model.license?.label || 'Standard',
-            source: 'sketchfab'
-          }));
+          .sort((a: any, b: any) => {
+            // Sort by educational relevance first, then by view count
+            const aName = (a.name || '').toLowerCase();
+            const bName = (b.name || '').toLowerCase();
+            const aDesc = (a.description || '').toLowerCase();
+            const bDesc = (b.description || '').toLowerCase();
+            
+            const educationalKeywords = ['anatomy', 'heart', 'brain', 'human', 'medical', 'biology', 'science', 'cell', 'organ', 'system'];
+            
+            const aEducational = educationalKeywords.some(keyword => 
+              aName.includes(keyword) || aDesc.includes(keyword)
+            );
+            const bEducational = educationalKeywords.some(keyword => 
+              bName.includes(keyword) || bDesc.includes(keyword)
+            );
+            
+            if (aEducational && !bEducational) return -1;
+            if (!aEducational && bEducational) return 1;
+            
+            // Secondary sort by view count
+            return (b.viewCount || 0) - (a.viewCount || 0);
+          })
+          .map((model: any) => {
+            // Get the best available thumbnail
+            let thumbnail = '/api/placeholder/200/150';
+            if (model.thumbnails?.images?.length > 0) {
+              // Try to get a larger thumbnail for better quality
+              const thumbnails = model.thumbnails.images;
+              const largeThumb = thumbnails.find((img: any) => img.width >= 400) || thumbnails[0];
+              thumbnail = largeThumb.url;
+            }
+            
+            // Enhanced description with tags if description is missing
+            let description = model.description || '';
+            if (!description && model.tags?.length > 0) {
+              const tagNames = model.tags.slice(0, 3).map((tag: any) => tag.name || tag).join(', ');
+              description = `3D model tagged with: ${tagNames}`;
+            }
+            if (!description) {
+              description = `Educational 3D model by ${model.user?.displayName || 'Unknown Artist'}`;
+            }
+            
+            return {
+              id: model.uid,
+              name: model.name || 'Educational 3D Model',
+              description: description.slice(0, 200) + (description.length > 200 ? '...' : ''),
+              thumbnail: thumbnail,
+              url: `https://sketchfab.com/models/${model.uid}`,
+              embedUrl: `https://sketchfab.com/models/${model.uid}/embed?autostart=1&ui_controls=1&ui_infos=0&ui_inspector=0&ui_watermark=0&preload=1`,
+              author: model.user?.displayName || model.user?.username || 'Unknown Artist',
+              tags: (model.tags || []).map((tag: any) => tag.name || tag).slice(0, 5),
+              viewCount: model.viewCount || 0,
+              likeCount: model.likeCount || 0,
+              license: model.license?.label || 'Standard License',
+              source: 'sketchfab',
+              publishedAt: model.publishedAt || new Date().toISOString(),
+              category: model.categories?.[0]?.name || 'General'
+            };
+          });
           
         console.log(`✅ SKETCHFAB: Processed ${processedModels.length} authentic models`);
         
@@ -1016,11 +1119,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }));
       }
 
-      // Limit results and prioritize real Sketchfab models
+      // If we don't have enough educational content, add some curated models
+      if (processedModels.length < 5) {
+        console.log(`⚡ Adding educational fallback models to supplement Sketchfab results`);
+        const fallbackModels = getEducationalFallbackModels(query);
+        
+        const supplementalModels = fallbackModels.slice(0, 8 - processedModels.length).map(model => ({
+          ...model,
+          source: 'educational-db'
+        }));
+        
+        processedModels = [...processedModels, ...supplementalModels];
+      }
+
+      // Limit results
       processedModels = processedModels.slice(0, 12);
 
       console.log(`✅ SKETCHFAB API: Found ${processedModels.length} models`);
-      console.log(`📤 SKETCHFAB: Sample models:`, processedModels.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
+      console.log(`📤 SKETCHFAB: Sample models:`, processedModels.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id, source: m.source })));
 
       res.json({
         success: true,
