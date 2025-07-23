@@ -140,7 +140,7 @@ export default function Dashboard() {
               <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center">
                 <i className="fas fa-graduation-cap text-white"></i>
               </div>
-              <h1 className="ml-3 text-xl font-bold text-gray-900">EduAI Platform</h1>
+              <h1 className="ml-3 text-xl font-bold text-gray-900">Sahayak Platform</h1>
             </div>
             
             <div className="flex items-center space-x-4">

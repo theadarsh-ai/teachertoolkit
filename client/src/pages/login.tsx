@@ -110,7 +110,7 @@ export default function Login() {
                 EduAI Platform
               </h1>
               <p className="text-xl text-white/80 font-light">
-                Transform Education with AI-Powered Teaching
+                Transform Education with AI-Powered Resources
               </p>
             </div>
 
@@ -148,7 +148,7 @@ export default function Login() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 text-center">
+            {/* <div className="grid grid-cols-3 gap-4 text-center">
               <div className="p-4 bg-white/5 rounded-xl">
                 <div className="text-2xl font-bold text-white">50K+</div>
                 <div className="text-white/70 text-sm">Teachers</div>
@@ -161,7 +161,7 @@ export default function Login() {
                 <div className="text-2xl font-bold text-white">95%</div>
                 <div className="text-white/70 text-sm">Success Rate</div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
