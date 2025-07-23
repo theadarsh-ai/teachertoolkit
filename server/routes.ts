@@ -964,11 +964,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Lesson Planner Agent - Generate Weekly Plans
   app.post('/api/agents/lesson-planner/generate-weekly-plan', async (req: Request, res: Response) => {
     try {
-      const { subject, grade, curriculum, weekNumber, focusAreas, lessonDuration, classSize, selectedLessons } = req.body;
+      const { 
+        subject, 
+        grade = 10, 
+        curriculum = 'CBSE', 
+        weekNumber = 1, 
+        focusAreas = [], 
+        focus = '',
+        lessonDuration = 40, 
+        classSize = 30, 
+        selectedLessons = [] 
+      } = req.body;
       
       if (!subject) {
         return res.status(400).json({ success: false, error: 'Subject is required' });
       }
+
+      // Handle focus areas - either from focusAreas array or single focus string
+      const focusAreasArray = focusAreas.length > 0 ? focusAreas : (focus ? [focus] : ['General concepts']);
 
       console.log(`📚 Generating weekly lesson plan for Grade ${grade}: "${subject}" with NCERT integration`);
       
@@ -1000,12 +1013,35 @@ Use these NCERT textbook references to align lesson content with official curric
       }
       
       // Include selected NCERT lessons information
-      const selectedLessonsInfo = selectedLessons && selectedLessons.length > 0 
-        ? `\nSelected NCERT Lessons to incorporate:
-${selectedLessons.map(lesson => `- ${lesson.title} (${lesson.chapter} from ${lesson.textbookTitle})`).join('\n')}
+      let selectedLessonsInfo = '';
+      if (selectedLessons && selectedLessons.length > 0) {
+        // Fetch lesson details for each selected lesson ID
+        const lessonPromises = selectedLessons.map(async (lessonId: string) => {
+          try {
+            const [grade, subject, lessonNum] = lessonId.split('-');
+            const lessonsResponse = await fetch(`http://localhost:5000/api/ncert/lessons?subject=${subject}&grade=${grade}`);
+            if (lessonsResponse.ok) {
+              const lessonsData = await lessonsResponse.json();
+              const lesson = lessonsData.find((l: any) => l.id === lessonId);
+              return lesson || { id: lessonId, title: `Lesson ${lessonNum}`, chapter: `Chapter ${lessonNum}` };
+            }
+          } catch (error) {
+            console.error(`Error fetching lesson ${lessonId}:`, error);
+          }
+          return { id: lessonId, title: `Lesson ${lessonId}`, chapter: 'NCERT Chapter' };
+        });
+        
+        try {
+          const resolvedLessons = await Promise.all(lessonPromises);
+          selectedLessonsInfo = `\nSelected NCERT Lessons to incorporate:
+${resolvedLessons.map(lesson => `- ${lesson.title} (${lesson.chapter})`).join('\n')}
 
-Please ensure the weekly plan specifically addresses these selected NCERT lessons and distributes them appropriately across the 5-day schedule.`
-        : '';
+Please ensure the weekly plan specifically addresses these selected NCERT lessons and distributes them appropriately across the 5-day schedule.`;
+        } catch (error) {
+          console.error('Error resolving selected lessons:', error);
+          selectedLessonsInfo = `\nSelected NCERT Lessons: ${selectedLessons.join(', ')}`;
+        }
+      }
 
       const prompt = `Generate a comprehensive weekly lesson plan for:
       
@@ -1013,7 +1049,7 @@ Subject: ${subject}
 Grade Level: ${grade}
 Curriculum: ${curriculum}
 Week Number: ${weekNumber}
-Focus Areas: ${focusAreas.join(', ')}
+Focus Areas: ${(focusAreasArray || ['General concepts']).join(', ')}
 Lesson Duration: ${lessonDuration} minutes
 
 ${ncertContent}${selectedLessonsInfo}

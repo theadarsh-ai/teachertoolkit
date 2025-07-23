@@ -29,6 +29,14 @@ export class PDFGeneratorService {
   private generateHTMLTemplate(options: PDFGenerationOptions): string {
     const { title, content, grades, languages, subject, agentType, generatedAt } = options;
     
+    // Parse lesson plan content if it's JSON
+    let lessonPlan;
+    try {
+      lessonPlan = JSON.parse(content);
+    } catch (e) {
+      lessonPlan = null;
+    }
+    
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -37,6 +45,11 @@ export class PDFGeneratorService {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${title}</title>
       <style>
+        @page {
+          size: A4;
+          margin: 20mm;
+        }
+        
         * {
           margin: 0;
           padding: 0;
@@ -44,336 +57,355 @@ export class PDFGeneratorService {
         }
         
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          line-height: 1.6;
-          color: #333;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          min-height: 100vh;
-          padding: 20px;
-        }
-        
-        .container {
-          max-width: 800px;
-          margin: 0 auto;
+          font-family: 'Arial', 'Helvetica', sans-serif;
+          line-height: 1.5;
+          color: #2c3e50;
+          font-size: 12px;
           background: white;
-          border-radius: 15px;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-          overflow: hidden;
         }
         
         .header {
-          background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+          background: linear-gradient(135deg, #3498db, #2980b9);
           color: white;
-          padding: 30px;
+          padding: 25px;
+          margin-bottom: 25px;
+          border-radius: 8px;
           text-align: center;
         }
         
         .header h1 {
-          font-size: 2.5rem;
-          margin-bottom: 10px;
-          font-weight: 700;
+          font-size: 24px;
+          margin-bottom: 8px;
+          font-weight: bold;
         }
         
-        .header .subtitle {
-          font-size: 1.1rem;
-          opacity: 0.9;
+        .header-meta {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 11px;
+          margin-top: 10px;
+          opacity: 0.95;
+        }
+        
+        .section {
+          margin-bottom: 20px;
+          page-break-inside: avoid;
+        }
+        
+        .section-title {
+          background: #ecf0f1;
+          color: #2c3e50;
+          padding: 10px 15px;
+          font-size: 14px;
+          font-weight: bold;
+          border-left: 4px solid #3498db;
+          margin-bottom: 10px;
+        }
+        
+        .objectives-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
           margin-bottom: 20px;
         }
         
-        .metadata {
-          background: rgba(255,255,255,0.1);
-          padding: 15px;
-          border-radius: 10px;
-          margin-top: 20px;
-        }
-        
-        .metadata-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 15px;
-          text-align: center;
-        }
-        
-        .metadata-item {
-          background: rgba(255,255,255,0.1);
-          padding: 10px;
-          border-radius: 8px;
-        }
-        
-        .metadata-label {
-          font-size: 0.9rem;
-          opacity: 0.8;
-          margin-bottom: 5px;
-        }
-        
-        .metadata-value {
-          font-weight: 600;
-          font-size: 1rem;
-        }
-        
-        .content-section {
-          padding: 40px;
-        }
-        
-        .content-body {
-          font-size: 1.1rem;
-          line-height: 1.8;
-          color: #444;
-        }
-        
-        .content-body h2 {
-          color: #4f46e5;
-          margin: 30px 0 15px 0;
-          font-size: 1.8rem;
-          border-bottom: 3px solid #e5e7eb;
-          padding-bottom: 10px;
-        }
-        
-        .content-body h3 {
-          color: #6366f1;
-          margin: 25px 0 12px 0;
-          font-size: 1.4rem;
-        }
-        
-        .content-body h4 {
-          color: #7c3aed;
-          margin: 20px 0 10px 0;
-          font-size: 1.2rem;
-        }
-        
-        .content-body p {
-          margin-bottom: 15px;
-          text-align: justify;
-        }
-        
-        .content-body ul, .content-body ol {
-          margin: 15px 0;
-          padding-left: 25px;
-        }
-        
-        .content-body li {
-          margin-bottom: 8px;
-        }
-        
-        .content-body blockquote {
-          background: #f8fafc;
-          border-left: 4px solid #4f46e5;
-          padding: 15px 20px;
-          margin: 20px 0;
-          font-style: italic;
-          color: #666;
-        }
-        
-        .content-body table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 20px 0;
-          background: white;
-        }
-        
-        .content-body th, .content-body td {
+        .objective-item {
+          background: #f8f9fa;
           padding: 12px;
-          text-align: left;
-          border-bottom: 1px solid #e5e7eb;
+          border-radius: 6px;
+          border-left: 3px solid #27ae60;
         }
         
-        .content-body th {
-          background: #f8fafc;
-          font-weight: 600;
-          color: #4f46e5;
+        .daily-lesson {
+          background: white;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          margin-bottom: 15px;
+          overflow: hidden;
+          page-break-inside: avoid;
         }
         
-        .highlight-box {
-          background: linear-gradient(135deg, #fef3c7, #fed7aa);
-          border: 2px solid #f59e0b;
-          border-radius: 12px;
-          padding: 20px;
-          margin: 25px 0;
+        .daily-header {
+          background: linear-gradient(135deg, #34495e, #2c3e50);
+          color: white;
+          padding: 12px 15px;
+          font-weight: bold;
+          font-size: 13px;
         }
         
-        .highlight-box .icon {
-          font-size: 2rem;
-          margin-bottom: 10px;
-          display: block;
+        .daily-content {
+          padding: 15px;
         }
         
-        .activity-box {
-          background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-          border: 2px solid #22c55e;
-          border-radius: 12px;
-          padding: 20px;
-          margin: 25px 0;
+        .daily-row {
+          display: grid;
+          grid-template-columns: 1fr 2fr;
+          gap: 15px;
+          margin-bottom: 12px;
+          align-items: start;
         }
         
-        .cultural-reference {
-          background: linear-gradient(135deg, #fce7f3, #f3e8ff);
-          border: 2px solid #a855f7;
-          border-radius: 12px;
-          padding: 20px;
-          margin: 25px 0;
+        .daily-label {
+          font-weight: bold;
+          color: #34495e;
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        
+        .daily-value {
+          font-size: 11px;
+          line-height: 1.4;
+        }
+        
+        .daily-value ul {
+          margin: 0;
+          padding-left: 15px;
+        }
+        
+        .daily-value li {
+          margin-bottom: 3px;
+        }
+        
+        .ncert-ref {
+          background: #e8f5e8;
+          padding: 8px 12px;
+          border-radius: 4px;
+          border: 1px solid #27ae60;
+          font-size: 10px;
+          color: #27ae60;
+          font-weight: bold;
+        }
+        
+        .assessment-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 15px;
+        }
+        
+        .assessment-card {
+          background: #f1f2f6;
+          padding: 15px;
+          border-radius: 6px;
+          border-top: 3px solid #e74c3c;
+        }
+        
+        .assessment-title {
+          font-weight: bold;
+          color: #e74c3c;
+          margin-bottom: 5px;
+          font-size: 12px;
+        }
+        
+        .resource-list {
+          columns: 2;
+          column-gap: 20px;
+          font-size: 11px;
+        }
+        
+        .resource-item {
+          break-inside: avoid;
+          margin-bottom: 5px;
+          padding: 5px 0;
         }
         
         .footer {
-          background: #f8fafc;
-          padding: 30px;
+          margin-top: 30px;
+          padding: 15px;
+          background: #f8f9fa;
+          border-radius: 6px;
           text-align: center;
-          border-top: 2px solid #e5e7eb;
+          font-size: 10px;
+          color: #7f8c8d;
         }
         
-        .footer .brand {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #4f46e5;
+        .ncert-alignment {
+          background: #fff3cd;
+          padding: 15px;
+          border: 1px solid #ffeaa7;
+          border-radius: 6px;
+          margin-top: 15px;
+        }
+        
+        .ncert-alignment h4 {
+          color: #b8860b;
           margin-bottom: 10px;
-        }
-        
-        .footer .tagline {
-          color: #666;
-          font-style: italic;
-        }
-        
-        .footer .generation-info {
-          margin-top: 20px;
-          font-size: 0.9rem;
-          color: #888;
+          font-size: 12px;
         }
         
         .page-break {
           page-break-before: always;
         }
-        
-        @media print {
-          body {
-            background: white;
-            padding: 0;
-          }
-          
-          .container {
-            box-shadow: none;
-            border-radius: 0;
-          }
-        }
       </style>
     </head>
     <body>
-      <div class="container">
-        <div class="header">
-          <h1>${title}</h1>
-          <div class="subtitle">AI-Generated Educational Content for Multi-Grade Classrooms</div>
-          
-          <div class="metadata">
-            <div class="metadata-grid">
-              <div class="metadata-item">
-                <div class="metadata-label">Target Grades</div>
-                <div class="metadata-value">${grades.join(', ')}</div>
-              </div>
-              <div class="metadata-item">
-                <div class="metadata-label">Languages</div>
-                <div class="metadata-value">${languages.join(', ')}</div>
-              </div>
-              ${subject ? `
-              <div class="metadata-item">
-                <div class="metadata-label">Subject</div>
-                <div class="metadata-value">${subject}</div>
-              </div>
-              ` : ''}
-              <div class="metadata-item">
-                <div class="metadata-label">Generated By</div>
-                <div class="metadata-value">${agentType}</div>
-              </div>
-              <div class="metadata-item">
-                <div class="metadata-label">Generated On</div>
-                <div class="metadata-value">${generatedAt.toLocaleDateString('en-IN')}</div>
-              </div>
-            </div>
-          </div>
+      <div class="header">
+        <h1>${title}</h1>
+        <div class="header-meta">
+          <span>Subject: ${subject || 'General'}</span>
+          <span>Grade: ${grades.join(', ')}</span>
+          <span>Generated: ${generatedAt.toLocaleDateString()}</span>
         </div>
-        
-        <div class="content-section">
-          <div class="content-body">
-            ${this.formatContent(content)}
-          </div>
-        </div>
-        
-        <div class="footer">
-          <div class="brand">EduAI Platform</div>
-          <div class="tagline">Empowering Teachers in Multi-Grade Classrooms with AI</div>
-          <div class="generation-info">
-            Document generated on ${generatedAt.toLocaleString('en-IN')} 
-            • NCERT Curriculum Aligned • Culturally Relevant Content
-          </div>
-        </div>
+      </div>
+
+      ${this.generateLessonPlanHTML(lessonPlan, content)}
+
+      <div class="footer">
+        <p>Generated by EduAI Platform - AI-Powered Educational Assistant</p>
+        <p>This lesson plan is aligned with NCERT curriculum standards and Indian educational context</p>
       </div>
     </body>
     </html>
     `;
   }
 
-  private formatContent(content: string): string {
-    // Handle undefined or null content
-    if (!content || typeof content !== 'string') {
-      console.warn('formatContent received invalid content:', typeof content, content);
-      return '<div class="error-message"><p>⚠️ Content generation failed. Please try again.</p></div>';
+  private generateLessonPlanHTML(lessonPlan: any, rawContent: string): string {
+    if (!lessonPlan) {
+      return `<div class="section"><div class="section-title">Content</div><div style="padding: 15px; white-space: pre-wrap;">${rawContent}</div></div>`;
     }
 
-    // If content is already HTML (contains tags), return as-is
-    if (content.includes('<div') || content.includes('<h1') || content.includes('<p')) {
-      return content;
-    }
-    
-    // Enhanced content formatting with special boxes and styling
-    let formattedContent = content
-      // Convert markdown-style headers
-      .replace(/^# (.*$)/gm, '<h2>$1</h2>')
-      .replace(/^## (.*$)/gm, '<h3>$1</h3>')
-      .replace(/^### (.*$)/gm, '<h4>$1</h4>')
-      
-      // Convert bold and italic
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      
-      // Convert lists
-      .replace(/^\* (.*$)/gm, '<li>$1</li>')
-      .replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
-      
-      // Convert line breaks to paragraphs
-      .split('\n\n')
-      .map(paragraph => {
-        paragraph = paragraph.trim();
-        if (!paragraph) return '';
-        
-        // Check for special content types
-        if (paragraph.includes('🎯') || paragraph.includes('Key Point:') || paragraph.includes('Important:')) {
-          return `<div class="highlight-box"><span class="icon">🎯</span>${paragraph}</div>`;
-        }
-        
-        if (paragraph.includes('🎪') || paragraph.includes('Activity:') || paragraph.includes('Exercise:')) {
-          return `<div class="activity-box"><span class="icon">🎪</span>${paragraph}</div>`;
-        }
-        
-        if (paragraph.includes('🏛️') || paragraph.includes('Cultural Context:') || paragraph.includes('Indian Example:')) {
-          return `<div class="cultural-reference"><span class="icon">🏛️</span>${paragraph}</div>`;
-        }
-        
-        // Handle lists
-        if (paragraph.includes('<li>')) {
-          if (paragraph.match(/^\d/)) {
-            return `<ol>${paragraph}</ol>`;
-          } else {
-            return `<ul>${paragraph}</ul>`;
-          }
-        }
-        
-        // Regular paragraphs
-        if (!paragraph.startsWith('<')) {
-          return `<p>${paragraph}</p>`;
-        }
-        
-        return paragraph;
-      })
-      .join('\n');
+    let html = '';
 
-    return formattedContent;
+    // Learning Objectives Section
+    if (lessonPlan.objectives && lessonPlan.objectives.length > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">🎯 Learning Objectives</div>
+          <div class="objectives-grid">
+            ${lessonPlan.objectives.map((obj: string, index: number) => `
+              <div class="objective-item">
+                <strong>Objective ${index + 1}:</strong> ${obj}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Daily Lessons Section
+    if (lessonPlan.dailyLessons && lessonPlan.dailyLessons.length > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">📅 Daily Lesson Plan</div>
+          ${lessonPlan.dailyLessons.map((lesson: any) => `
+            <div class="daily-lesson">
+              <div class="daily-header">
+                ${lesson.day} - ${lesson.topic} (${lesson.duration || '40'} minutes)
+              </div>
+              <div class="daily-content">
+                <div class="daily-row">
+                  <div class="daily-label">Learning Goals</div>
+                  <div class="daily-value">
+                    ${lesson.objectives ? `<ul>${lesson.objectives.map((obj: string) => `<li>${obj}</li>`).join('')}</ul>` : 'Not specified'}
+                  </div>
+                </div>
+                
+                <div class="daily-row">
+                  <div class="daily-label">Activities</div>
+                  <div class="daily-value">
+                    ${lesson.activities ? `<ul>${lesson.activities.map((activity: string) => `<li>${activity}</li>`).join('')}</ul>` : 'Standard classroom activities'}
+                  </div>
+                </div>
+                
+                <div class="daily-row">
+                  <div class="daily-label">Materials Needed</div>
+                  <div class="daily-value">
+                    ${lesson.materials ? `<ul>${lesson.materials.map((material: string) => `<li>${material}</li>`).join('')}</ul>` : 'Basic classroom materials'}
+                  </div>
+                </div>
+                
+                <div class="daily-row">
+                  <div class="daily-label">Homework</div>
+                  <div class="daily-value">${lesson.homework || 'Review today\'s topics'}</div>
+                </div>
+                
+                ${lesson.ncertReference ? `
+                  <div class="daily-row">
+                    <div class="daily-label">NCERT Reference</div>
+                    <div class="daily-value">
+                      <div class="ncert-ref">${lesson.ncertReference}</div>
+                    </div>
+                  </div>
+                ` : ''}
+                
+                ${lesson.notes ? `
+                  <div class="daily-row">
+                    <div class="daily-label">Teacher Notes</div>
+                    <div class="daily-value"><em>${lesson.notes}</em></div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // Assessments Section
+    if (lessonPlan.assessments && lessonPlan.assessments.length > 0) {
+      html += `
+        <div class="section page-break">
+          <div class="section-title">📊 Assessment Strategy</div>
+          <div class="assessment-grid">
+            ${lessonPlan.assessments.map((assessment: any) => `
+              <div class="assessment-card">
+                <div class="assessment-title">${assessment.title || assessment.type}</div>
+                <p><strong>Type:</strong> ${assessment.type}</p>
+                <p><strong>Description:</strong> ${assessment.description}</p>
+                ${assessment.points ? `<p><strong>Points:</strong> ${assessment.points}</p>` : ''}
+                ${assessment.dueDate ? `<p><strong>Due Date:</strong> ${assessment.dueDate}</p>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Resources Section
+    if (lessonPlan.resources && lessonPlan.resources.length > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">📚 Resources & Materials</div>
+          <div class="resource-list">
+            ${lessonPlan.resources.map((resource: string) => `
+              <div class="resource-item">✓ ${resource}</div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // NCERT Alignment Section
+    if (lessonPlan.ncertAlignment) {
+      html += `
+        <div class="section">
+          <div class="section-title">📖 NCERT Curriculum Alignment</div>
+          <div class="ncert-alignment">
+            <h4>Textbook References:</h4>
+            ${lessonPlan.ncertAlignment.textbooks ? `
+              <ul>
+                ${lessonPlan.ncertAlignment.textbooks.map((book: any) => `
+                  <li><strong>${book.title}</strong> (${book.language})</li>
+                `).join('')}
+              </ul>
+            ` : '<p>Standard NCERT textbooks for the grade level</p>'}
+            
+            ${lessonPlan.ncertAlignment.chapters ? `
+              <h4 style="margin-top: 10px;">Relevant Chapters:</h4>
+              <p>${lessonPlan.ncertAlignment.chapters}</p>
+            ` : ''}
+            
+            ${lessonPlan.ncertAlignment.learningOutcomes ? `
+              <h4 style="margin-top: 10px;">Learning Outcomes:</h4>
+              <p>${lessonPlan.ncertAlignment.learningOutcomes}</p>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    return html;
   }
 
   async generatePDF(options: PDFGenerationOptions): Promise<{ filePath: string; filename: string }> {
@@ -386,40 +418,22 @@ export class PDFGeneratorService {
     const filePath = path.join(this.outputDir, filename);
 
     try {
-      // Import jsPDF and html2canvas for PDF generation
+      // Import jsPDF for PDF generation
       const { jsPDF } = await import('jspdf');
-      const html2canvas = await import('html2canvas');
       
-      // Create a temporary div to render HTML
-      const tempDiv = `
-        <div id="pdf-content" style="width: 794px; padding: 20px; font-family: Arial, sans-serif;">
-          ${html}
-        </div>
-      `;
-      
-      // For server-side PDF generation, use a simpler approach
-      // Convert HTML to PDF using jsPDF with text content
+      // Create PDF document
       const doc = new jsPDF('p', 'mm', 'a4');
       
-      // Extract text content and format for PDF
-      const textContent = this.extractTextFromHTML(options.content);
+      // Parse lesson plan content if it's JSON
+      let lessonPlan;
+      try {
+        lessonPlan = JSON.parse(options.content);
+      } catch (e) {
+        lessonPlan = null;
+      }
       
-      // Add title
-      doc.setFontSize(20);
-      doc.setFont(undefined, 'bold');
-      doc.text(options.title, 20, 30);
-      
-      // Add metadata
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'normal');
-      doc.text(`Generated: ${options.generatedAt.toLocaleDateString()}`, 20, 40);
-      doc.text(`Subject: ${options.subject || 'General'}`, 20, 45);
-      doc.text(`Grades: ${options.grades.join(', ')}`, 20, 50);
-      
-      // Add content
-      doc.setFontSize(11);
-      const lines = doc.splitTextToSize(textContent, 170);
-      doc.text(lines, 20, 60);
+      // Add structured content to PDF
+      this.addContentToPDF(doc, options, lessonPlan);
       
       // Save PDF
       const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
@@ -431,6 +445,189 @@ export class PDFGeneratorService {
       console.error('PDF generation error:', error);
       throw new Error(`Failed to generate PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  private addContentToPDF(doc: any, options: PDFGenerationOptions, lessonPlan: any) {
+    let currentY = 20;
+    const pageHeight = 297; // A4 height in mm
+    const margin = 20;
+    const contentWidth = 170;
+
+    // Title
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text(options.title, margin, currentY);
+    currentY += 15;
+
+    // Header info
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Subject: ${options.subject || 'General'} | Grade: ${options.grades.join(', ')} | Generated: ${options.generatedAt.toLocaleDateString()}`, margin, currentY);
+    currentY += 15;
+
+    if (lessonPlan) {
+      // Learning Objectives
+      if (lessonPlan.objectives && lessonPlan.objectives.length > 0) {
+        currentY = this.addSection(doc, 'LEARNING OBJECTIVES', currentY, margin, contentWidth, pageHeight);
+        lessonPlan.objectives.forEach((obj: string, index: number) => {
+          const text = `${index + 1}. ${obj}`;
+          const lines = doc.splitTextToSize(text, contentWidth);
+          if (currentY + (lines.length * 5) > pageHeight - 20) {
+            doc.addPage();
+            currentY = 20;
+          }
+          doc.text(lines, margin + 5, currentY);
+          currentY += lines.length * 5 + 3;
+        });
+        currentY += 10;
+      }
+
+      // Daily Lessons
+      if (lessonPlan.dailyLessons && lessonPlan.dailyLessons.length > 0) {
+        currentY = this.addSection(doc, 'DAILY LESSON PLAN', currentY, margin, contentWidth, pageHeight);
+        
+        lessonPlan.dailyLessons.forEach((lesson: any) => {
+          // Check if we need a new page
+          if (currentY + 60 > pageHeight - 20) {
+            doc.addPage();
+            currentY = 20;
+          }
+
+          // Day header
+          doc.setFontSize(12);
+          doc.setFont(undefined, 'bold');
+          doc.text(`${lesson.day} - ${lesson.topic} (${lesson.duration || '40'} minutes)`, margin, currentY);
+          currentY += 8;
+
+          doc.setFontSize(9);
+          doc.setFont(undefined, 'normal');
+
+          // Learning Goals
+          if (lesson.objectives) {
+            doc.setFont(undefined, 'bold');
+            doc.text('Learning Goals:', margin + 5, currentY);
+            currentY += 5;
+            doc.setFont(undefined, 'normal');
+            lesson.objectives.forEach((obj: string) => {
+              const lines = doc.splitTextToSize(`• ${obj}`, contentWidth - 10);
+              doc.text(lines, margin + 10, currentY);
+              currentY += lines.length * 4;
+            });
+            currentY += 3;
+          }
+
+          // Activities
+          if (lesson.activities) {
+            doc.setFont(undefined, 'bold');
+            doc.text('Activities:', margin + 5, currentY);
+            currentY += 5;
+            doc.setFont(undefined, 'normal');
+            lesson.activities.forEach((activity: string) => {
+              const lines = doc.splitTextToSize(`• ${activity}`, contentWidth - 10);
+              doc.text(lines, margin + 10, currentY);
+              currentY += lines.length * 4;
+            });
+            currentY += 3;
+          }
+
+          // Materials
+          if (lesson.materials) {
+            doc.setFont(undefined, 'bold');
+            doc.text('Materials:', margin + 5, currentY);
+            currentY += 5;
+            doc.setFont(undefined, 'normal');
+            lesson.materials.forEach((material: string) => {
+              const lines = doc.splitTextToSize(`• ${material}`, contentWidth - 10);
+              doc.text(lines, margin + 10, currentY);
+              currentY += lines.length * 4;
+            });
+            currentY += 3;
+          }
+
+          // NCERT Reference
+          if (lesson.ncertReference) {
+            doc.setFont(undefined, 'bold');
+            doc.text('NCERT Reference:', margin + 5, currentY);
+            currentY += 5;
+            doc.setFont(undefined, 'normal');
+            const lines = doc.splitTextToSize(lesson.ncertReference, contentWidth - 10);
+            doc.text(lines, margin + 10, currentY);
+            currentY += lines.length * 4 + 3;
+          }
+
+          // Homework
+          if (lesson.homework) {
+            doc.setFont(undefined, 'bold');
+            doc.text('Homework:', margin + 5, currentY);
+            currentY += 5;
+            doc.setFont(undefined, 'normal');
+            const lines = doc.splitTextToSize(lesson.homework, contentWidth - 10);
+            doc.text(lines, margin + 10, currentY);
+            currentY += lines.length * 4;
+          }
+
+          currentY += 10; // Space between lessons
+        });
+      }
+
+      // Assessments
+      if (lessonPlan.assessments && lessonPlan.assessments.length > 0) {
+        currentY = this.addSection(doc, 'ASSESSMENT STRATEGY', currentY, margin, contentWidth, pageHeight);
+        lessonPlan.assessments.forEach((assessment: any) => {
+          if (currentY + 20 > pageHeight - 20) {
+            doc.addPage();
+            currentY = 20;
+          }
+          
+          doc.setFont(undefined, 'bold');
+          doc.text(assessment.title || assessment.type, margin + 5, currentY);
+          currentY += 6;
+          
+          doc.setFont(undefined, 'normal');
+          doc.text(`Type: ${assessment.type}`, margin + 5, currentY);
+          currentY += 5;
+          
+          const descLines = doc.splitTextToSize(assessment.description, contentWidth - 10);
+          doc.text(descLines, margin + 5, currentY);
+          currentY += descLines.length * 4 + 5;
+        });
+      }
+    } else {
+      // Fallback for non-JSON content
+      doc.setFontSize(11);
+      const textContent = this.extractTextFromHTML(options.content);
+      const lines = doc.splitTextToSize(textContent, contentWidth);
+      doc.text(lines, margin, currentY);
+    }
+
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      doc.text('Generated by EduAI Platform - NCERT Curriculum Aligned', margin, pageHeight - 10);
+      doc.text(`Page ${i} of ${pageCount}`, contentWidth, pageHeight - 10);
+    }
+  }
+
+  private addSection(doc: any, title: string, currentY: number, margin: number, contentWidth: number, pageHeight: number): number {
+    if (currentY + 15 > pageHeight - 20) {
+      doc.addPage();
+      currentY = 20;
+    }
+    
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text(title, margin, currentY);
+    currentY += 10;
+    
+    // Add underline
+    doc.setLineWidth(0.5);
+    doc.line(margin, currentY, margin + contentWidth, currentY);
+    currentY += 8;
+    
+    return currentY;
   }
 
   private extractTextFromHTML(htmlContent: string): string {
