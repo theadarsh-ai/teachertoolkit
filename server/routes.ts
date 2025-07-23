@@ -998,6 +998,14 @@ Use these NCERT textbook references to align lesson content with official curric
         console.log('📚 NCERT integration not available, proceeding with standard lesson plan');
       }
       
+      // Include selected NCERT lessons information
+      const selectedLessonsInfo = selectedLessons && selectedLessons.length > 0 
+        ? `\nSelected NCERT Lessons to incorporate:
+${selectedLessons.map(lesson => `- ${lesson.title} (${lesson.chapter} from ${lesson.textbookTitle})`).join('\n')}
+
+Please ensure the weekly plan specifically addresses these selected NCERT lessons and distributes them appropriately across the 5-day schedule.`
+        : '';
+
       const prompt = `Generate a comprehensive weekly lesson plan for:
       
 Subject: ${subject}
@@ -1006,19 +1014,18 @@ Curriculum: ${curriculum}
 Week Number: ${weekNumber}
 Focus Areas: ${focusAreas.join(', ')}
 Lesson Duration: ${lessonDuration} minutes
-Class Size: ${classSize} students
 
-${ncertContent}
+${ncertContent}${selectedLessonsInfo}
 
 Create a detailed lesson plan that includes:
 1. Clear learning objectives aligned with NCERT curriculum standards
-2. Daily lesson breakdown (Monday to Friday)
+2. Daily lesson breakdown (Monday to Friday) incorporating selected NCERT lessons
 3. Interactive activities and teaching methods
 4. Assessment strategies
 5. Required materials and resources
 6. Homework assignments aligned with NCERT exercises
 7. Cultural context and local examples where appropriate
-8. NCERT chapter/section references where applicable
+8. Specific NCERT chapter/section references from selected lessons
 
 Format the response as a JSON object with this structure:
 {
@@ -1404,6 +1411,66 @@ li {
     } catch (error) {
       console.error('Error downloading PDF:', error);
       res.status(500).json({ error: 'Failed to download PDF file' });
+    }
+  });
+
+  // NCERT Lessons API - Get lessons by subject and grade
+  app.get('/api/ncert/lessons', async (req: Request, res: Response) => {
+    try {
+      const { subject, grade } = req.query;
+      
+      if (!subject || !grade) {
+        return res.status(400).json({ 
+          error: 'Subject and grade parameters are required' 
+        });
+      }
+
+      console.log(`🔍 Fetching NCERT lessons for ${subject} Grade ${grade}`);
+
+      // Initialize NCERT scraper with Firebase storage
+      const ncertScraper = new NCERTScraper();
+      
+      // Get lessons from NCERT database
+      const lessons = await ncertScraper.getLessonsBySubjectAndGrade(
+        subject as string, 
+        parseInt(grade as string)
+      );
+
+      console.log(`✅ Found ${lessons.length} NCERT lessons for ${subject} Grade ${grade}`);
+
+      res.json(lessons);
+    } catch (error) {
+      console.error('Error fetching NCERT lessons:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch NCERT lessons',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // NCERT Lesson Content API - Get detailed content for a specific lesson
+  app.get('/api/ncert/lessons/:lessonId', async (req: Request, res: Response) => {
+    try {
+      const { lessonId } = req.params;
+      
+      console.log(`📖 Fetching detailed content for lesson ID: ${lessonId}`);
+
+      const ncertScraper = new NCERTScraper();
+      const lessonContent = await ncertScraper.getLessonContent(lessonId);
+
+      if (!lessonContent) {
+        return res.status(404).json({ error: 'Lesson content not found' });
+      }
+
+      console.log(`✅ Retrieved content for lesson: ${lessonContent.title}`);
+
+      res.json(lessonContent);
+    } catch (error) {
+      console.error('Error fetching lesson content:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch lesson content',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

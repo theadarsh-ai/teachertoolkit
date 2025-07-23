@@ -70,7 +70,18 @@ interface PlanConfig {
   weekNumber: number;
   focusAreas: string[];
   lessonDuration: number;
-  classSize: number;
+  selectedLessons: NCERTLesson[];
+}
+
+interface NCERTLesson {
+  id: string;
+  title: string;
+  chapter: string;
+  subject: string;
+  grade: number;
+  textbookTitle: string;
+  pdfUrl?: string;
+  content?: string;
 }
 
 const SUBJECTS = [
@@ -94,12 +105,14 @@ export default function LessonPlanner() {
     weekNumber: 1,
     focusAreas: [],
     lessonDuration: 40,
-    classSize: 30
+    selectedLessons: []
   });
   const [selectedPlan, setSelectedPlan] = useState<WeeklyPlan | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [focusAreaInput, setFocusAreaInput] = useState('');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [availableLessons, setAvailableLessons] = useState<NCERTLesson[]>([]);
+  const [isLoadingLessons, setIsLoadingLessons] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -202,11 +215,71 @@ export default function LessonPlanner() {
     }
   };
 
+  // Load NCERT lessons when subject or grade changes
+  const loadNCERTLessons = async (subject: string, grade: number) => {
+    if (!subject || !grade) return;
+    
+    setIsLoadingLessons(true);
+    try {
+      const response = await fetch(`/api/ncert/lessons?subject=${encodeURIComponent(subject)}&grade=${grade}`);
+      if (response.ok) {
+        const lessons = await response.json();
+        setAvailableLessons(lessons);
+      } else {
+        console.error('Failed to load NCERT lessons');
+        setAvailableLessons([]);
+      }
+    } catch (error) {
+      console.error('Error loading NCERT lessons:', error);
+      setAvailableLessons([]);
+    } finally {
+      setIsLoadingLessons(false);
+    }
+  };
+
+  // Load lessons when subject or grade changes
+  const handleSubjectOrGradeChange = (newConfig: Partial<PlanConfig>) => {
+    setPlanConfig(prev => {
+      const updated = { ...prev, ...newConfig };
+      
+      // Clear selected lessons when subject or grade changes
+      if (newConfig.subject !== undefined || newConfig.grade !== undefined) {
+        updated.selectedLessons = [];
+        
+        // Load new lessons
+        if (updated.subject && updated.grade) {
+          loadNCERTLessons(updated.subject, updated.grade);
+        }
+      }
+      
+      return updated;
+    });
+  };
+
+  // Toggle lesson selection
+  const toggleLessonSelection = (lesson: NCERTLesson) => {
+    setPlanConfig(prev => ({
+      ...prev,
+      selectedLessons: prev.selectedLessons.some(l => l.id === lesson.id)
+        ? prev.selectedLessons.filter(l => l.id !== lesson.id)
+        : [...prev.selectedLessons, lesson]
+    }));
+  };
+
   const handleGeneratePlan = async () => {
     if (!planConfig.subject) {
       toast({
         title: "Missing Information",
         description: "Please select a subject to generate lesson plan",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (planConfig.selectedLessons.length === 0) {
+      toast({
+        title: "No Lessons Selected",
+        description: "Please select at least one NCERT lesson to include in your plan",
         variant: "destructive"
       });
       return;
@@ -290,7 +363,7 @@ export default function LessonPlanner() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
                       <Select 
                         value={planConfig.subject} 
-                        onValueChange={(value) => setPlanConfig(prev => ({...prev, subject: value}))}
+                        onValueChange={(value) => handleSubjectOrGradeChange({ subject: value })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select subject" />
@@ -307,7 +380,7 @@ export default function LessonPlanner() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
                       <Select 
                         value={planConfig.grade.toString()} 
-                        onValueChange={(value) => setPlanConfig(prev => ({...prev, grade: parseInt(value)}))}
+                        onValueChange={(value) => handleSubjectOrGradeChange({ grade: parseInt(value) })}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -362,16 +435,7 @@ export default function LessonPlanner() {
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Class Size</label>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="100"
-                        value={planConfig.classSize}
-                        onChange={(e) => setPlanConfig(prev => ({...prev, classSize: parseInt(e.target.value) || 30}))}
-                      />
-                    </div>
+
                   </div>
 
                   {/* Focus Areas */}
@@ -399,6 +463,48 @@ export default function LessonPlanner() {
                       ))}
                     </div>
                   </div>
+
+                  {/* NCERT Lesson Selection */}
+                  {planConfig.subject && planConfig.grade && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        📖 Select NCERT Lessons ({planConfig.selectedLessons.length} selected)
+                      </label>
+                      {isLoadingLessons ? (
+                        <div className="text-center py-4">
+                          <div className="w-6 h-6 border-2 border-gray-300 border-t-purple-500 rounded-full animate-spin mx-auto mb-2"></div>
+                          <p className="text-sm text-gray-500">Loading NCERT lessons...</p>
+                        </div>
+                      ) : availableLessons.length > 0 ? (
+                        <div className="max-h-64 overflow-y-auto border rounded-lg p-4 bg-gray-50">
+                          <div className="space-y-2">
+                            {availableLessons.map((lesson) => (
+                              <div key={lesson.id} className="flex items-start space-x-3 p-2 rounded-lg hover:bg-white transition-colors">
+                                <input
+                                  type="checkbox"
+                                  id={`lesson-${lesson.id}`}
+                                  checked={planConfig.selectedLessons.some(l => l.id === lesson.id)}
+                                  onChange={() => toggleLessonSelection(lesson)}
+                                  className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                                />
+                                <label htmlFor={`lesson-${lesson.id}`} className="flex-1 cursor-pointer">
+                                  <div className="font-medium text-gray-800">{lesson.title}</div>
+                                  <div className="text-sm text-gray-600">Chapter: {lesson.chapter}</div>
+                                  <div className="text-xs text-gray-500">{lesson.textbookTitle}</div>
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-lg">
+                          <BookOpen className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <p className="text-sm">No NCERT lessons found for {planConfig.subject} Grade {planConfig.grade}</p>
+                          <p className="text-xs">Lessons will be loaded from NCERT textbooks when available</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <Button 
                     onClick={handleGeneratePlan}
