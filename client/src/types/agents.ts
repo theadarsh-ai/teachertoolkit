@@ -109,7 +109,7 @@ export const AGENTS: Agent[] = [
   },
   {
     id: 'ar-integration',
-    name: 'AR Learning',
+    name: 'AR using Sketchfab',
     description: 'Create immersive 3D learning experiences using Sketchfab integration.',
     icon: 'Box',
     color: 'from-emerald-500 to-teal-500',
