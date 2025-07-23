@@ -1,9 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 import { 
   Search, 
   Maximize2, 
@@ -16,7 +18,11 @@ import {
   Pause,
   ZoomIn,
   ZoomOut,
-  RotateCcw
+  RotateCcw,
+  ArrowLeft,
+  Filter,
+  Grid3x3,
+  List
 } from "lucide-react";
 
 interface Model3D {
@@ -37,12 +43,24 @@ const ArIntegration = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [models, setModels] = useState<Model3D[]>([]);
+  const [filteredModels, setFilteredModels] = useState<Model3D[]>([]);
   const [selectedModel, setSelectedModel] = useState<Model3D | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
   const [rotationSpeed, setRotationSpeed] = useState(1);
   const [zoom, setZoom] = useState(1);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortBy, setSortBy] = useState<'relevance' | 'name' | 'author'>('relevance');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
   const viewerRef = useRef<HTMLIFrameElement>(null);
+
+  // Enhanced search suggestions
+  const searchSuggestions = [
+    "Human anatomy heart", "Plant cell structure", "Solar system planets",
+    "DNA molecule", "Skeletal system", "Brain anatomy", "Volcano structure",
+    "Chemical bonds", "Geometric shapes", "Ancient architecture", "Microscope",
+    "Telescope", "Mathematical equations", "Physics experiments"
+  ];
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -88,6 +106,7 @@ const ArIntegration = () => {
         // Then set new models after a tiny delay to force re-render
         setTimeout(() => {
           setModels(data.models || []);
+          setFilteredModels(data.models || []);
           console.log('📥 Models set in state:', data.models?.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
         }, 10);
         
@@ -104,6 +123,7 @@ const ArIntegration = () => {
       
       // Show empty results instead of demo models
       setModels([]);
+      setFilteredModels([]);
       
       toast({
         title: "Search Failed", 
@@ -114,6 +134,40 @@ const ArIntegration = () => {
       setIsSearching(false);
     }
   };
+
+  // Filter and sort models
+  const filterAndSortModels = () => {
+    let filtered = [...models];
+
+    // Apply category filter
+    if (filterCategory !== 'all') {
+      filtered = filtered.filter(model => 
+        model.name.toLowerCase().includes(filterCategory.toLowerCase()) ||
+        model.description.toLowerCase().includes(filterCategory.toLowerCase()) ||
+        model.tags.some(tag => tag.toLowerCase().includes(filterCategory.toLowerCase()))
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'author':
+          return a.author.localeCompare(b.author);
+        case 'relevance':
+        default:
+          return 0; // Keep original order for relevance
+      }
+    });
+
+    setFilteredModels(filtered);
+  };
+
+  // Apply filters when models or filter settings change
+  useEffect(() => {
+    filterAndSortModels();
+  }, [models, filterCategory, sortBy]);
 
   const handleModelSelect = async (model: Model3D) => {
     try {
@@ -184,6 +238,16 @@ const ArIntegration = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 p-8">
       <div className="max-w-7xl mx-auto">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Link href="/dashboard">
+            <Button variant="ghost" className="flex items-center gap-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
             AR Integration Agent
@@ -226,18 +290,59 @@ const ArIntegration = () => {
                     </Button>
                   </div>
                   
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    Try searching: "human anatomy", "solar system", "plant cell", "chemical bonds"
+                  {/* Quick Search Suggestions */}
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-gray-700 dark:text-gray-300">Quick Search:</div>
+                    <div className="flex flex-wrap gap-1">
+                      {searchSuggestions.slice(0, 6).map((suggestion, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-6 px-2"
+                          onClick={() => setSearchQuery(suggestion)}
+                        >
+                          {suggestion}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => window.location.reload()} 
-                    className="w-full mt-2"
-                  >
-                    🔄 Force Refresh Page (Clear Cache)
-                  </Button>
+
+                  {/* Filter Controls */}
+                  <div className="space-y-3 pt-4 border-t">
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filters</span>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Select value={sortBy} onValueChange={(value: 'relevance' | 'name' | 'author') => setSortBy(value)}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sort by..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="relevance">Sort by Relevance</SelectItem>
+                          <SelectItem value="name">Sort by Name</SelectItem>
+                          <SelectItem value="author">Sort by Author</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={filterCategory} onValueChange={setFilterCategory}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Filter category..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Categories</SelectItem>
+                          <SelectItem value="anatomy">Anatomy</SelectItem>
+                          <SelectItem value="biology">Biology</SelectItem>
+                          <SelectItem value="chemistry">Chemistry</SelectItem>
+                          <SelectItem value="physics">Physics</SelectItem>
+                          <SelectItem value="mathematics">Mathematics</SelectItem>
+                          <SelectItem value="space">Space & Astronomy</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -245,18 +350,44 @@ const ArIntegration = () => {
             {/* Model Results */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Box className="w-5 h-5" />
-                  Search Results ({models.length})
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Box className="w-5 h-5" />
+                    Search Results ({filteredModels.length} of {models.length})
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant={viewMode === 'grid' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('grid')}
+                    >
+                      <Grid3x3 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === 'list' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('list')}
+                    >
+                      <List className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {models.length === 0 && !isSearching && (
+                  {filteredModels.length === 0 && models.length === 0 && !isSearching && (
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                       <Box className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>Search for educational 3D models to get started</p>
                       <p className="text-xs mt-2">Real Sketchfab models will appear here</p>
+                    </div>
+                  )}
+
+                  {filteredModels.length === 0 && models.length > 0 && !isSearching && (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <Filter className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No models match the current filters</p>
+                      <p className="text-xs mt-2">Try adjusting your filter settings</p>
                     </div>
                   )}
                   
@@ -267,7 +398,7 @@ const ArIntegration = () => {
                     </div>
                   )}
                   
-                  {models.map((model, index) => (
+                  {filteredModels.map((model, index) => (
                     <div
                       key={`${model.id}-${index}`}
                       className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
