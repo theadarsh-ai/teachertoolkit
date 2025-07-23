@@ -459,12 +459,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             grades: parsedGrades, 
             questionType,
             questionCount: numQuestions,
-            questionsFile: questionsResult.fileName,
-            answersFile: answersResult.fileName,
+            questionsFile: questionsResult.filename,
+            answersFile: answersResult.filename,
             hasImage: !!uploadedImage
           }
         });
         
+        console.log('📋 PDF Results:', {
+          questionsFile: questionsResult.filename,
+          answersFile: answersResult.filename,
+          questionsUrl: `/api/download-pdf/${questionsResult.filename}`,
+          answersUrl: `/api/download-pdf/${answersResult.filename}`
+        });
+
         res.json({
           success: true,
           message: `Generated ${numQuestions} ${questionType === 'multiple-choice' ? 'multiple choice questions' : 'mixed questions'} with answer key`,
@@ -473,10 +480,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             answers: materials.answers
           },
           pdf: {
-            questionsFile: questionsResult.fileName,
-            answersFile: answersResult.fileName,
-            questionsDownloadUrl: `/api/download-pdf/${questionsResult.fileName}`,
-            answersDownloadUrl: `/api/download-pdf/${answersResult.fileName}`
+            questionsFile: questionsResult.filename,
+            answersFile: answersResult.filename,
+            questionsDownloadUrl: `/api/download-pdf/${questionsResult.filename}`,
+            answersDownloadUrl: `/api/download-pdf/${answersResult.filename}`
           }
         });
       } else {
