@@ -169,35 +169,9 @@ const ArIntegration = () => {
     filterAndSortModels();
   }, [models, filterCategory, sortBy]);
 
-  const handleModelSelect = async (model: Model3D) => {
-    try {
-      // Get embed URL for the selected model
-      const response = await fetch('/api/agents/ar-integration/embed', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          modelId: model.id,
-          source: model.source
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (data.success && data.embedUrl) {
-        setSelectedModel({
-          ...model,
-          embedUrl: data.embedUrl
-        });
-      } else {
-        setSelectedModel(model);
-      }
-      
-    } catch (error) {
-      console.error('Error getting embed URL:', error);
-      setSelectedModel(model);
-    }
+  const handleModelSelect = (model: Model3D) => {
+    console.log('🎯 Model selected:', model.name, 'Source:', model.source, 'Embed URL:', model.embedUrl);
+    setSelectedModel(model);
   };
 
   const handleMaximize = () => {

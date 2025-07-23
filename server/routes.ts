@@ -910,27 +910,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Try different search strategies for better educational results
+      // Simple, effective search strategies for Sketchfab
       const searchStrategies = [
-        // Strategy 1: Specific educational query with keywords
-        {
-          q: educational ? `${query} ${additionalKeywords.join(' ')} educational science` : query,
-          sort_by: 'relevance',
-          count: '20',
-          downloadable: 'true'
-        },
-        // Strategy 2: Direct model search
-        {
-          q: additionalKeywords.length > 0 ? `${additionalKeywords[0]} ${additionalKeywords[1] || ''}` : query,
-          sort_by: 'popularity',
-          count: '15',
-          downloadable: 'true'
-        },
-        // Strategy 3: Fallback general search
+        // Strategy 1: Direct query search
         {
           q: query,
           sort_by: 'relevance',
-          count: '10'
+          count: '15'
+        },
+        // Strategy 2: Popular results for query
+        {
+          q: query,
+          sort_by: 'popularity',
+          count: '15'
         }
       ];
 
@@ -968,97 +960,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // If all strategies failed or returned poor quality models, use educational fallback
-      if (models.length === 0) {
-        console.log(`⚠️ No Sketchfab models found, using educational fallback`);
-        models = getEducationalFallbackModels(query);
-      }
-
       // Enhanced model mapping with better metadata extraction
-      console.log(`🔍 Processing ${models.length} raw models for educational filtering`);
+      console.log(`🔍 Processing ${models.length} raw models for Sketchfab API`);
       
-      let processedModels = models
-        .filter((model: any) => {
-          // Filter out obviously non-educational content
-          const name = (model.name || '').toLowerCase();
-          const desc = (model.description || '').toLowerCase();
-          const tags = (model.tags || []).map((tag: any) => tag.name?.toLowerCase() || '');
-          
-          // Skip models that are clearly not educational
-          const excludeTerms = ['lego', 'game', 'character', 'weapon', 'car', 'building', 'fantasy', 'cartoon', 'anime', 'toilet', 'funko'];
-          const hasExcludedTerm = excludeTerms.some(term => 
-            name.includes(term) || desc.includes(term)
-          );
-          
-          if (hasExcludedTerm) {
-            console.log(`❌ Excluding: "${model.name}" (contains excluded term)`);
-            return false;
-          }
-          
-          // For educational searches, be very strict about educational content
-          if (educational) {
-            const educationalTerms = ['anatomy', 'biology', 'medical', 'science', 'educational', 'cell', 'organ', 'molecule', 'heart', 'skeleton', 'brain', 'human', 'body', 'system'];
-            const hasEducationalTerm = educationalTerms.some(term => 
-              name.includes(term) || desc.includes(term) || tags.includes(term)
+      let processedModels = [];
+      
+      // If we got real Sketchfab models, process them with less filtering
+      if (models.length > 0 && models[0].uid) {
+        console.log(`✅ Processing ${models.length} authentic Sketchfab models`);
+        
+        processedModels = models
+          .filter((model: any) => {
+            // Basic filtering for obviously inappropriate content
+            const name = (model.name || '').toLowerCase();
+            const desc = (model.description || '').toLowerCase();
+            
+            // Only exclude clearly inappropriate content, be more permissive
+            const excludeTerms = ['explicit', 'nsfw', 'adult'];
+            const hasExcludedTerm = excludeTerms.some(term => 
+              name.includes(term) || desc.includes(term)
             );
             
-            if (!hasEducationalTerm) {
-              console.log(`❌ Excluding: "${model.name}" (no educational terms)`);
+            if (hasExcludedTerm) {
+              console.log(`❌ Excluding: "${model.name}" (inappropriate content)`);
               return false;
             }
             
-            console.log(`✅ Keeping: "${model.name}" (educational content)`);
             return true;
-          }
+          })
+          .map((model: any) => ({
+            id: model.uid,
+            name: model.name || 'Untitled Model',
+            description: model.description || 'No description available',
+            thumbnail: model.thumbnails?.images?.[0]?.url || '/api/placeholder/200/150',
+            url: `https://sketchfab.com/models/${model.uid}`,
+            embedUrl: `https://sketchfab.com/models/${model.uid}/embed?autostart=1&ui_controls=1&ui_infos=0&ui_inspector=0&ui_watermark=0`,
+            author: model.user?.displayName || model.user?.username || 'Unknown',
+            tags: (model.tags || []).map((tag: any) => tag.name || tag).slice(0, 5),
+            viewCount: model.viewCount || 0,
+            likeCount: model.likeCount || 0,
+            license: model.license?.label || 'Standard',
+            source: 'sketchfab'
+          }));
           
-          return true; // For non-educational searches, just exclude obvious non-educational content
-        })
-        .map((model: any) => ({
-          id: model.uid,
-          name: model.name || 'Untitled Model',
-          description: model.description || 'Educational 3D model from Sketchfab',
-          thumbnail: model.thumbnails?.images?.[0]?.url || model.thumbnails?.images?.[1]?.url || '',
-          source: 'sketchfab',
-          url: `https://sketchfab.com/3d-models/${model.uid}`,
-          embedUrl: `https://sketchfab.com/models/${model.uid}/embed?autostart=1&ui_controls=1&ui_infos=1&ui_inspector=1&ui_stop=1&ui_watermark=0&preload=1`,
-          tags: (model.tags || []).map((tag: any) => tag.name || ''),
-          author: model.user?.displayName || 'Unknown Artist',
-          license: model.license?.label || 'Standard License',
-          viewCount: model.viewCount || 0,
-          likeCount: model.likeCount || 0
-        }));
-
-      // Always include educational fallback for educational searches since Sketchfab has limited quality content
-      if (educational) {
-        console.log(`🎓 Adding curated educational models for query: "${query}"`);
-        const fallbackModels = getEducationalFallbackModels(query).map(model => ({
-          id: model.uid,
-          name: model.name,
-          description: model.description,
-          thumbnail: model.thumbnails.images[0].url,
-          source: 'educational-db',
-          url: `#educational-model-${model.uid}`,
-          embedUrl: `#educational-embed-${model.uid}`,
-          tags: model.tags.map(tag => tag.name),
-          author: model.user.displayName,
-          license: model.license.label,
-          viewCount: 0,
-          likeCount: 0
-        }));
+        console.log(`✅ SKETCHFAB: Processed ${processedModels.length} authentic models`);
         
-        // Prioritize educational fallback models, then add any good Sketchfab results
-        processedModels = [...fallbackModels, ...processedModels].slice(0, 12);
       } else {
-        processedModels = processedModels.slice(0, 15);
+        // Fallback to educational models if no Sketchfab results
+        console.log(`⚠️ No Sketchfab models found, adding educational fallback`);
+        const fallbackModels = getEducationalFallbackModels(query);
+        
+        processedModels = fallbackModels.map(model => ({
+          ...model,
+          source: 'educational-db'
+        }));
       }
 
-      console.log(`✅ DIRECT: Found ${processedModels.length} models`);
-      console.log(`📤 DIRECT: Sample models:`, processedModels.slice(0, 2).map(m => ({ name: m.name, author: m.author, id: m.id })));
+      // Limit results and prioritize real Sketchfab models
+      processedModels = processedModels.slice(0, 12);
+
+      console.log(`✅ SKETCHFAB API: Found ${processedModels.length} models`);
+      console.log(`📤 SKETCHFAB: Sample models:`, processedModels.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
 
       res.json({
         success: true,
         query,
-        source: 'sketchfab-direct',
+        source: 'sketchfab-api',
         count: processedModels.length,
         models: processedModels
       });
@@ -1113,6 +1080,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { source, id, options = {} } = req.body;
 
+      console.log(`🔗 Embed request: source=${source}, id=${id}`);
+
       if (!source || !id) {
         return res.status(400).json({
           success: false,
@@ -1125,20 +1094,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (source === 'sketchfab') {
         // Direct Sketchfab embed URL construction
         const params = new URLSearchParams({
-          autostart: (options.autostart ?? true) ? '1' : '0',
-          ui_controls: (options.ui_controls ?? true) ? '1' : '0',
-          ui_infos: (options.ui_infos ?? true) ? '1' : '0',
-          ui_inspector: (options.ui_inspector ?? true) ? '1' : '0',
+          autostart: '1',
+          ui_controls: '1',
+          ui_infos: '0',
+          ui_inspector: '0',
           ui_stop: '1',
           ui_watermark: '0',
           preload: '1'
         });
         embedUrl = `https://sketchfab.com/models/${id}/embed?${params}`;
+        console.log(`✅ Sketchfab embed URL created: ${embedUrl}`);
       } else if (source === 'educational-db') {
         // For our educational models, create a custom viewer
         embedUrl = `/educational-viewer/${id}`;
+        console.log(`✅ Educational embed URL created: ${embedUrl}`);
       } else if (source === 'google-poly') {
         embedUrl = `https://poly.google.com/view/${id}/embed`;
+        console.log(`✅ Google Poly embed URL created: ${embedUrl}`);
       } else {
         return res.status(400).json({
           success: false,
