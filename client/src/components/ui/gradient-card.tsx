@@ -1,8 +1,4 @@
 import { cn } from "@/lib/utils";
-import { 
-  Globe2, Layers, Calendar, Brain, Palette, Gamepad2, TrendingUp, 
-  Mic, Bot, Target, Box, LucideIcon
-} from "lucide-react";
 
 interface GradientCardProps {
   children: React.ReactNode;
@@ -25,21 +21,6 @@ export function GradientCard({ children, gradient, className, onClick }: Gradien
   );
 }
 
-// Icon mapping for Lucide React icons
-const iconMap: Record<string, LucideIcon> = {
-  'Globe2': Globe2,
-  'Layers': Layers,
-  'Calendar': Calendar,
-  'Brain': Brain,
-  'Palette': Palette,
-  'Gamepad2': Gamepad2,
-  'TrendingUp': TrendingUp,
-  'Mic': Mic,
-  'Bot': Bot,
-  'Target': Target,
-  'Box': Box
-};
-
 interface GradientIconProps {
   icon: string;
   gradient: string;
@@ -47,11 +28,9 @@ interface GradientIconProps {
 }
 
 export function GradientIcon({ icon, gradient, className }: GradientIconProps) {
-  const IconComponent = iconMap[icon] || Bot; // Fallback to Bot icon
-  
   return (
     <div className={cn(`w-12 h-12 bg-gradient-to-r ${gradient} rounded-xl flex items-center justify-center`, className)}>
-      <IconComponent className="w-6 h-6 text-white" />
+      <i className={`${icon} text-white`}></i>
     </div>
   );
 }

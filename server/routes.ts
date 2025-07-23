@@ -801,7 +801,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const googlePolyService = new GooglePolyService(process.env.GOOGLE_POLY_API_KEY || 'mock');
   const sketchfabService = new SketchfabService(process.env.SKETCHFAB_API_KEY || 'mock');
 
-  // AR Integration endpoints - Direct Python approach (restored previous implementation)
+  // AR Integration endpoints - Direct Node.js approach
   app.post("/api/agents/ar-integration/search", async (req, res) => {
     try {
       const { query, source = 'sketchfab', educational = true } = req.body;
@@ -813,62 +813,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`🔍 PYTHON DIRECT: Searching 3D models for: "${query}"`);
+      console.log(`🔍 AR-DIRECT: Searching 3D models for: "${query}"`);
 
-      // Use direct Python script for AR integration (previous implementation)
-      const pythonProcess = spawn('python3', [
-        'server/ar-integration-direct.py',
-        query
-      ]);
+      // Use DirectARService from ar-direct.ts (commit 9e96656 implementation)
+      const { directARService } = await import('./ar-direct');
+      const models = await directARService.searchModels(query, 20);
 
-      let stdout = '';
-      let stderr = '';
+      console.log(`✅ AR-DIRECT: Found ${models.length} models`);
+      console.log(`📤 AR-DIRECT: Sample models:`, models.slice(0, 2).map(m => ({ name: m.name, author: m.author, id: m.id })));
 
-      pythonProcess.stdout.on('data', (data) => {
-        stdout += data.toString();
+      res.json({
+        success: true,
+        query,
+        source: 'sketchfab-ar-direct',
+        count: models.length,
+        models
       });
-
-      pythonProcess.stderr.on('data', (data) => {
-        stderr += data.toString();
-        console.log('🐍 Python AR:', data.toString().trim());
-      });
-
-      pythonProcess.on('close', (code) => {
-        if (code === 0 && stdout.trim()) {
-          try {
-            const result = JSON.parse(stdout.trim());
-            console.log(`✅ PYTHON DIRECT: Found ${result.count} models`);
-            console.log(`📤 PYTHON DIRECT: Sample models:`, result.models?.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
-            res.json(result);
-          } catch (parseError) {
-            console.error('❌ Failed to parse Python AR output:', parseError);
-            res.status(500).json({
-              success: false,
-              error: "Failed to parse AR search results",
-              details: String(parseError)
-            });
-          }
-        } else {
-          console.error('❌ Python AR process failed:', stderr);
-          res.status(500).json({
-            success: false,
-            error: "AR search process failed",
-            details: stderr || `Process exited with code ${code}`
-          });
-        }
-      });
-
-      // Handle timeout
-      setTimeout(() => {
-        if (!res.headersSent) {
-          pythonProcess.kill();
-          res.status(408).json({
-            success: false,
-            error: "AR search timeout",
-            details: "Python process took too long to respond"
-          });
-        }
-      }, 30000); // 30 second timeout
 
     } catch (error) {
       console.error('AR integration search error:', error);
@@ -953,162 +913,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         error: "Failed to generate embed URL",
         details: String(error)
-      });
-    }
-  });
-
-  // Gamified Teaching - Game Generation
-  app.post("/api/agents/gamified-teaching/generate-game", async (req, res) => {
-    try {
-      const { topic, grade, difficulty, gameType, duration, playerCount } = req.body;
-      
-      console.log(`🎮 Generating ${gameType} game for Grade ${grade}: "${topic}"`);
-      
-      const gamePrompt = `Create an educational ${gameType} game for Grade ${grade} students on "${topic}".
-      
-Game Requirements:
-- Difficulty: ${difficulty}
-- Duration: ${duration} minutes
-- Players: ${playerCount}
-- Educational focus: ${topic}
-- Grade level: ${grade}
-
-Generate:
-1. Game title (engaging and educational)
-2. Game description (2-3 sentences)
-3. 10 educational questions with:
-   - Clear question text
-   - 4 multiple choice options
-   - Correct answer index (0-3)
-   - Educational explanation
-   - Points value (10-50 based on difficulty)
-   - Time limit (15-45 seconds)
-4. 5 reward badges with names, descriptions, and rarity
-5. 3 challenge objectives with rewards
-
-Format as JSON with structure:
-{
-  "title": "Game Title",
-  "description": "Description",
-  "questions": [...],
-  "rewards": [...],
-  "challenges": [...],
-  "metadata": {
-    "estimatedTime": ${duration},
-    "difficulty": "${difficulty}",
-    "points": totalMaxPoints
-  }
-}`;
-
-      const response = await geminiEduService.generateLocalizedContent({
-        prompt: gamePrompt,
-        agentType: 'gamified-teaching',
-        grades: [grade],
-        languages: ['English'],
-        contentSource: 'external'
-      });
-      
-      try {
-        // Clean up the response by removing markdown code blocks
-        let cleanContent = response.content;
-        if (cleanContent.includes('```json')) {
-          cleanContent = cleanContent.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
-        }
-        if (cleanContent.includes('```')) {
-          cleanContent = cleanContent.replace(/```[\s\S]*?```/g, '').trim();
-        }
-        
-        const gameData = JSON.parse(cleanContent);
-        
-        // Add unique IDs and normalize property names
-        const game = {
-          id: Date.now().toString(),
-          ...gameData,
-          questions: gameData.questions?.map((q: any, index: number) => ({
-            id: `q_${index}`,
-            question: q.questionText || q.question || `Question ${index + 1}`,
-            options: q.options || ['Option A', 'Option B', 'Option C', 'Option D'],
-            correctAnswer: q.correctAnswerIndex !== undefined ? q.correctAnswerIndex : (q.correctAnswer || 0),
-            explanation: q.educationalExplanation || q.explanation || 'Explanation not provided',
-            points: q.pointsValue || q.points || 20,
-            timeLimit: q.timeLimitSeconds || q.timeLimit || 30
-          })) || [],
-          rewards: gameData.rewards?.map((r: any, index: number) => ({
-            id: `r_${index}`,
-            ...r,
-            rarity: r.rarity || 'common'
-          })) || [],
-          challenges: gameData.challenges?.map((c: any, index: number) => ({
-            id: `c_${index}`,
-            ...c
-          })) || []
-        };
-        
-        console.log(`✅ Generated game: "${game.title}" with ${game.questions.length} questions`);
-        
-        res.json({
-          success: true,
-          game
-        });
-        
-      } catch (parseError) {
-        console.error("❌ Failed to parse game JSON:", parseError);
-        
-        // Return a fallback structured game
-        const fallbackGame = {
-          id: Date.now().toString(),
-          title: `${topic} Quiz Challenge`,
-          description: `Test your knowledge of ${topic} with this Grade ${grade} educational game!`,
-          gameType,
-          questions: [
-            {
-              id: 'q_1',
-              question: `What is an important concept related to ${topic}?`,
-              options: ['Option A', 'Option B', 'Option C', 'Option D'],
-              correctAnswer: 0,
-              explanation: 'This is the correct answer because...',
-              points: difficulty === 'easy' ? 10 : difficulty === 'medium' ? 25 : 40,
-              timeLimit: 30
-            }
-          ],
-          rewards: [
-            {
-              id: 'r_1',
-              name: 'Quick Learner',
-              description: 'Answered your first question!',
-              icon: 'star',
-              rarity: 'common' as const,
-              pointsRequired: 10
-            }
-          ],
-          challenges: [
-            {
-              id: 'c_1',
-              title: 'First Steps',
-              description: 'Complete your first question',
-              objective: 'Answer 1 question correctly',
-              reward: 'Quick Learner badge',
-              difficulty: 'easy'
-            }
-          ],
-          metadata: {
-            estimatedTime: duration,
-            difficulty,
-            points: difficulty === 'easy' ? 100 : difficulty === 'medium' ? 250 : 400
-          }
-        };
-        
-        res.json({
-          success: true,
-          game: fallbackGame
-        });
-      }
-      
-    } catch (error) {
-      console.error("❌ Game generation error:", error);
-      res.status(500).json({ 
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to generate game'
       });
     }
   });
