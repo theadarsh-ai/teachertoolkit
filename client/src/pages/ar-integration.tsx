@@ -1,11 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
 import { 
   Search, 
   Maximize2, 
@@ -18,11 +16,7 @@ import {
   Pause,
   ZoomIn,
   ZoomOut,
-  RotateCcw,
-  ArrowLeft,
-  Filter,
-  Grid3x3,
-  List
+  RotateCcw
 } from "lucide-react";
 
 interface Model3D {
@@ -30,12 +24,12 @@ interface Model3D {
   name: string;
   description: string;
   thumbnail: string;
-  source: 'google-poly' | 'sketchfab' | 'educational-db' | 'sketchfab-authentic';
+  source: 'google-poly' | 'sketchfab';
   url: string;
   embedUrl: string;
   tags: string[];
   author: string;
-  license: string | { label: string };
+  license: string;
 }
 
 const ArIntegration = () => {
@@ -43,24 +37,12 @@ const ArIntegration = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [models, setModels] = useState<Model3D[]>([]);
-  const [filteredModels, setFilteredModels] = useState<Model3D[]>([]);
   const [selectedModel, setSelectedModel] = useState<Model3D | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
   const [rotationSpeed, setRotationSpeed] = useState(1);
   const [zoom, setZoom] = useState(1);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [sortBy, setSortBy] = useState<'relevance' | 'name' | 'author'>('relevance');
-  const [filterCategory, setFilterCategory] = useState<string>('all');
   const viewerRef = useRef<HTMLIFrameElement>(null);
-
-  // Enhanced search suggestions
-  const searchSuggestions = [
-    "Human anatomy heart", "Plant cell structure", "Solar system planets",
-    "DNA molecule", "Skeletal system", "Brain anatomy", "Volcano structure",
-    "Chemical bonds", "Geometric shapes", "Ancient architecture", "Microscope",
-    "Telescope", "Mathematical equations", "Physics experiments"
-  ];
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -103,25 +85,10 @@ const ArIntegration = () => {
         // Force clear existing models first
         setModels([]);
         
-        // Transform backend models to frontend interface
-        const transformedModels = (data.models || []).map((model: any) => ({
-          id: model.uid || model.id,
-          name: model.name,
-          description: model.description,
-          thumbnail: model.thumbnails?.images?.[0]?.url || '/api/placeholder/80/60',
-          source: model.source || 'sketchfab',
-          url: model.viewerUrl || model.url,
-          embedUrl: model.embedUrl,
-          tags: model.tags?.map((tag: any) => typeof tag === 'string' ? tag : tag.name) || [],
-          author: model.user?.displayName || model.author || 'Unknown',
-          license: model.license
-        }));
-        
         // Then set new models after a tiny delay to force re-render
         setTimeout(() => {
-          setModels(transformedModels);
-          setFilteredModels(transformedModels);
-          console.log('📥 Models set in state:', transformedModels.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
+          setModels(data.models || []);
+          console.log('📥 Models set in state:', data.models?.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
         }, 10);
         
         toast({
@@ -137,7 +104,6 @@ const ArIntegration = () => {
       
       // Show empty results instead of demo models
       setModels([]);
-      setFilteredModels([]);
       
       toast({
         title: "Search Failed", 
@@ -149,43 +115,35 @@ const ArIntegration = () => {
     }
   };
 
-  // Filter and sort models
-  const filterAndSortModels = () => {
-    let filtered = [...models];
+  const handleModelSelect = async (model: Model3D) => {
+    try {
+      // Get embed URL for the selected model
+      const response = await fetch('/api/agents/ar-integration/embed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          modelId: model.id,
+          source: model.source
+        }),
+      });
 
-    // Apply category filter
-    if (filterCategory !== 'all') {
-      filtered = filtered.filter(model => 
-        model.name.toLowerCase().includes(filterCategory.toLowerCase()) ||
-        model.description.toLowerCase().includes(filterCategory.toLowerCase()) ||
-        model.tags.some(tag => tag.toLowerCase().includes(filterCategory.toLowerCase()))
-      );
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'author':
-          return a.author.localeCompare(b.author);
-        case 'relevance':
-        default:
-          return 0; // Keep original order for relevance
+      const data = await response.json();
+      
+      if (data.success && data.embedUrl) {
+        setSelectedModel({
+          ...model,
+          embedUrl: data.embedUrl
+        });
+      } else {
+        setSelectedModel(model);
       }
-    });
-
-    setFilteredModels(filtered);
-  };
-
-  // Apply filters when models or filter settings change
-  useEffect(() => {
-    filterAndSortModels();
-  }, [models, filterCategory, sortBy]);
-
-  const handleModelSelect = (model: Model3D) => {
-    console.log('🎯 Model selected:', model.name, 'Source:', model.source, 'Embed URL:', model.embedUrl);
-    setSelectedModel(model);
+      
+    } catch (error) {
+      console.error('Error getting embed URL:', error);
+      setSelectedModel(model);
+    }
   };
 
   const handleMaximize = () => {
@@ -226,16 +184,6 @@ const ArIntegration = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Back Button */}
-        <div className="mb-6">
-          <Link href="/dashboard">
-            <Button variant="ghost" className="flex items-center gap-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Dashboard
-            </Button>
-          </Link>
-        </div>
-
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
             AR Integration Agent
@@ -278,59 +226,18 @@ const ArIntegration = () => {
                     </Button>
                   </div>
                   
-                  {/* Quick Search Suggestions */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-gray-700 dark:text-gray-300">Quick Search:</div>
-                    <div className="flex flex-wrap gap-1">
-                      {searchSuggestions.slice(0, 6).map((suggestion, index) => (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          size="sm"
-                          className="text-xs h-6 px-2"
-                          onClick={() => setSearchQuery(suggestion)}
-                        >
-                          {suggestion}
-                        </Button>
-                      ))}
-                    </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Try searching: "human anatomy", "solar system", "plant cell", "chemical bonds"
                   </div>
-
-                  {/* Filter Controls */}
-                  <div className="space-y-3 pt-4 border-t">
-                    <div className="flex items-center gap-2">
-                      <Filter className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filters</span>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Select value={sortBy} onValueChange={(value: 'relevance' | 'name' | 'author') => setSortBy(value)}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sort by..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="relevance">Sort by Relevance</SelectItem>
-                          <SelectItem value="name">Sort by Name</SelectItem>
-                          <SelectItem value="author">Sort by Author</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <Select value={filterCategory} onValueChange={setFilterCategory}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Filter category..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          <SelectItem value="anatomy">Anatomy</SelectItem>
-                          <SelectItem value="biology">Biology</SelectItem>
-                          <SelectItem value="chemistry">Chemistry</SelectItem>
-                          <SelectItem value="physics">Physics</SelectItem>
-                          <SelectItem value="mathematics">Mathematics</SelectItem>
-                          <SelectItem value="space">Space & Astronomy</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => window.location.reload()} 
+                    className="w-full mt-2"
+                  >
+                    🔄 Force Refresh Page (Clear Cache)
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -338,44 +245,18 @@ const ArIntegration = () => {
             {/* Model Results */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Box className="w-5 h-5" />
-                    Search Results ({filteredModels.length} of {models.length})
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant={viewMode === 'grid' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setViewMode('grid')}
-                    >
-                      <Grid3x3 className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant={viewMode === 'list' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setViewMode('list')}
-                    >
-                      <List className="w-4 h-4" />
-                    </Button>
-                  </div>
+                <CardTitle className="flex items-center gap-2">
+                  <Box className="w-5 h-5" />
+                  Search Results ({models.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {filteredModels.length === 0 && models.length === 0 && !isSearching && (
+                  {models.length === 0 && !isSearching && (
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                       <Box className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>Search for educational 3D models to get started</p>
                       <p className="text-xs mt-2">Real Sketchfab models will appear here</p>
-                    </div>
-                  )}
-
-                  {filteredModels.length === 0 && models.length > 0 && !isSearching && (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      <Filter className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No models match the current filters</p>
-                      <p className="text-xs mt-2">Try adjusting your filter settings</p>
                     </div>
                   )}
                   
@@ -386,7 +267,7 @@ const ArIntegration = () => {
                     </div>
                   )}
                   
-                  {filteredModels.map((model, index) => (
+                  {models.map((model, index) => (
                     <div
                       key={`${model.id}-${index}`}
                       className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
@@ -466,67 +347,16 @@ const ArIntegration = () => {
               <CardContent>
                 <div className={`${isMaximized ? 'h-full' : 'h-96'} bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden`}>
                   {selectedModel ? (
-                    selectedModel.source === 'educational-db' ? (
-                      // Educational model viewer with interactive elements
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-800 dark:via-blue-900 dark:to-indigo-900">
-                        <div className="text-center p-8">
-                          <div className="mb-6">
-                            <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                              <span className="text-4xl text-white">
-                                {selectedModel.name.toLowerCase().includes('heart') ? '❤️' :
-                                 selectedModel.name.toLowerCase().includes('cell') ? '🔬' :
-                                 selectedModel.name.toLowerCase().includes('dna') ? '🧬' :
-                                 selectedModel.name.toLowerCase().includes('skeleton') ? '🦴' :
-                                 selectedModel.name.toLowerCase().includes('brain') ? '🧠' :
-                                 selectedModel.name.toLowerCase().includes('solar') ? '🌌' : '🔬'}
-                              </span>
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
-                              {selectedModel.name}
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-300 mb-4">
-                              Interactive Educational 3D Model
-                            </p>
-                          </div>
-                          
-                          <div className="space-y-3 text-sm">
-                            <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
-                              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                              3D Visualization Ready
-                            </div>
-                            <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400">
-                              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                              Educational Annotations Available
-                            </div>
-                            <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400">
-                              <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                              AR-Ready Content
-                            </div>
-                          </div>
-                          
-                          <div className="mt-6 p-4 bg-white/50 dark:bg-gray-700/50 rounded-lg">
-                            <p className="text-xs text-gray-600 dark:text-gray-400">
-                              This educational model provides interactive learning with detailed annotations and cross-curricular connections optimized for classroom use.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      // Sketchfab iframe for real Sketchfab models
-                      <iframe
-                        ref={viewerRef}
-                        src={selectedModel.embedUrl}
-                        width="100%"
-                        height="100%"
-                        frameBorder="0"
-                        allow="autoplay; fullscreen; xr-spatial-tracking"
-                        title={`3D model: ${selectedModel.name}`}
-                        className="w-full h-full"
-                        onError={() => {
-                          console.error('Failed to load iframe for model:', selectedModel.name);
-                        }}
-                      />
-                    )
+                    <iframe
+                      ref={viewerRef}
+                      src={selectedModel.embedUrl}
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      allow="autoplay; fullscreen; xr-spatial-tracking"
+                      title={`3D model: ${selectedModel.name}`}
+                      className="w-full h-full"
+                    />
                   ) : (
                     <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
                       <div className="text-center">
@@ -549,7 +379,7 @@ const ArIntegration = () => {
                       </div>
                       <div className="flex gap-2">
                         <Badge variant="outline">{selectedModel.source}</Badge>
-                        <Badge variant="outline">{typeof selectedModel.license === 'object' ? selectedModel.license.label : selectedModel.license}</Badge>
+                        <Badge variant="outline">{selectedModel.license}</Badge>
                       </div>
                     </div>
                     
