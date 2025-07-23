@@ -1113,17 +1113,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { source, id, options = {} } = req.body;
 
+      if (!source || !id) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid request: source and id are required"
+        });
+      }
+
       let embedUrl = '';
 
       if (source === 'sketchfab') {
-        embedUrl = await sketchfabService.getModelEmbedUrl(id, {
-          autostart: options.autostart ?? true,
-          ui_controls: options.ui_controls ?? true,
-          ui_infos: options.ui_infos ?? true,
-          ui_inspector: options.ui_inspector ?? true,
-          ui_watermark: false,
-          ...options
+        // Direct Sketchfab embed URL construction
+        const params = new URLSearchParams({
+          autostart: (options.autostart ?? true) ? '1' : '0',
+          ui_controls: (options.ui_controls ?? true) ? '1' : '0',
+          ui_infos: (options.ui_infos ?? true) ? '1' : '0',
+          ui_inspector: (options.ui_inspector ?? true) ? '1' : '0',
+          ui_stop: '1',
+          ui_watermark: '0',
+          preload: '1'
         });
+        embedUrl = `https://sketchfab.com/models/${id}/embed?${params}`;
+      } else if (source === 'educational-db') {
+        // For our educational models, create a custom viewer
+        embedUrl = `/educational-viewer/${id}`;
       } else if (source === 'google-poly') {
         embedUrl = `https://poly.google.com/view/${id}/embed`;
       } else {
