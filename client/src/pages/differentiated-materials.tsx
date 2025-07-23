@@ -78,6 +78,12 @@ export default function DifferentiatedMaterials() {
       return response.json();
     },
     onSuccess: (data) => {
+      console.log('🎯 Generated materials response:', data);
+      console.log('🎯 PDF data:', data.pdf);
+      console.log('🎯 Download URLs:', {
+        questions: data.pdf?.questionsDownloadUrl,  
+        answers: data.pdf?.answersDownloadUrl
+      });
       setGeneratedMaterials(data);
       setGenerationProgress(100);
       toast({
@@ -119,6 +125,49 @@ export default function DifferentiatedMaterials() {
           variant: "destructive",
         });
       }
+    }
+  };
+
+  const handleDownload = async (downloadUrl: string, filename: string) => {
+    try {
+      console.log('🎯 Attempting download:', downloadUrl);
+      
+      // Method 1: Try direct window.open
+      window.open(downloadUrl, '_blank');
+      
+      // Method 2: Fallback fetch approach
+      setTimeout(async () => {
+        try {
+          const response = await fetch(downloadUrl);
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            console.log('✅ Download successful via fetch method');
+          }
+        } catch (fetchError) {
+          console.error('❌ Fetch download failed:', fetchError);
+          toast({
+            title: "Download Failed",
+            description: "Unable to download file. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }, 1000);
+      
+    } catch (error) {
+      console.error('❌ Download error:', error);
+      toast({
+        title: "Download Failed", 
+        description: "Unable to download file. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -441,14 +490,15 @@ export default function DifferentiatedMaterials() {
                             </div>
                           </div>
                           <Button 
-                            asChild 
+                            onClick={() => handleDownload(
+                              generatedMaterials.pdf.questionsDownloadUrl, 
+                              generatedMaterials.pdf.questionsFile || 'questions.pdf'
+                            )}
                             size="lg"
                             className="bg-blue-600 hover:bg-blue-700 text-white"
                           >
-                            <a href={generatedMaterials.pdf.questionsDownloadUrl} download>
-                              <Download className="w-5 h-5 mr-2" />
-                              Download
-                            </a>
+                            <Download className="w-5 h-5 mr-2" />
+                            Download
                           </Button>
                         </div>
                       </div>
@@ -468,14 +518,15 @@ export default function DifferentiatedMaterials() {
                             </div>
                           </div>
                           <Button 
-                            asChild 
+                            onClick={() => handleDownload(
+                              generatedMaterials.pdf.answersDownloadUrl,
+                              generatedMaterials.pdf.answersFile || 'answers.pdf'
+                            )}
                             size="lg"
                             className="bg-emerald-600 hover:bg-emerald-700 text-white"
                           >
-                            <a href={generatedMaterials.pdf.answersDownloadUrl} download>
-                              <Download className="w-5 h-5 mr-2" />
-                              Download
-                            </a>
+                            <Download className="w-5 h-5 mr-2" />
+                            Download
                           </Button>
                         </div>
                       </div>
