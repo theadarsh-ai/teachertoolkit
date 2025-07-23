@@ -963,7 +963,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Lesson Planner Agent - Generate Weekly Plans
   app.post('/api/agents/lesson-planner/generate-weekly-plan', async (req: Request, res: Response) => {
     try {
-      const { subject, grade, curriculum, weekNumber, focusAreas, lessonDuration, classSize } = req.body;
+      const { subject, grade, curriculum, weekNumber, focusAreas, lessonDuration, classSize, selectedLessons } = req.body;
       
       if (!subject) {
         return res.status(400).json({ success: false, error: 'Subject is required' });

@@ -358,4 +358,26 @@ This lesson from ${lesson.textbook} introduces students to ${lesson.title}. The 
     `.trim();
   }
 
+  async getTextbooksByClass(classNum: number): Promise<NCERTBookInfo[]> {
+    try {
+      console.log(`📚 Fetching textbooks for Class ${classNum}`);
+      
+      const subjects = this.SUBJECT_MAPPINGS[classNum as keyof typeof this.SUBJECT_MAPPINGS] || [];
+      const textbooks: NCERTBookInfo[] = [];
+
+      for (const subject of subjects) {
+        const bookInfo = await this.getBookInfo(classNum, subject, 'English');
+        if (bookInfo) {
+          textbooks.push(bookInfo);
+        }
+      }
+
+      console.log(`✅ Found ${textbooks.length} textbooks for Class ${classNum}`);
+      return textbooks;
+    } catch (error) {
+      console.error('Error fetching textbooks by class:', error);
+      return [];
+    }
+  }
+
 }
