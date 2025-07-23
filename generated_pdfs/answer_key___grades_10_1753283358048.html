@@ -1,0 +1,404 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Answer Key - Grades 10</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          padding: 20px;
+        }
+        
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 15px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+          overflow: hidden;
+        }
+        
+        .header {
+          background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+        }
+        
+        .header h1 {
+          font-size: 2.5rem;
+          margin-bottom: 10px;
+          font-weight: 700;
+        }
+        
+        .header .subtitle {
+          font-size: 1.1rem;
+          opacity: 0.9;
+          margin-bottom: 20px;
+        }
+        
+        .metadata {
+          background: rgba(255,255,255,0.1);
+          padding: 15px;
+          border-radius: 10px;
+          margin-top: 20px;
+        }
+        
+        .metadata-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 15px;
+          text-align: center;
+        }
+        
+        .metadata-item {
+          background: rgba(255,255,255,0.1);
+          padding: 10px;
+          border-radius: 8px;
+        }
+        
+        .metadata-label {
+          font-size: 0.9rem;
+          opacity: 0.8;
+          margin-bottom: 5px;
+        }
+        
+        .metadata-value {
+          font-weight: 600;
+          font-size: 1rem;
+        }
+        
+        .content-section {
+          padding: 40px;
+        }
+        
+        .content-body {
+          font-size: 1.1rem;
+          line-height: 1.8;
+          color: #444;
+        }
+        
+        .content-body h2 {
+          color: #4f46e5;
+          margin: 30px 0 15px 0;
+          font-size: 1.8rem;
+          border-bottom: 3px solid #e5e7eb;
+          padding-bottom: 10px;
+        }
+        
+        .content-body h3 {
+          color: #6366f1;
+          margin: 25px 0 12px 0;
+          font-size: 1.4rem;
+        }
+        
+        .content-body h4 {
+          color: #7c3aed;
+          margin: 20px 0 10px 0;
+          font-size: 1.2rem;
+        }
+        
+        .content-body p {
+          margin-bottom: 15px;
+          text-align: justify;
+        }
+        
+        .content-body ul, .content-body ol {
+          margin: 15px 0;
+          padding-left: 25px;
+        }
+        
+        .content-body li {
+          margin-bottom: 8px;
+        }
+        
+        .content-body blockquote {
+          background: #f8fafc;
+          border-left: 4px solid #4f46e5;
+          padding: 15px 20px;
+          margin: 20px 0;
+          font-style: italic;
+          color: #666;
+        }
+        
+        .content-body table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 20px 0;
+          background: white;
+        }
+        
+        .content-body th, .content-body td {
+          padding: 12px;
+          text-align: left;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .content-body th {
+          background: #f8fafc;
+          font-weight: 600;
+          color: #4f46e5;
+        }
+        
+        .highlight-box {
+          background: linear-gradient(135deg, #fef3c7, #fed7aa);
+          border: 2px solid #f59e0b;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        
+        .highlight-box .icon {
+          font-size: 2rem;
+          margin-bottom: 10px;
+          display: block;
+        }
+        
+        .activity-box {
+          background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+          border: 2px solid #22c55e;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        
+        .cultural-reference {
+          background: linear-gradient(135deg, #fce7f3, #f3e8ff);
+          border: 2px solid #a855f7;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        
+        .footer {
+          background: #f8fafc;
+          padding: 30px;
+          text-align: center;
+          border-top: 2px solid #e5e7eb;
+        }
+        
+        .footer .brand {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #4f46e5;
+          margin-bottom: 10px;
+        }
+        
+        .footer .tagline {
+          color: #666;
+          font-style: italic;
+        }
+        
+        .footer .generation-info {
+          margin-top: 20px;
+          font-size: 0.9rem;
+          color: #888;
+        }
+        
+        .page-break {
+          page-break-before: always;
+        }
+        
+        @media print {
+          body {
+            background: white;
+            padding: 0;
+          }
+          
+          .container {
+            box-shadow: none;
+            border-radius: 0;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Answer Key - Grades 10</h1>
+          <div class="subtitle">AI-Generated Educational Content for Multi-Grade Classrooms</div>
+          
+          <div class="metadata">
+            <div class="metadata-grid">
+              <div class="metadata-item">
+                <div class="metadata-label">Target Grades</div>
+                <div class="metadata-value">10</div>
+              </div>
+              <div class="metadata-item">
+                <div class="metadata-label">Languages</div>
+                <div class="metadata-value">English</div>
+              </div>
+              
+              <div class="metadata-item">
+                <div class="metadata-label">Generated By</div>
+                <div class="metadata-value">Differentiated Materials - Answers</div>
+              </div>
+              <div class="metadata-item">
+                <div class="metadata-label">Generated On</div>
+                <div class="metadata-value">23/7/2025</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="content-section">
+          <div class="content-body">
+            <div class="answer-header">
+      <h1>🔑 Answer Key</h1>
+      <div class="answer-info">
+        <p><strong>Grade Levels:</strong> 10</p>
+        <p><strong>Total Questions:</strong> 25</p>
+      </div>
+    </div><div class="answer-block">
+        <h3>Answer 1</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> B</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>Figure 5.21 (c) shows the five petals of the pea flower separated to display the unique papilionaceous corolla, which consists of a posterior standard, two lateral wings, and two anterior petals forming a keel.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 2</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> C</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>Zygomorphic symmetry, also known as bilateral symmetry, means the flower can be divided into two equal halves along only one specific vertical plane, like the pea flower.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 3</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> A</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>This butterfly-shaped arrangement of petals is a defining characteristic of the sub-family Papilionoideae (within Fabaceae) and is called a papilionaceous corolla.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 4</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> B</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The term 'diadelphous' (di- meaning two, -adelphous meaning brotherhood) describes the condition where stamens are fused into two groups or bundles. In pea, it's 9 fused stamens and 1 free stamen.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 5</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> A</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>In the floral formula, A(9)+1 represents the diadelphous condition of the androecium. The (9) indicates nine stamens are fused into one bundle, and the +1 indicates a single, separate stamen.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 6</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> A</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>'Monocarpellary' (mono- meaning one, -carpellary referring to carpel) indicates that the gynoecium, or the female reproductive part, is formed from a single carpel.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 7</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> C</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The text lists several pulses belonging to the Fabaceae family, including gram, sem, moong, and arhar. Arhar, or tur dal, is a staple pulse in Indian cuisine.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 8</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> D</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The text lists 'groundnut' and 'soyabean' as sources of edible oil from the Fabaceae family. Groundnut oil (Moongphali tel) is widely used in Indian cooking.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 9</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> B</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The text identifies 'muliathi', a plant used in medicine (often for throat ailments in Ayurveda), with its botanical name 'Glycyrrhiza'.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 10</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> B</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>In a floral formula, 'K' stands for Calyx (sepals). The number '5' indicates there are five sepals, and the parentheses '(5)' signify that they are fused (gamosepalous).</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 11</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> C</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>A line drawn below the 'G' (Gynoecium) in a floral formula indicates that the ovary is in a superior position relative to the other floral parts.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 12</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> D</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The characteristic fruit of the Fabaceae family is a legume, commonly known as a pod, which typically dehisces (splits open) along two seams to release seeds.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 13</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> B</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The text clearly states that the family Solanaceae is 'commonly called the potato family'. It also includes plants like tomatoes, chillies, and brinjal.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 14</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> C</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The keel is formed by the two anterior-most petals, which are fused. Their primary role is to enclose the essential reproductive organs (stamens and pistil), protecting them.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 15</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> B</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The text explicitly states that the seeds of Fabaceae are 'non-endospermic'. This means the food reserves are stored in the cotyledons, not in a separate endosperm tissue.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 16</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> C</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>These features—fused sepals (K(5)), papilionaceous corolla (C1+2+(2)), and diadelphous stamens (A(9)+1)—are the defining floral characteristics of the family Fabaceae described on the page.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 17</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> C</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The term 'pentamerous' (penta- meaning five) means that the floral whorls (like sepals, petals, stamens) are present in sets or multiples of five.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 18</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> A</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>Indigofera is the genus of plants from which the natural blue dye, indigo, is produced. It was a major cash crop in India during the colonial period.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 19</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> B</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>Under 'Floral characters', the first point mentioned for the Fabaceae family is that the inflorescence is of the 'racemose' type, where the main axis continues to grow and flowers are borne laterally.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 20</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> D</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The text describes the corolla as having 'vexillary aestivation'. This specific type of imbricate aestivation is characteristic of a papilionaceous corolla, where the large posterior petal (standard) overlaps the two lateral petals (wings), which in turn overlap the two anterior petals (keel).</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 21</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> B</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The floral diagram is a cross-section view. The very center represents the ovary. In diagram (f), the center shows a single carpel forming a single chamber (locule) with ovules inside, indicating a monocarpellary and unilocular condition.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 22</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> D</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The handwritten notes list several monocots, including 'Rice'. Gram, soyabean, and groundnut are all dicots belonging to the Fabaceae family.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 23</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> C</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The prefix 'gamo-' means fused. Therefore, 'gamosepalous' refers to a calyx where the sepals are united or fused together, as indicated by the parentheses in K(5).</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 24</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> B</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>Members of the Fabaceae family are collectively known as legumes. Their seeds, called pulses (like dal), are renowned for their high protein content, making them a crucial food source, especially in vegetarian diets.</p>
+        </div></div><div class="answer-block">
+        <h3>Answer 25</h3>
+        <p class="correct-answer"><strong>Correct Answer:</strong> B</p><div class="explanation">
+          <h4>Explanation:</h4>
+          <p>The text states the pea flower (Fabaceae) is 'zygomorphic' (bilaterally symmetrical). The handwritten note mentions Solanaceae is 'pentamerous', and pentamerous flowers are typically 'actinomorphic' (radially symmetrical).</p>
+        </div></div>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <div class="brand">EduAI Platform</div>
+          <div class="tagline">Empowering Teachers in Multi-Grade Classrooms with AI</div>
+          <div class="generation-info">
+            Document generated on 23/7/2025, 3:09:18 pm 
+            • NCERT Curriculum Aligned • Culturally Relevant Content
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+    
