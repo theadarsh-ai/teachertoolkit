@@ -108,9 +108,7 @@ export default function LessonPlanner() {
     selectedLessons: []
   });
   const [selectedPlan, setSelectedPlan] = useState<WeeklyPlan | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [focusAreaInput, setFocusAreaInput] = useState('');
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [availableLessons, setAvailableLessons] = useState<NCERTLesson[]>([]);
   const [isLoadingLessons, setIsLoadingLessons] = useState(false);
   
@@ -196,7 +194,6 @@ export default function LessonPlanner() {
         link.click();
         document.body.removeChild(link);
       }
-      setIsGeneratingPDF(false);
     },
     onError: (error) => {
       toast({
@@ -204,13 +201,11 @@ export default function LessonPlanner() {
         description: error instanceof Error ? error.message : "Failed to generate PDF",
         variant: "destructive",
       });
-      setIsGeneratingPDF(false);
     }
   });
 
   const handleDownloadPDF = () => {
     if (selectedPlan) {
-      setIsGeneratingPDF(true);
       generatePDFMutation.mutate(selectedPlan);
     }
   };
@@ -285,9 +280,8 @@ export default function LessonPlanner() {
       return;
     }
 
-    setIsGenerating(true);
+    // Use the mutation's loading state instead of manual state
     generatePlanMutation.mutate(planConfig);
-    setIsGenerating(false);
   };
 
   const addFocusArea = () => {
@@ -508,10 +502,10 @@ export default function LessonPlanner() {
 
                   <Button 
                     onClick={handleGeneratePlan}
-                    disabled={isGenerating || !planConfig.subject}
-                    className="w-full bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white font-semibold py-3 rounded-xl shadow-lg"
+                    disabled={generatePlanMutation.isPending || !planConfig.subject}
+                    className="w-full bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white font-semibold py-3 rounded-xl shadow-lg disabled:opacity-50"
                   >
-                    {isGenerating ? (
+                    {generatePlanMutation.isPending ? (
                       <div className="flex items-center space-x-2">
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         <span>Generating Plan...</span>
@@ -610,12 +604,21 @@ export default function LessonPlanner() {
                       <div className="flex space-x-2">
                         <Button 
                           size="sm" 
-                          className="flex-1"
+                          className="flex-1 disabled:opacity-50"
                           onClick={handleDownloadPDF}
-                          disabled={isGeneratingPDF}
+                          disabled={generatePDFMutation.isPending}
                         >
-                          <Download className="w-4 h-4 mr-2" />
-                          {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
+                          {generatePDFMutation.isPending ? (
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                              <span>Generating PDF...</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center space-x-2">
+                              <Download className="w-4 h-4" />
+                              <span>Download PDF</span>
+                            </div>
+                          )}
                         </Button>
                         <Button size="sm" variant="outline" className="flex-1">
                           <Share2 className="w-4 h-4 mr-2" />
