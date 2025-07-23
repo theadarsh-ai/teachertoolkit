@@ -30,12 +30,12 @@ interface Model3D {
   name: string;
   description: string;
   thumbnail: string;
-  source: 'google-poly' | 'sketchfab';
+  source: 'google-poly' | 'sketchfab' | 'educational-db' | 'sketchfab-authentic';
   url: string;
   embedUrl: string;
   tags: string[];
   author: string;
-  license: string;
+  license: string | { label: string };
 }
 
 const ArIntegration = () => {
@@ -103,11 +103,25 @@ const ArIntegration = () => {
         // Force clear existing models first
         setModels([]);
         
+        // Transform backend models to frontend interface
+        const transformedModels = (data.models || []).map((model: any) => ({
+          id: model.uid || model.id,
+          name: model.name,
+          description: model.description,
+          thumbnail: model.thumbnails?.images?.[0]?.url || '/api/placeholder/80/60',
+          source: model.source || 'sketchfab',
+          url: model.viewerUrl || model.url,
+          embedUrl: model.embedUrl,
+          tags: model.tags?.map((tag: any) => typeof tag === 'string' ? tag : tag.name) || [],
+          author: model.user?.displayName || model.author || 'Unknown',
+          license: model.license
+        }));
+        
         // Then set new models after a tiny delay to force re-render
         setTimeout(() => {
-          setModels(data.models || []);
-          setFilteredModels(data.models || []);
-          console.log('📥 Models set in state:', data.models?.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
+          setModels(transformedModels);
+          setFilteredModels(transformedModels);
+          console.log('📥 Models set in state:', transformedModels.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
         }, 10);
         
         toast({
@@ -535,7 +549,7 @@ const ArIntegration = () => {
                       </div>
                       <div className="flex gap-2">
                         <Badge variant="outline">{selectedModel.source}</Badge>
-                        <Badge variant="outline">{selectedModel.license}</Badge>
+                        <Badge variant="outline">{typeof selectedModel.license === 'object' ? selectedModel.license.label : selectedModel.license}</Badge>
                       </div>
                     </div>
                     
