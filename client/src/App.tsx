@@ -8,8 +8,10 @@ import Dashboard from "@/pages/dashboard";
 import NCERTManagement from "@/pages/ncert-management";
 import ContentGenerator from "@/pages/content-generator";
 import DifferentiatedMaterials from "@/pages/differentiated-materials";
+import LessonPlanner from "@/pages/lesson-planner";
 import VisualAids from "@/pages/visual-aids";
 import ArIntegration from "@/pages/ar-integration";
+import GamifiedTeaching from "@/pages/gamified-teaching";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,8 +22,10 @@ function Router() {
       <Route path="/ncert" component={NCERTManagement} />
       <Route path="/content-generator" component={ContentGenerator} />
       <Route path="/differentiated-materials" component={DifferentiatedMaterials} />
+      <Route path="/lesson-planner" component={LessonPlanner} />
       <Route path="/visual-aids" component={VisualAids} />
       <Route path="/ar-integration" component={ArIntegration} />
+      <Route path="/gamified-teaching" component={GamifiedTeaching} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Image, Wand2, Download, RefreshCw } from "lucide-react";
+import { Loader2, Image, Wand2, Download, RefreshCw, ArrowLeft, Lightbulb } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 
 interface GeneratedImage {
   url: string;
@@ -126,20 +127,63 @@ export default function VisualAids() {
     }
   };
 
-  const suggestedPrompts = [
-    "Solar system diagram with clearly labeled planets, orbits, and distances",
-    "Human heart anatomy with bold labels for all chambers and vessels",
-    "Water cycle process with large text labels for evaporation, condensation, precipitation",
-    "Plant cell structure with clearly marked organelles and their functions",
-    "Food chain diagram showing energy flow with readable species names",
-    "Mathematical geometric shapes with angle measurements and property labels",
-    "Chemical bond types with clear molecular diagrams and bond labels",
-    "India political map with state names in large, readable fonts"
+  const suggestionCategories = [
+    {
+      name: "Science & Biology",
+      icon: "🔬",
+      color: "bg-green-50 border-green-200 hover:bg-green-100",
+      prompts: [
+        "Human heart anatomy with bold labels for all chambers and vessels",
+        "Plant cell structure with clearly marked organelles and their functions", 
+        "Water cycle process with large text labels for evaporation, condensation, precipitation",
+        "Food chain diagram showing energy flow with readable species names"
+      ]
+    },
+    {
+      name: "Mathematics",
+      icon: "📐",
+      color: "bg-blue-50 border-blue-200 hover:bg-blue-100",
+      prompts: [
+        "Mathematical geometric shapes with angle measurements and property labels",
+        "Fraction visualization with clear pie charts and number lines",
+        "Coordinate geometry graph with labeled axes and points"
+      ]
+    },
+    {
+      name: "Geography & Social Studies",
+      icon: "🌍",
+      color: "bg-orange-50 border-orange-200 hover:bg-orange-100", 
+      prompts: [
+        "India political map with state names in large, readable fonts",
+        "Solar system diagram with clearly labeled planets, orbits, and distances",
+        "World continents map with country names and capitals"
+      ]
+    },
+    {
+      name: "Chemistry & Physics",
+      icon: "⚗️",
+      color: "bg-purple-50 border-purple-200 hover:bg-purple-100",
+      prompts: [
+        "Chemical bond types with clear molecular diagrams and bond labels",
+        "Periodic table section with element symbols and atomic numbers",
+        "Simple machines diagram with force arrows and labels"
+      ]
+    }
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Link href="/dashboard">
+            <Button variant="ghost" className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
@@ -199,22 +243,56 @@ export default function VisualAids() {
                 </form>
 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">
-                    Suggested Ideas:
-                  </h3>
-                  <div className="grid grid-cols-1 gap-2">
-                    {suggestedPrompts.map((suggestion, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        size="sm"
-                        className="justify-start text-left h-auto py-2 px-3"
-                        onClick={() => setPrompt(suggestion)}
-                        disabled={isGenerating}
-                      >
-                        {suggestion}
-                      </Button>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Lightbulb className="w-4 h-4 text-amber-500" />
+                    <h3 className="text-sm font-semibold text-gray-800">
+                      Suggested Ideas:
+                    </h3>
+                  </div>
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {suggestionCategories.map((category, categoryIndex) => (
+                      <div key={categoryIndex} className="space-y-2">
+                        <div className="flex items-center gap-2 px-1">
+                          <span className="text-sm">{category.icon}</span>
+                          <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                            {category.name}
+                          </h4>
+                        </div>
+                        <div className="space-y-1">
+                          {category.prompts.map((suggestion, index) => (
+                            <div 
+                              key={`${categoryIndex}-${index}`}
+                              className={`group cursor-pointer rounded-lg border transition-all duration-200 ${category.color}`}
+                              onClick={() => {
+                                setPrompt(suggestion);
+                                toast({
+                                  title: "Suggestion Selected",
+                                  description: "Click Generate Image to create this visual aid",
+                                });
+                              }}
+                            >
+                              <div className="p-2.5">
+                                <div className="flex items-start gap-2">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 flex-shrink-0 group-hover:bg-gray-600 transition-colors"></div>
+                                  <p className="text-xs text-gray-700 group-hover:text-gray-900 leading-relaxed font-medium">
+                                    {suggestion}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     ))}
+                  </div>
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-start gap-2">
+                      <div className="w-4 h-4 text-blue-500 mt-0.5">💡</div>
+                      <p className="text-xs text-blue-700 leading-relaxed">
+                        <strong>Pro Tip:</strong> Be specific about labels and text size for educational diagrams. 
+                        Include "with clear labels" or "with large text" in your description.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
