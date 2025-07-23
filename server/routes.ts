@@ -959,6 +959,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Lesson Planner Agent - Generate Weekly Plans
+  app.post('/api/agents/lesson-planner/generate-weekly-plan', async (req: Request, res: Response) => {
+    try {
+      const { subject, grade, curriculum, weekNumber, focusAreas, lessonDuration, classSize } = req.body;
+      
+      if (!subject) {
+        return res.status(400).json({ success: false, error: 'Subject is required' });
+      }
+
+      console.log(`📚 Generating weekly lesson plan for Grade ${grade}: "${subject}"`);
+      
+      const prompt = `Generate a comprehensive weekly lesson plan for:
+      
+Subject: ${subject}
+Grade Level: ${grade}
+Curriculum: ${curriculum}
+Week Number: ${weekNumber}
+Focus Areas: ${focusAreas.join(', ')}
+Lesson Duration: ${lessonDuration} minutes
+Class Size: ${classSize} students
+
+Create a detailed lesson plan that includes:
+1. Clear learning objectives aligned with grade level
+2. Daily lesson breakdown (Monday to Friday)
+3. Interactive activities and teaching methods
+4. Assessment strategies
+5. Required materials and resources
+6. Homework assignments
+7. Cultural context and local examples where appropriate
+
+Format the response as a JSON object with this structure:
+{
+  "title": "Week ${weekNumber}: ${subject} - [Main Topic]",
+  "subject": "${subject}",
+  "grade": ${grade},
+  "weekNumber": ${weekNumber},
+  "curriculum": "${curriculum}",
+  "objectives": ["objective1", "objective2", "objective3"],
+  "dailyLessons": [
+    {
+      "day": "Monday",
+      "topic": "Topic name",
+      "duration": ${lessonDuration},
+      "activities": ["activity1", "activity2"],
+      "materials": ["material1", "material2"],
+      "objectives": ["daily objective1"],
+      "homework": "Homework description",
+      "notes": "Additional notes"
+    }
+  ],
+  "assessments": [
+    {
+      "type": "quiz",
+      "title": "Assessment title",
+      "description": "Assessment description",
+      "dueDate": "2025-01-30",
+      "points": 100
+    }
+  ],
+  "resources": ["resource1", "resource2"],
+  "status": "draft"
+}
+
+Make the content culturally relevant to Indian education system and include local examples where appropriate.`;
+
+      const response = await geminiEduService.generateLocalizedContent({
+        prompt,
+        agentType: 'lesson-planner',
+        grades: [grade],
+        languages: ['English'],
+        contentSource: 'external'
+      });
+      
+      if (!response || !response.content) {
+        throw new Error('Failed to generate lesson plan content');
+      }
+
+      // Clean and parse the response
+      let cleanContent = response.content.trim();
+      
+      // Remove markdown code blocks if present
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.replace(/```json\n?/, '').replace(/\n?```$/, '');
+      } else if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/```\n?/, '').replace(/\n?```$/, '');
+      }
+      
+      // Remove any leading/trailing whitespace
+      cleanContent = cleanContent.trim();
+      
+      let planData;
+      try {
+        planData = JSON.parse(cleanContent);
+      } catch (parseError) {
+        console.error('JSON parsing failed:', parseError);
+        console.error('Raw content:', cleanContent);
+        throw new Error('Invalid JSON format in AI response');
+      }
+      
+      // Add unique ID and timestamps
+      const plan = {
+        id: Date.now().toString(),
+        ...planData,
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        createdAt: new Date().toISOString(),
+        status: 'draft'
+      };
+
+      console.log(`✅ Generated lesson plan: "${plan.title}" with ${plan.dailyLessons?.length || 0} daily lessons`);
+      
+      res.json({ success: true, plan });
+    } catch (error) {
+      console.error('Error generating lesson plan:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to generate lesson plan',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Lesson Planner Agent - Get All Plans
+  app.get('/api/agents/lesson-planner/plans', async (req: Request, res: Response) => {
+    try {
+      // In a real app, this would fetch from database  
+      // For now, return empty array since we don't have persistence
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching lesson plans:', error);
+      res.status(500).json({ success: false, error: 'Failed to fetch lesson plans' });
+    }
+  });
+
   // Gamified Teaching - Game Generation
   app.post("/api/agents/gamified-teaching/generate-game", async (req, res) => {
     try {
