@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { spawn } from "child_process";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import { storage } from "./storage";
 import { geminiEduService } from "./gemini";
 import { pdfGenerator } from "./pdf-generator";
@@ -1395,22 +1396,52 @@ li {
       const { filename } = req.params;
       const filePath = path.join(process.cwd(), 'generated_pdfs', filename);
       
+      console.log(`📥 Attempting to download PDF: ${filename}`);
+      console.log(`📁 File path: ${filePath}`);
+      
       // Check if file exists
-      if (!require('fs').existsSync(filePath)) {
-        return res.status(404).json({ error: 'PDF file not found' });
+      if (!fs.existsSync(filePath)) {
+        console.log(`❌ PDF file not found: ${filePath}`);
+        return res.status(404).json({ 
+          error: 'PDF file not found',
+          filename: filename,
+          path: filePath
+        });
       }
+
+      // Get file stats
+      const stats = fs.statSync(filePath);
+      console.log(`✅ PDF file found, size: ${stats.size} bytes`);
 
       // Set headers for PDF download
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', stats.size.toString());
       
       // Stream the file
-      const fileStream = require('fs').createReadStream(filePath);
+      const fileStream = fs.createReadStream(filePath);
+      
+      fileStream.on('error', (streamError) => {
+        console.error('Error streaming PDF file:', streamError);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Error streaming PDF file' });
+        }
+      });
+
+      fileStream.on('end', () => {
+        console.log(`✅ PDF download completed: ${filename}`);
+      });
+
       fileStream.pipe(res);
       
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      res.status(500).json({ error: 'Failed to download PDF file' });
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          error: 'Failed to download PDF file',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
     }
   });
 

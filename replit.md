@@ -10,6 +10,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+### January 23, 2025 - NCERT Lesson Selection System Implementation
+✓ **NCERT Lesson Database**: Comprehensive lesson database with authentic NCERT content for Classes 1, 6, 9, and 10
+✓ **Lesson Selection Interface**: Multi-select checkboxes for choosing specific NCERT lessons from official textbooks
+✓ **Backend API Integration**: Added `/api/ncert/lessons` endpoint for fetching lessons by subject and grade
+✓ **Enhanced Lesson Planning**: AI prompts now incorporate selected NCERT lessons into weekly lesson plans
+✓ **PDF Download Fix**: Resolved ES module import issues with proper fs module integration
+✓ **Textbook API**: Added `/api/ncert/textbooks/class/:classNum` endpoint for fetching textbooks by grade
+✓ **Error Handling**: Comprehensive error handling with detailed logging for debugging
+✓ **Real NCERT Content**: Authentic lesson titles and chapter references from official NCERT textbooks
+
 ### January 23, 2025 - Comprehensive Weekly Lesson Planner Implementation
 ✓ **AI Lesson Planner Agent**: Complete weekly lesson planning system with comprehensive curriculum support
 ✓ **Multi-Subject Support**: All subjects (Math, Science, English, Hindi, Social Science, etc.) with CBSE/ICSE/State Board compatibility
