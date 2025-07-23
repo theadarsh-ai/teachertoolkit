@@ -801,7 +801,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const googlePolyService = new GooglePolyService(process.env.GOOGLE_POLY_API_KEY || 'mock');
   const sketchfabService = new SketchfabService(process.env.SKETCHFAB_API_KEY || 'mock');
 
-  // AR Integration endpoints - Direct Node.js approach
+  // AR Integration endpoints - Direct Python approach (restored previous implementation)
   app.post("/api/agents/ar-integration/search", async (req, res) => {
     try {
       const { query, source = 'sketchfab', educational = true } = req.body;
@@ -813,64 +813,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`🔍 DIRECT: Searching 3D models for: "${query}"`);
+      console.log(`🔍 PYTHON DIRECT: Searching 3D models for: "${query}"`);
 
-      // Direct Sketchfab API call (simplified)
-      const apiKey = process.env.SKETCHFAB_API_KEY;
-      if (!apiKey) {
-        return res.status(500).json({
-          success: false,
-          error: "Sketchfab API key not configured"
-        });
-      }
+      // Use direct Python script for AR integration (previous implementation)
+      const pythonProcess = spawn('python3', [
+        'server/ar-integration-direct.py',
+        query
+      ]);
 
-      const params = new URLSearchParams({
-        q: query,
-        sort_by: 'relevance',
-        count: '20',
-        downloadable: 'true'
+      let stdout = '';
+      let stderr = '';
+
+      pythonProcess.stdout.on('data', (data) => {
+        stdout += data.toString();
       });
 
-      const apiResponse = await fetch(`https://api.sketchfab.com/v3/models?${params}`, {
-        headers: {
-          'Authorization': `Token ${apiKey}`,
-          'Content-Type': 'application/json'
+      pythonProcess.stderr.on('data', (data) => {
+        stderr += data.toString();
+        console.log('🐍 Python AR:', data.toString().trim());
+      });
+
+      pythonProcess.on('close', (code) => {
+        if (code === 0 && stdout.trim()) {
+          try {
+            const result = JSON.parse(stdout.trim());
+            console.log(`✅ PYTHON DIRECT: Found ${result.count} models`);
+            console.log(`📤 PYTHON DIRECT: Sample models:`, result.models?.slice(0, 2).map((m: any) => ({ name: m.name, author: m.author, id: m.id })));
+            res.json(result);
+          } catch (parseError) {
+            console.error('❌ Failed to parse Python AR output:', parseError);
+            res.status(500).json({
+              success: false,
+              error: "Failed to parse AR search results",
+              details: String(parseError)
+            });
+          }
+        } else {
+          console.error('❌ Python AR process failed:', stderr);
+          res.status(500).json({
+            success: false,
+            error: "AR search process failed",
+            details: stderr || `Process exited with code ${code}`
+          });
         }
       });
 
-      if (!apiResponse.ok) {
-        return res.status(500).json({
-          success: false,
-          error: `Sketchfab API error: ${apiResponse.status}`
-        });
-      }
-
-      const apiData = await apiResponse.json();
-      const rawModels = apiData.results || [];
-
-      const models = rawModels.map((model: any) => ({
-        id: model.uid,
-        name: model.name || 'Untitled Model',
-        description: model.description || 'Educational 3D model from Sketchfab',
-        thumbnail: model.thumbnails?.images?.[0]?.url || '',
-        source: 'sketchfab',
-        url: `https://sketchfab.com/3d-models/${model.uid}`,
-        embedUrl: `https://sketchfab.com/models/${model.uid}/embed?autostart=1&ui_controls=1&ui_infos=1&ui_inspector=1&ui_stop=1&ui_watermark=0&preload=1`,
-        tags: [],
-        author: model.user?.displayName || 'Unknown Artist',
-        license: model.license?.label || 'Standard License'
-      }));
-
-      console.log(`✅ DIRECT: Found ${models.length} models`);
-      console.log(`📤 DIRECT: Sample models:`, models.slice(0, 2).map(m => ({ name: m.name, author: m.author, id: m.id })));
-
-      res.json({
-        success: true,
-        query,
-        source: 'sketchfab-direct',
-        count: models.length,
-        models
-      });
+      // Handle timeout
+      setTimeout(() => {
+        if (!res.headersSent) {
+          pythonProcess.kill();
+          res.status(408).json({
+            success: false,
+            error: "AR search timeout",
+            details: "Python process took too long to respond"
+          });
+        }
+      }, 30000); // 30 second timeout
 
     } catch (error) {
       console.error('AR integration search error:', error);
