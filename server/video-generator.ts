@@ -62,13 +62,20 @@ export class VideoGeneratorService {
       // Call your working Python code directly
       const pythonResult = await this.callPythonVideoGeneration(request.prompt);
       
-      if (pythonResult.success && pythonResult.videoUrl) {
+      console.log(`🔍 Debug - Python result structure:`, {
+        success: pythonResult.success,
+        has_video_url: !!pythonResult.video_url,
+        video_url: pythonResult.video_url,
+        message: pythonResult.message
+      });
+      
+      if (pythonResult.success && pythonResult.video_url) {
         const video: GeneratedVideo = {
           id: videoId,
           title: `${request.subject} Educational Video - Grade ${request.grade}`,
-          description: `${enhancedPrompt}\n\n🎬 Generated using Google Veo 3.0 (Real Video)\n📹 Video URL: ${pythonResult.videoUrl}`,
-          videoUrl: pythonResult.videoUrl,
-          thumbnailUrl: pythonResult.videoUrl.replace('.mp4', '_thumb.jpg'),
+          description: `${enhancedPrompt}\n\n🎬 Generated using Google Veo 3.0 (Real Video)\n📹 Video URL: ${pythonResult.video_url}`,
+          videoUrl: pythonResult.video_url,
+          thumbnailUrl: pythonResult.video_url.replace('.mp4', '_thumb.jpg'),
           duration: request.duration,
           subject: request.subject,
           grade: request.grade,
@@ -79,6 +86,7 @@ export class VideoGeneratorService {
         console.log(`✅ REAL video generated: ${video.videoUrl}`);
         return video;
       } else {
+        console.log(`❌ Python generation failed:`, pythonResult);
         throw new Error(`Python generation failed: ${pythonResult.message}`);
       }
       
@@ -118,7 +126,7 @@ export class VideoGeneratorService {
     }
   }
 
-  private async callPythonVideoGeneration(prompt: string): Promise<{success: boolean, videoUrl: string, message: string}> {
+  private async callPythonVideoGeneration(prompt: string): Promise<{success: boolean, video_url: string, message: string}> {
     try {
       console.log(`🐍 Calling your working Python code for real video generation...`);
       
@@ -142,7 +150,7 @@ export class VideoGeneratorService {
       console.log(`❌ Python bridge failed:`, error);
       return {
         success: false,
-        videoUrl: '',
+        video_url: '',
         message: `Python bridge error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
