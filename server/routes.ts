@@ -647,144 +647,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { value: "urdu", label: "اردو (Urdu)" }
       ];
 
-      // Generate realistic word-level analysis
       console.log("Reading text received:", readingText);
       
-      // Handle empty reading text
+      // Validate reading text
       if (!readingText || readingText.trim().length === 0) {
         return res.status(400).json({ 
           error: "Reading text is required for analysis",
           message: "Please provide the text that was read aloud for assessment." 
         });
       }
-      
-      const sampleWords = readingText.trim().split(/\s+/).filter(word => word.length > 0);
-      const totalWords = sampleWords.length;
-      
-      if (totalWords === 0) {
-        return res.status(400).json({ 
-          error: "No words found in reading text",
-          message: "Please provide valid text content for analysis." 
-        });
-      }
-      
-      const correctWords = Math.floor(totalWords * (0.75 + Math.random() * 0.2)); // 75-95% accuracy
-      const mistakes = [];
-      const wordAnalysis = [];
-      
-      console.log(`Processing ${totalWords} words from text: "${readingText.substring(0, 100)}..."`);
-      
-      // Generate word-by-word analysis
-      sampleWords.forEach((word, index) => {
-        const isCorrect = Math.random() > 0.15; // 85% chance of being correct
-        const pronunciationScore = isCorrect ? (85 + Math.random() * 15) : (40 + Math.random() * 40);
-        
-        const wordInfo = {
-          word: word,
-          index: index + 1,
-          correct: isCorrect,
-          pronunciationScore: Math.round(pronunciationScore),
-          timingMs: (index * 400) + Math.random() * 200, // Simulated timing
-          issues: isCorrect ? [] : [
-            Math.random() > 0.5 ? 'pronunciation' : 'stress',
-            Math.random() > 0.7 ? 'clarity' : 'pace'
-          ].filter(Boolean)
-        };
-        
-        wordAnalysis.push(wordInfo);
-        
-        if (!isCorrect) {
-          const mistakeTypes = [
-            'Mispronunciation',
-            'Wrong stress pattern', 
-            'Unclear articulation',
-            'Incorrect vowel sound',
-            'Silent letter not handled',
-            'Blending error'
-          ];
-          
-          mistakes.push({
-            word: word,
-            position: index + 1,
-            type: mistakeTypes[Math.floor(Math.random() * mistakeTypes.length)],
-            severity: Math.random() > 0.6 ? 'high' : 'medium',
-            suggestion: `Practice saying "${word}" with emphasis on ${Math.random() > 0.5 ? 'first' : 'second'} syllable`,
-            correctPronunciation: language === 'hindi' ? `${word} (हिंदी उच्चारण)` : `/${word}/`
-          });
-        }
-      });
-
-      // Simulate comprehensive audio analysis
-      const mockAnalysis = {
-        overallScore: Math.floor((correctWords / totalWords) * 100),
-        wordAccuracy: {
-          totalWords: totalWords,
-          correctWords: correctWords,
-          incorrectWords: totalWords - correctWords,
-          accuracyPercentage: Math.round((correctWords / totalWords) * 100)
-        },
-        transcript: {
-          original: readingText,
-          detected: sampleWords.map(word => 
-            Math.random() > 0.15 ? word : `[${word}?]`
-          ).join(' '),
-          confidence: 85 + Math.random() * 10
-        },
-        wordAnalysis: wordAnalysis,
-        mistakes: mistakes,
-        pronunciation: {
-          score: Math.floor(Math.random() * 35) + 65,
-          feedback: `Pronunciation shows ${correctWords}/${totalWords} words correct. ${language === 'hindi' ? 'हिंदी उच्चारण' : 'English pronunciation'} needs attention in specific areas.`,
-          improvements: [
-            `Work on ${mistakes.length > 0 ? mistakes[0].word : 'consonant'} sounds`,
-            `Practice ${language === 'english' ? 'th-sounds and r-sounds' : 'aspirated consonants'}`,
-            "Focus on word stress patterns",
-            `Review ${mistakes.length} identified problem words`
-          ]
-        },
-        fluency: {
-          score: Math.floor(Math.random() * 25) + 75,
-          wpm: Math.floor(Math.random() * 50) + 80 + (grade * 5),
-          pace: Math.random() > 0.5 ? "Appropriate" : "Slightly fast",
-          feedback: `Reading pace is suitable for Grade ${grade}. Pauses are mostly appropriate with good expression.`
-        },
-        comprehension: assessmentType === 'reading' ? {
-          score: Math.floor(Math.random() * 40) + 60,
-          accuracy: Math.floor(Math.random() * 20) + 80,
-          feedback: "Understanding of the text is demonstrated through proper intonation and phrasing."
-        } : null,
-        detailedAnalysis: `
-This assessment was conducted in ${LANGUAGES.find(l => l.value === language)?.label || language} for Grade ${grade}.
-
-STRENGTHS:
-• Clear articulation in most words
-• Good reading rhythm and flow
-• Appropriate expression and intonation
-• Strong comprehension indicators
-
-AREAS FOR IMPROVEMENT:
-• Some pronunciation refinements needed
-• Consistency in reading pace
-• Confidence in challenging vocabulary
-
-LANGUAGE-SPECIFIC NOTES:
-${language === 'hindi' ? '• देवनागरी script reading shows good understanding\n• Conjunct consonants handled well\n• Matras (vowel marks) pronounced correctly' : 
-  language === 'tamil' ? '• Tamil script fluency is developing\n• Proper pronunciation of retroflex sounds\n• Good handling of agglutination patterns' :
-  '• English phonics understanding is solid\n• Vowel sounds are mostly accurate\n• Silent letters recognized appropriately'}
-        `,
-        recommendations: [
-          `Practice ${language === 'hindi' ? 'tongue twisters (जीभ ट्विस्टर)' : 'phonics exercises'} daily`,
-          "Read aloud for 15 minutes each day",
-          `Focus on ${language} literature appropriate for Grade ${grade}`,
-          "Record self-reading and compare with fluent speakers"
-        ],
-        nextSteps: [
-          "Continue regular reading practice",
-          "Work with a reading partner or tutor",
-          "Gradually increase text complexity",
-          "Monitor progress monthly"
-        ]
-      };
 
       // Use real AI analysis instead of mock data
       try {

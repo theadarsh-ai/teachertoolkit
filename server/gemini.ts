@@ -270,22 +270,19 @@ Ensure the plan is practical for Indian classroom contexts with limited resource
       // Read the audio file
       const audioBytes = fs.readFileSync(audioFilePath);
 
-      const analysisPrompt = `You are an expert speech therapist and reading assessment specialist. Analyze this audio recording of a student reading aloud.
+      const analysisPrompt = `You are an expert speech and audio analysis specialist. CRITICAL: You must analyze the ACTUAL AUDIO CONTENT, not provide simulated results.
 
-READING TEXT:
+STUDENT READ THIS TEXT:
 "${readingText}"
 
-STUDENT DETAILS:
-- Grade: ${grade}
-- Language: ${language}
-- Expected reading level: Grade ${grade} appropriate
+YOUR TASK:
+1. TRANSCRIBE exactly what the student said in the audio
+2. COMPARE the actual speech to the expected reading text word-by-word
+3. IDENTIFY every mispronounced, skipped, or incorrectly read word
+4. CALCULATE accurate percentages based on real performance
+5. PROVIDE authentic assessment based on actual audio analysis
 
-ANALYSIS REQUIREMENTS:
-1. Compare the audio against the provided reading text
-2. Identify specific words that were mispronounced or read incorrectly
-3. Provide word-by-word accuracy scoring
-4. Assess pronunciation, fluency, and comprehension
-5. Give specific, actionable improvement suggestions
+DO NOT use placeholder data. Analyze the real audio content.
 
 Please provide a detailed JSON response with this exact structure:
 {
