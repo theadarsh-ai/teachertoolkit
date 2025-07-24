@@ -2,7 +2,9 @@
   "functions": {
     "source": "functions",
     "runtime": "nodejs20",
-    "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"],
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run build"
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -19,7 +21,7 @@
     "rewrites": [
       {
         "source": "/api/**",
-        "function": "app"
+        "function": "api"
       },
       {
         "source": "**",
