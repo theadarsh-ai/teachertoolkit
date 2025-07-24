@@ -121,6 +121,7 @@ export default function Dashboard() {
       case 'Fun': return 'yellow';
       case 'Central Hub': return 'gray';
       case '3D': return 'emerald';
+      case 'New': return 'purple';
       default: return 'blue';
     }
   };

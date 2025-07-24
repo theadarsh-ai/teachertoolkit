@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { 
   Globe2, Layers, Calendar, Brain, Palette, Gamepad2, TrendingUp, 
-  Mic, Bot, Target, Box, LucideIcon
+  Mic, Bot, Target, Box, Video, Volume2, LucideIcon
 } from "lucide-react";
 
 interface GradientCardProps {
@@ -37,7 +37,9 @@ const iconMap: Record<string, LucideIcon> = {
   'Mic': Mic,
   'Bot': Bot,
   'Target': Target,
-  'Box': Box
+  'Box': Box,
+  'Video': Video,
+  'Volume2': Volume2
 };
 
 interface GradientIconProps {
@@ -58,7 +60,7 @@ export function GradientIcon({ icon, gradient, className }: GradientIconProps) {
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'blue' | 'green' | 'yellow' | 'gray' | 'emerald';
+  variant?: 'blue' | 'green' | 'yellow' | 'gray' | 'emerald' | 'purple';
 }
 
 export function Badge({ children, variant = 'blue' }: BadgeProps) {
@@ -67,7 +69,8 @@ export function Badge({ children, variant = 'blue' }: BadgeProps) {
     green: 'bg-green-100 text-green-800',
     yellow: 'bg-yellow-100 text-yellow-800',
     gray: 'bg-gray-100 text-gray-800',
-    emerald: 'bg-emerald-100 text-emerald-800'
+    emerald: 'bg-emerald-100 text-emerald-800',
+    purple: 'bg-purple-100 text-purple-800'
   };
 
   return (
