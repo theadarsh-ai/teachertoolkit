@@ -5,7 +5,7 @@ import { GradientCard, GradientIcon, Badge } from "@/components/ui/gradient-card
 import { AgentConfigModal } from "@/components/agent-config-modal";
 import { AgentWorkspace } from "@/components/agent-workspace";
 import { MasterChatbot } from "@/components/master-chatbot";
-import { Bell, Users, Book, TrendingUp, Clock, BookOpen } from "lucide-react";
+import { Bell, Users, Book, TrendingUp, Clock, BookOpen, GraduationCap } from "lucide-react";
 import { Link } from "wouter";
 import { AGENTS, type Agent } from "@/types/agents";
 import { auth, signOutUser } from "@/lib/firebase";
@@ -137,11 +137,9 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <img 
-                src="/attached_assets/image_1753350466135.png" 
-                alt="Sahayak Platform Logo" 
-                className="w-10 h-10 rounded-lg object-contain"
-              />
+              <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-pink-400 rounded-xl flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-white" />
+              </div>
               <h1 className="ml-3 text-xl font-bold text-gray-900">Sahayak Platform</h1>
             </div>
             
