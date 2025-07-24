@@ -471,6 +471,16 @@ export default function VideoGenerator() {
                               This is an actual video file generated using Google's Veo 3.0 model. The video URL below contains a playable MP4 file.
                             </p>
                           </div>
+                        ) : currentVideo.description.includes('Python-pattern Veo 3.0 Implementation') ? (
+                          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                            <div className="flex items-center mb-2">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></div>
+                              <span className="text-sm font-medium text-emerald-800">Veo 3.0 Implementation Ready</span>
+                            </div>
+                            <p className="text-xs text-emerald-700">
+                              System configured with working Python pattern. Shows exact implementation for real video generation.
+                            </p>
+                          </div>
                         ) : currentVideo.description.includes('QUOTA ISSUE DETECTED') ? (
                           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                             <div className="flex items-center mb-2">
