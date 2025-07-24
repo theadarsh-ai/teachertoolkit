@@ -102,7 +102,7 @@ export default function AudioReadingAssessment() {
   // Form states
   const [selectedLanguage, setSelectedLanguage] = useState("english");
   const [selectedGrade, setSelectedGrade] = useState<number>(5);
-  const [readingText, setReadingText] = useState("");
+  const [readingText, setReadingText] = useState("The quick brown fox jumps over the lazy dog. This is a sample text for reading assessment.");
   const [assessmentType, setAssessmentType] = useState<"reading" | "speaking">("reading");
   
   // Recording states
@@ -279,12 +279,19 @@ export default function AudioReadingAssessment() {
       readingText: string;
       assessmentType: string;
     }) => {
+      console.log("Mutation function called with data:", data);
+      
       const formData = new FormData();
       formData.append('audio', data.audioFile, 'recording.webm');
       formData.append('language', data.language);
       formData.append('grade', data.grade.toString());
       formData.append('readingText', data.readingText);
       formData.append('assessmentType', data.assessmentType);
+      
+      console.log("FormData entries:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, typeof value === 'string' ? value : `[${value.constructor.name}] ${value.size || value.length || 'unknown size'}`);
+      }
 
       const response = await fetch('/api/agents/audio-reading-assessment/analyze', {
         method: 'POST',
@@ -320,6 +327,15 @@ export default function AudioReadingAssessment() {
   });
 
   const runAssessment = () => {
+    console.log("Starting assessment with data:", {
+      hasAudio: !!recording.audioBlob,
+      language: selectedLanguage,
+      grade: selectedGrade,
+      readingText: readingText,
+      assessmentType: assessmentType,
+      readingTextLength: readingText.length
+    });
+
     if (!recording.audioBlob) {
       toast({
         title: "No Audio Found",
@@ -356,8 +372,8 @@ export default function AudioReadingAssessment() {
     assessmentMutation.mutate({
       audioFile: recording.audioBlob,
       language: selectedLanguage,
-      grade: selectedGrade,
-      readingText: readingText,
+      grade: parseInt(selectedGrade),
+      readingText: readingText.trim(),
       assessmentType: assessmentType
     });
   };
@@ -497,7 +513,7 @@ export default function AudioReadingAssessment() {
                       className={readingText.trim().length === 0 ? "border-red-300" : ""}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      This text will be used to analyze pronunciation and accuracy word-by-word
+                      This text will be used to analyze pronunciation and accuracy word-by-word. {readingText.trim().split(/\s+/).length} words detected.
                     </p>
                   </div>
                 )}
