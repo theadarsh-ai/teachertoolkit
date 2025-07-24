@@ -372,43 +372,58 @@ export default function VideoGenerator() {
               </CardContent>
             </Card>
 
-            {/* Generated Video Preview */}
+            {/* Generated Educational Video Concept */}
             {currentVideo && (
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <Play className="w-5 h-5 text-green-600" />
-                      <span>Generated Video</span>
+                      <BookOpen className="w-5 h-5 text-blue-600" />
+                      <span>Educational Video Concept</span>
                     </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                       <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Ready
+                      Concept Ready
                     </Badge>
                   </CardTitle>
+                  <p className="text-sm text-gray-600 mt-1">
+                    AI-generated educational content plan and script
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="aspect-video bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-200">
-                      <div className="text-center p-6">
-                        <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Video className="w-10 h-10 text-white" />
+                    {/* Educational Video Concept Summary */}
+                    <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200 p-6">
+                      <div className="text-center mb-4">
+                        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <BookOpen className="w-8 h-8 text-white" />
                         </div>
-                        <h3 className="font-semibold text-gray-900 mb-2">{currentVideo.title}</h3>
-                        <p className="text-sm text-gray-600 mb-4 max-w-md">
-                          {currentVideo.description.length > 100 
-                            ? currentVideo.description.substring(0, 100) + "..." 
-                            : currentVideo.description}
-                        </p>
-                        <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
-                          <span className="flex items-center">
+                        <h3 className="font-bold text-xl text-gray-900 mb-2">{currentVideo.title}</h3>
+                        <div className="flex items-center justify-center space-x-4 text-sm text-gray-600 mb-4">
+                          <span className="flex items-center bg-white px-3 py-1 rounded-full">
                             <Clock className="w-4 h-4 mr-1" />
                             {currentVideo.duration}
                           </span>
-                          <span className="flex items-center">
+                          <span className="flex items-center bg-white px-3 py-1 rounded-full">
                             <Users className="w-4 h-4 mr-1" />
                             Grade {currentVideo.grade}
                           </span>
+                          <span className="flex items-center bg-white px-3 py-1 rounded-full">
+                            <BookOpen className="w-4 h-4 mr-1" />
+                            {currentVideo.subject}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white/80 rounded-lg p-4 border border-blue-200">
+                        <h4 className="font-semibold text-gray-800 mb-2">📖 Educational Content Preview:</h4>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {currentVideo.description.length > 200 
+                            ? currentVideo.description.substring(0, 200) + "..." 
+                            : currentVideo.description}
+                        </p>
+                        <div className="mt-3 text-xs text-blue-600 font-medium">
+                          📄 {Math.ceil(currentVideo.description.length / 100)} sections of detailed educational content generated
                         </div>
                       </div>
                     </div>
@@ -418,18 +433,27 @@ export default function VideoGenerator() {
                         <CheckCircle2 className="w-5 h-5" />
                         <span className="font-medium">Educational Video Concept Ready</span>
                       </div>
+                      <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-3">
+                        <div className="flex items-center space-x-2 text-blue-800 mb-2">
+                          <AlertCircle className="w-4 h-4" />
+                          <span className="font-medium text-sm">What This System Creates</span>
+                        </div>
+                        <p className="text-xs text-blue-700">
+                          This AI system generates detailed educational video concepts, scripts, and production plans using Vertex AI and Gemini. 
+                          These comprehensive blueprints can be used by video creators to produce actual educational videos.
+                        </p>
+                      </div>
                       <p className="text-sm text-green-700 mb-3">
-                        Your educational video concept has been created using Vertex AI and enhanced with Gemini. 
-                        This includes detailed planning, structure, and educational content framework.
+                        Your educational video concept includes detailed planning, structure, script, learning objectives, and production guidelines.
                       </p>
                       
                       {/* Expandable full description */}
-                      <details className="bg-white rounded p-3 border border-green-200">
-                        <summary className="cursor-pointer text-sm font-medium text-green-800 hover:text-green-900">
-                          View Full Video Concept & Script
+                      <details className="bg-white rounded p-4 border border-green-200 shadow-sm" open>
+                        <summary className="cursor-pointer text-sm font-semibold text-green-800 hover:text-green-900 mb-3">
+                          📋 Complete Educational Video Blueprint & Script
                         </summary>
                         <div className="mt-3 pt-3 border-t border-green-100">
-                          <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                          <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto bg-gray-50 p-4 rounded border">
                             {currentVideo.description}
                           </div>
                         </div>
