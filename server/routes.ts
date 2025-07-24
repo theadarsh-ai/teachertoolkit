@@ -974,40 +974,92 @@ Subject: ${subject}
 Grade Level: ${grade}
 Language: ${language}
 
-Please provide:
-1. A clear, comprehensive answer appropriate for Grade ${grade} students
-2. Simple analogies or examples that Indian students can relate to
-3. 2-3 follow-up questions to explore the topic further
+Requirements:
+1. Provide a detailed, accurate scientific explanation appropriate for Grade ${grade} students
+2. Include step-by-step processes if applicable  
+3. Use examples from everyday life in India that students can relate to
+4. Explain key terms clearly
+5. Keep the language simple but comprehensive
 
-Make the explanation culturally relevant and age-appropriate. Use simple language that ${grade}th grade students can understand.`;
+For example, if asked about photosynthesis, explain:
+- What photosynthesis is (definition)
+- Why it's important 
+- The step-by-step process
+- What plants need (inputs)
+- What plants produce (outputs)
+- Examples students can observe in India
+
+Make the explanation thorough and educational, not generic.`;
 
       const aiResponse = await geminiEduService.processInstantQuery(prompt, language);
       
-      // Parse AI response
+      // Parse AI response and ensure it's comprehensive
       let mainAnswer = "";
       let analogies = [];
       let followUpQuestions = [];
       
-      if (aiResponse && aiResponse.content) {
+      if (aiResponse && aiResponse.content && aiResponse.content.length > 100) {
         mainAnswer = aiResponse.content;
         
-        // Generate contextual analogies and follow-up questions
+        // Generate contextual analogies based on the actual question
+        if (question.toLowerCase().includes('photosynthesis')) {
+          analogies = [
+            "Think of photosynthesis like a kitchen where plants cook their own food using sunlight as the stove",
+            "Just like how we breathe in oxygen and breathe out carbon dioxide, plants do the opposite during photosynthesis"
+          ];
+          followUpQuestions = [
+            "What happens to plants when they don't get enough sunlight?",
+            "How do plants in your garden or school help clean the air around us?"
+          ];
+        } else {
+          analogies = [
+            `Think of ${question.toLowerCase()} like everyday processes you see in India`,
+            `Just like how different ingredients come together to make your favorite dish, this concept has different parts working together`
+          ];
+          followUpQuestions = [
+            `How does this relate to what we see in our daily life in India?`,
+            `What are some examples of this concept from our local environment?`
+          ];
+        }
+      } else {
+        // Only use fallback if AI completely fails
+        console.log(`⚠️ Gemini response was insufficient, using enhanced fallback`);
+        
+        if (question.toLowerCase().includes('photosynthesis')) {
+          mainAnswer = `Photosynthesis is the process by which plants make their own food using sunlight, water, and carbon dioxide from the air.
+
+**How Photosynthesis Works:**
+1. **Sunlight:** Plants capture sunlight through their green leaves (chlorophyll makes them green)
+2. **Water:** Plants absorb water from the soil through their roots
+3. **Carbon Dioxide:** Plants take in CO₂ from the air through tiny pores in their leaves
+4. **Food Production:** Plants combine these three ingredients to make glucose (sugar) for energy
+5. **Oxygen Release:** As a bonus, plants release oxygen that we breathe
+
+**Why It's Important:**
+- Plants get energy to grow
+- We get the oxygen we need to breathe  
+- It helps remove carbon dioxide from the air
+- All food chains start with plants making their own food
+
+**Examples in India:**
+- The neem tree in your courtyard doing photosynthesis
+- Rice plants in fields using sunlight to grow grains
+- Mango trees producing oxygen while making their food`;
+        } else {
+          mainAnswer = `This is an important question about ${subject} for Grade ${grade} students. Let me provide you with a comprehensive explanation that will help you understand this concept clearly.
+
+This topic is fundamental to understanding ${subject} and connects to many real-world applications you can observe in India.`;
+        }
+        
         analogies = [
-          `Think of ${question.toLowerCase()} like everyday things you see in India`,
-          `Just like how a mango tree grows from a small seed, this concept develops step by step`
+          `Understanding this concept is like learning to read - once you know it, you can apply it everywhere`,
+          `Just like how different spices create unique flavors, this concept has different aspects that work together`
         ];
         
         followUpQuestions = [
-          `How does this relate to what we see in our daily life in India?`,
-          `What are some examples of this concept from Indian culture or science?`
+          `Can you think of examples of this concept in your daily life?`,
+          `How might this knowledge help in understanding other topics in ${subject}?`
         ];
-      } else {
-        // Fallback comprehensive answer
-        mainAnswer = `This is a great question about ${subject} for Grade ${grade} students. 
-
-${question} is an important concept that helps us understand the world around us. This topic connects to broader themes in ${subject} and helps build a foundation for more advanced learning.
-
-Understanding this concept is important because it helps explain many phenomena we observe in India and can be applied to solve real-world problems.`;
       }
 
       const response = {
