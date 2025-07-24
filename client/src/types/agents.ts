@@ -71,6 +71,17 @@ export const AGENTS: Agent[] = [
     supportsGrades: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
   },
   {
+    id: 'audio-reading-assessment',
+    name: 'Audio Reading Assessment',
+    description: 'Analyze pronunciation, fluency, and comprehension through live recording or file upload.',
+    icon: 'Volume2',
+    color: 'from-purple-500 to-pink-500',
+    badge: 'Essential',
+    features: ['Live Recording', 'Multi-Language Support', 'Pronunciation Analysis', 'Fluency Assessment'],
+    supportedLanguages: ['Hindi', 'English', 'Tamil', 'Telugu', 'Marathi', 'Bengali', 'Gujarati', 'Kannada', 'Punjabi', 'Urdu'],
+    supportsGrades: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  },
+  {
     id: 'classroom-analytics',
     name: 'Classroom Analytics & Pacing',
     description: 'Monitor performance data and get real-time pacing adjustments.',

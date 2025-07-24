@@ -70,6 +70,9 @@ export default function Dashboard() {
     } else if (agent.id === 'lesson-planner') {
       // Direct navigation to Lesson Planner page
       setLocation('/lesson-planner');
+    } else if (agent.id === 'audio-reading-assessment') {
+      // Direct navigation to Audio Reading Assessment page
+      setLocation('/audio-reading-assessment');
     } else {
       setSelectedAgent(agent);
       setShowAgentModal(true);

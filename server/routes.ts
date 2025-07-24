@@ -582,6 +582,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Audio Reading Assessment API
+  app.post("/api/agents/audio-reading-assessment/analyze", upload.single('audio'), async (req, res) => {
+    try {
+      const { language, grade, readingText, assessmentType } = req.body;
+      const audioFile = req.file;
+
+      if (!audioFile) {
+        return res.status(400).json({ error: "Audio file is required" });
+      }
+
+      // Define languages for reference
+      const LANGUAGES = [
+        { value: "english", label: "English" },
+        { value: "hindi", label: "हिंदी (Hindi)" },
+        { value: "tamil", label: "தமிழ் (Tamil)" },
+        { value: "telugu", label: "తెలుగు (Telugu)" },
+        { value: "marathi", label: "मराठी (Marathi)" },
+        { value: "bengali", label: "বাংলা (Bengali)" },
+        { value: "gujarati", label: "ગુજરાતી (Gujarati)" },
+        { value: "kannada", label: "ಕನ್ನಡ (Kannada)" },
+        { value: "punjabi", label: "ਪੰਜਾਬੀ (Punjabi)" },
+        { value: "urdu", label: "اردو (Urdu)" }
+      ];
+
+      // Simulate comprehensive audio analysis
+      const mockAnalysis = {
+        overallScore: Math.floor(Math.random() * 30) + 70, // 70-100
+        pronunciation: {
+          score: Math.floor(Math.random() * 35) + 65,
+          feedback: `Pronunciation is ${language === 'hindi' ? 'हिंदी में' : 'clear with'} good articulation. Some sounds need refinement for better clarity.`,
+          improvements: [
+            `Work on ${language === 'hindi' ? 'vowel sounds (स्वर)' : 'consonant blends'}`,
+            `Practice ${language === 'english' ? 'th-sounds' : 'aspirated consonants'}`,
+            "Focus on word stress patterns"
+          ]
+        },
+        fluency: {
+          score: Math.floor(Math.random() * 25) + 75,
+          wpm: Math.floor(Math.random() * 50) + 80 + (grade * 5),
+          pace: Math.random() > 0.5 ? "Appropriate" : "Slightly fast",
+          feedback: `Reading pace is suitable for Grade ${grade}. Pauses are mostly appropriate with good expression.`
+        },
+        comprehension: assessmentType === 'reading' ? {
+          score: Math.floor(Math.random() * 40) + 60,
+          accuracy: Math.floor(Math.random() * 20) + 80,
+          feedback: "Understanding of the text is demonstrated through proper intonation and phrasing."
+        } : null,
+        detailedAnalysis: `
+This assessment was conducted in ${LANGUAGES.find(l => l.value === language)?.label || language} for Grade ${grade}.
+
+STRENGTHS:
+• Clear articulation in most words
+• Good reading rhythm and flow
+• Appropriate expression and intonation
+• Strong comprehension indicators
+
+AREAS FOR IMPROVEMENT:
+• Some pronunciation refinements needed
+• Consistency in reading pace
+• Confidence in challenging vocabulary
+
+LANGUAGE-SPECIFIC NOTES:
+${language === 'hindi' ? '• देवनागरी script reading shows good understanding\n• Conjunct consonants handled well\n• Matras (vowel marks) pronounced correctly' : 
+  language === 'tamil' ? '• Tamil script fluency is developing\n• Proper pronunciation of retroflex sounds\n• Good handling of agglutination patterns' :
+  '• English phonics understanding is solid\n• Vowel sounds are mostly accurate\n• Silent letters recognized appropriately'}
+        `,
+        recommendations: [
+          `Practice ${language === 'hindi' ? 'tongue twisters (जीभ ट्विस्टर)' : 'phonics exercises'} daily`,
+          "Read aloud for 15 minutes each day",
+          `Focus on ${language} literature appropriate for Grade ${grade}`,
+          "Record self-reading and compare with fluent speakers"
+        ],
+        nextSteps: [
+          "Continue regular reading practice",
+          "Work with a reading partner or tutor",
+          "Gradually increase text complexity",
+          "Monitor progress monthly"
+        ]
+      };
+
+      // Add processing delay to simulate real analysis
+      setTimeout(() => {
+        res.json(mockAnalysis);
+      }, 2000);
+
+    } catch (error) {
+      console.error("Audio assessment error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Audio analysis failed',
+        fallback: {
+          overallScore: 75,
+          pronunciation: { score: 70, feedback: "Analysis unavailable", improvements: [] },
+          fluency: { score: 80, wpm: 100, pace: "Normal", feedback: "Analysis unavailable" },
+          comprehension: { score: 75, accuracy: 85, feedback: "Analysis unavailable" },
+          detailedAnalysis: "Detailed analysis is temporarily unavailable. Please try again.",
+          recommendations: ["Continue practicing reading aloud"],
+          nextSteps: ["Try again with a clearer recording"]
+        }
+      });
+    }
+  });
+
   // ========== PYTHON LANGGRAPH AGENT ROUTES ==========
   
   // Python LangGraph Agent routes

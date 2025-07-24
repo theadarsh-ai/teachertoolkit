@@ -12,6 +12,7 @@ import LessonPlanner from "@/pages/lesson-planner";
 import VisualAids from "@/pages/visual-aids";
 import ArIntegration from "@/pages/ar-integration";
 import GamifiedTeaching from "@/pages/gamified-teaching";
+import AudioReadingAssessment from "@/pages/audio-reading-assessment";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/visual-aids" component={VisualAids} />
       <Route path="/ar-integration" component={ArIntegration} />
       <Route path="/gamified-teaching" component={GamifiedTeaching} />
+      <Route path="/audio-reading-assessment" component={AudioReadingAssessment} />
       <Route component={NotFound} />
     </Switch>
   );
