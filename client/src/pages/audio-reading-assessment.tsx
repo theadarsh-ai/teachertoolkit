@@ -289,7 +289,7 @@ export default function AudioReadingAssessment() {
       formData.append('assessmentType', data.assessmentType);
       
       console.log("FormData entries:");
-      for (let [key, value] of formData.entries()) {
+      for (const [key, value] of Array.from(formData.entries())) {
         console.log(`${key}:`, typeof value === 'string' ? value : `[${value.constructor.name}] ${value.size || value.length || 'unknown size'}`);
       }
 
@@ -372,7 +372,7 @@ export default function AudioReadingAssessment() {
     assessmentMutation.mutate({
       audioFile: recording.audioBlob,
       language: selectedLanguage,
-      grade: parseInt(selectedGrade),
+      grade: selectedGrade,
       readingText: readingText.trim(),
       assessmentType: assessmentType
     });
