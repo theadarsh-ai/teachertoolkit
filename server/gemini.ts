@@ -270,73 +270,60 @@ Ensure the plan is practical for Indian classroom contexts with limited resource
       // Read the audio file
       const audioBytes = fs.readFileSync(audioFilePath);
 
-      const analysisPrompt = `You are an expert speech and audio analysis specialist. CRITICAL: You must analyze the ACTUAL AUDIO CONTENT, not provide simulated results.
+      const analysisPrompt = `You are an expert speech and pronunciation analysis specialist. Analyze the ACTUAL AUDIO CONTENT and provide comprehensive speech assessment.
 
-STUDENT READ THIS TEXT:
-"${readingText}"
+ANALYSIS INSTRUCTIONS:
+1. TRANSCRIBE exactly what the speaker said in the audio
+2. ANALYZE pronunciation quality, clarity, and fluency of the detected speech
+3. ASSESS the speaker's speech patterns, articulation, and speaking pace
+4. PROVIDE detailed feedback on the actual speech performance
+5. If speaker read different content than expected, analyze what they actually said
 
-YOUR TASK:
-1. TRANSCRIBE exactly what the student said in the audio
-2. COMPARE the actual speech to the expected reading text word-by-word
-3. IDENTIFY every mispronounced, skipped, or incorrectly read word
-4. CALCULATE accurate percentages based on real performance
-5. PROVIDE authentic assessment based on actual audio analysis
+Expected text was: "${readingText}"
+But analyze whatever speech is actually detected in the audio.
 
-DO NOT use placeholder data. Analyze the real audio content.
-
-Please provide a detailed JSON response with this exact structure:
+Analyze the detected speech and provide detailed JSON response:
 {
-  "overallScore": number (0-100),
-  "wordAccuracy": {
-    "totalWords": number,
-    "correctWords": number,
-    "incorrectWords": number,
-    "accuracyPercentage": number
-  },
+  "overallScore": number (0-100, based on detected speech quality),
   "transcript": {
-    "original": "exact reading text",
-    "detected": "what student actually said",
+    "detected": "EXACT transcription of what was said",
     "confidence": number (0-100)
+  },
+  "wordAccuracy": {
+    "totalWords": number (from detected speech),
+    "analyzedWords": number,
+    "clarity": number (percentage)
   },
   "wordAnalysis": [
     {
-      "word": "string",
+      "word": "actual spoken word",
       "index": number,
-      "correct": boolean,
       "pronunciationScore": number (0-100),
-      "timingMs": number,
-      "issues": ["pronunciation", "stress", "clarity", "pace"]
-    }
-  ],
-  "mistakes": [
-    {
-      "word": "string",
-      "position": number,
-      "type": "string",
-      "severity": "high|medium|low",
-      "suggestion": "string",
-      "correctPronunciation": "string"
+      "clarity": "clear|unclear|muffled",
+      "issues": ["pronunciation issues if any"]
     }
   ],
   "pronunciation": {
-    "score": number (0-100),
-    "feedback": "string",
-    "improvements": ["string"]
+    "score": number (0-100, based on detected speech),
+    "feedback": "assessment of pronunciation quality",
+    "strengths": ["clear consonants", "good vowel sounds", etc.],
+    "improvements": ["specific areas to work on"]
   },
   "fluency": {
     "score": number (0-100),
-    "wpm": number,
-    "pace": "string",
-    "feedback": "string"
+    "wpm": number (calculated from audio),
+    "pace": "slow|normal|fast",
+    "feedback": "fluency assessment of detected speech"
   },
-  "comprehension": {
-    "score": number (0-100),
-    "accuracy": number,
-    "feedback": "string"
+  "speechQuality": {
+    "clarity": number (0-100),
+    "articulation": number (0-100),
+    "confidence": number (0-100),
+    "feedback": "overall speech quality assessment"
   },
-  "detailedAnalysis": "string",
-  "recommendations": ["string"],
-  "nextSteps": ["string"]
+  "detailedAnalysis": "comprehensive analysis of the detected speech",
+  "recommendations": ["specific suggestions for speech improvement"],
+  "nextSteps": ["actionable next steps for better speech"]
 }`;
 
       const response = await ai.models.generateContent({
