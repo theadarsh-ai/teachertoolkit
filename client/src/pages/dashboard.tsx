@@ -73,6 +73,9 @@ export default function Dashboard() {
     } else if (agent.id === 'audio-reading-assessment') {
       // Direct navigation to Audio Reading Assessment page
       setLocation('/audio-reading-assessment');
+    } else if (agent.id === 'video-generator') {
+      // Direct navigation to Video Generator page
+      setLocation('/video-generator');
     } else {
       setSelectedAgent(agent);
       setShowAgentModal(true);

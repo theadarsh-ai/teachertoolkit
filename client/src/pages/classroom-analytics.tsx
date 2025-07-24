@@ -22,7 +22,8 @@ import {
   Target,
   Zap,
   Award,
-  Timer
+  Timer,
+  Video
 } from "lucide-react";
 import { AGENTS } from "@/types/agents";
 
@@ -132,6 +133,21 @@ const AGENT_USAGE_DATA = {
       { date: '2025-01-22', uses: 56, grade: 'Mixed', topic: 'Curriculum Help' },
     ],
     color: 'from-gray-500 to-slate-600'
+  },
+  'video-generator': {
+    name: 'AI Video Generator',
+    icon: Video,
+    totalUses: 234,
+    weeklyUses: 28,
+    avgSessionTime: '16 min',
+    successRate: 88,
+    topGrades: ['Grade 6', 'Grade 9', 'Grade 11'],
+    recentActivity: [
+      { date: '2025-01-24', uses: 8, grade: 'Grade 9', topic: 'Photosynthesis Animation' },
+      { date: '2025-01-23', uses: 12, grade: 'Grade 6', topic: 'Solar System Tour' },
+      { date: '2025-01-22', uses: 8, grade: 'Grade 11', topic: 'Chemistry Lab Simulation' },
+    ],
+    color: 'from-purple-500 to-pink-600'
   }
 };
 

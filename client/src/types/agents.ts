@@ -81,15 +81,15 @@ export const AGENTS: Agent[] = [
     supportedLanguages: ['Hindi', 'English', 'Tamil', 'Telugu', 'Marathi', 'Bengali', 'Gujarati', 'Kannada', 'Punjabi', 'Urdu'],
     supportsGrades: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
   },
-  {
-    id: 'classroom-analytics',
-    name: 'Classroom Analytics & Pacing',
-    description: 'Monitor performance data and get real-time pacing adjustments.',
-    icon: 'TrendingUp',
-    color: 'from-indigo-500 to-purple-500',
-    features: ['Real-time Insights', 'Performance Tracking', 'Pacing Recommendations'],
-    supportsGrades: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-  },
+  // {
+  //   id: 'classroom-analytics',
+  //   name: 'Classroom Analytics & Pacing',
+  //   description: 'Monitor performance data and get real-time pacing adjustments.',
+  //   icon: 'TrendingUp',
+  //   color: 'from-indigo-500 to-purple-500',
+  //   features: ['Real-time Insights', 'Performance Tracking', 'Pacing Recommendations'],
+  //   supportsGrades: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  // },
   // {
   //   id: 'audio-assessment',
   //   name: 'Audio Reading Assessment',
@@ -127,6 +127,16 @@ export const AGENTS: Agent[] = [
     badge: '3D',
     features: ['3D Models', 'AR Experience', 'Interactive Learning'],
     supportsGrades: [6, 7, 8, 9, 10, 11, 12]
+  },
+  {
+    id: 'video-generator',
+    name: 'AI Video Generator',
+    description: 'Create educational videos with Google Veo 3.0 for visual learning experiences.',
+    icon: 'Video',
+    color: 'from-purple-500 to-pink-600',
+    badge: 'New',
+    features: ['Video Generation', 'Visual Learning', 'Vertex AI Integration'],
+    supportsGrades: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
   }
 ];
 

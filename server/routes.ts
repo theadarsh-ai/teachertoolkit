@@ -10,6 +10,7 @@ import { pdfGenerator } from "./pdf-generator";
 import { htmlGenerator } from "./html-generator";
 import { GooglePolyService } from './google-poly-api';
 import { SketchfabService } from './sketchfab-api';
+import { videoGeneratorService } from './video-generator';
 import { 
   insertUserSchema, 
   insertAgentConfigSchema, 
@@ -2247,6 +2248,79 @@ IMPORTANT:
       res.status(500).json({ 
         success: false,
         error: error instanceof Error ? error.message : 'Failed to generate game'
+      });
+    }
+  });
+
+  // Video Generator API
+  app.post("/api/agents/video-generator/generate", async (req, res) => {
+    try {
+      const { prompt, grade, subject, duration, aspectRatio, style } = req.body;
+      
+      console.log(`📹 Generating video for Grade ${grade} ${subject}: "${prompt}"`);
+      
+      if (!prompt || !grade || !subject) {
+        return res.status(400).json({ 
+          error: "Missing required fields: prompt, grade, subject" 
+        });
+      }
+
+      const videoRequest = {
+        prompt,
+        grade: parseInt(grade),
+        subject,
+        duration: duration || "2-3 minutes",
+        aspectRatio: aspectRatio || "16:9",
+        style: style || "Educational Animation"
+      };
+
+      const video = await videoGeneratorService.generateEducationalVideo(videoRequest);
+      
+      res.json({
+        success: true,
+        video
+      });
+      
+    } catch (error) {
+      console.error("❌ Video generation error:", error);
+      res.status(500).json({ 
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate video'
+      });
+    }
+  });
+
+  app.get("/api/agents/video-generator/status/:videoId", async (req, res) => {
+    try {
+      const { videoId } = req.params;
+      const video = await videoGeneratorService.getVideoStatus(videoId);
+      
+      if (!video) {
+        return res.status(404).json({ error: "Video not found" });
+      }
+      
+      res.json(video);
+    } catch (error) {
+      console.error("❌ Video status error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to get video status'
+      });
+    }
+  });
+
+  app.get("/api/agents/video-generator/my-videos/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const videos = await videoGeneratorService.listUserVideos(userId);
+      
+      res.json({
+        success: true,
+        videos
+      });
+    } catch (error) {
+      console.error("❌ Video list error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to list videos'
       });
     }
   });
