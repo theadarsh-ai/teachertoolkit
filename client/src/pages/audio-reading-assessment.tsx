@@ -740,23 +740,31 @@ export default function AudioReadingAssessment() {
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{assessmentResult.wordAccuracy.correctWords}</div>
+                        <div className="text-2xl font-bold text-green-600">
+                          {assessmentResult.wordAccuracy?.correctWords || 0}
+                        </div>
                         <div className="text-sm text-gray-600">Correct Words</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-red-600">{assessmentResult.wordAccuracy.incorrectWords}</div>
+                        <div className="text-2xl font-bold text-red-600">
+                          {assessmentResult.wordAccuracy?.incorrectWords || 0}
+                        </div>
                         <div className="text-sm text-gray-600">Incorrect Words</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">{assessmentResult.wordAccuracy.totalWords}</div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {assessmentResult.wordAccuracy?.totalWords || 0}
+                        </div>
                         <div className="text-sm text-gray-600">Total Words</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-600">{assessmentResult.wordAccuracy.accuracyPercentage}%</div>
+                        <div className="text-2xl font-bold text-purple-600">
+                          {assessmentResult.wordAccuracy?.accuracyPercentage || 0}%
+                        </div>
                         <div className="text-sm text-gray-600">Accuracy</div>
                       </div>
                     </div>
-                    <Progress value={assessmentResult.wordAccuracy.accuracyPercentage} className="w-full" />
+                    <Progress value={assessmentResult.wordAccuracy?.accuracyPercentage || 0} className="w-full" />
                   </CardContent>
                 </Card>
 
@@ -770,15 +778,15 @@ export default function AudioReadingAssessment() {
                       <div>
                         <label className="text-sm font-medium text-gray-600 mb-1 block">Original Text:</label>
                         <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg text-sm">
-                          {assessmentResult.transcript.original}
+                          {assessmentResult.transcript?.original || "No original text provided"}
                         </div>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-600 mb-1 block">
-                          Detected Speech (Confidence: {Math.round(assessmentResult.transcript.confidence)}%):
+                          Detected Speech (Confidence: {Math.round(assessmentResult.transcript?.confidence || 0)}%):
                         </label>
                         <div className="bg-blue-50 dark:bg-blue-900 p-3 rounded-lg text-sm">
-                          {assessmentResult.transcript.detected}
+                          {assessmentResult.transcript?.detected || "No speech detected"}
                         </div>
                       </div>
                     </div>
@@ -786,7 +794,7 @@ export default function AudioReadingAssessment() {
                 </Card>
 
                 {/* Mistakes and Corrections */}
-                {assessmentResult.mistakes.length > 0 && (
+                {assessmentResult.mistakes && assessmentResult.mistakes.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center space-x-2">
@@ -840,7 +848,7 @@ export default function AudioReadingAssessment() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-2 max-h-64 overflow-y-auto">
-                      {assessmentResult.wordAnalysis.map((word, index) => (
+                      {assessmentResult.wordAnalysis && assessmentResult.wordAnalysis.map((word, index) => (
                         <div key={index} className={`flex items-center justify-between p-2 rounded ${
                           word.correct ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'
                         }`}>

@@ -647,7 +647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mistakes = [];
       const wordAnalysis = [];
       
-      console.log(`Processing ${totalWords} words from text: "${readingText.substring(0, 100)}..."`;
+      console.log(`Processing ${totalWords} words from text: "${readingText.substring(0, 100)}..."`);
       
       // Generate word-by-word analysis
       sampleWords.forEach((word, index) => {
