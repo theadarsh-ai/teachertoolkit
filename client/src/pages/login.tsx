@@ -101,8 +101,12 @@ export default function Login() {
             {/* Logo Animation */}
             <div className="text-center mb-12">
               <div className="relative inline-block">
-                <div className="w-20 h-20 bg-gradient-to-r from-orange-400 to-pink-400 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-2xl animate-pulse">
-                  <GraduationCap className="w-10 h-10 text-white" />
+                <div className="w-20 h-20 flex items-center justify-center mb-6 mx-auto shadow-2xl">
+                  <img 
+                    src="/attached_assets/image_1753350466135.png" 
+                    alt="Sahayak Platform Logo" 
+                    className="w-20 h-20 rounded-2xl object-contain animate-pulse"
+                  />
                 </div>
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full animate-ping"></div>
               </div>
@@ -110,7 +114,7 @@ export default function Login() {
                 Sahayak Platform
               </h1>
               <p className="text-xl text-white/80 font-light">
-                Transform Education with AI-Powered Teaching
+                Transform Education with AI-Powered Resources
               </p>
             </div>
 
