@@ -722,6 +722,37 @@ export default function AudioReadingAssessment() {
                     </CardContent>
                   </Card>
 
+                  {/* Speech Quality */}
+                  {assessmentResult.speechQuality && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center justify-between">
+                          <span>Speech Quality</span>
+                          <span className={`text-xl font-bold ${getScoreColor(assessmentResult.speechQuality.clarity)}`}>
+                            {assessmentResult.speechQuality.clarity}%
+                          </span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-3 gap-4 mb-3">
+                          <div className="text-center">
+                            <div className="text-lg font-semibold">{assessmentResult.speechQuality.articulation}%</div>
+                            <div className="text-xs text-gray-500">Articulation</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-lg font-semibold">{assessmentResult.speechQuality.confidence}%</div>
+                            <div className="text-xs text-gray-500">Confidence</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-lg font-semibold">{assessmentResult.speechQuality.clarity}%</div>
+                            <div className="text-xs text-gray-500">Clarity</div>
+                          </div>
+                        </div>
+                        <p className="text-gray-600">{assessmentResult.speechQuality.feedback}</p>
+                      </CardContent>
+                    </Card>
+                  )}
+
                   {/* Comprehension */}
                   {assessmentType === "reading" && assessmentResult.comprehension && (
                     <Card>
@@ -758,15 +789,15 @@ export default function AudioReadingAssessment() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-green-600">
-                          {assessmentResult.wordAccuracy?.correctWords || 0}
+                          {assessmentResult.wordAccuracy?.analyzedWords || assessmentResult.wordAccuracy?.correctWords || 0}
                         </div>
-                        <div className="text-sm text-gray-600">Correct Words</div>
+                        <div className="text-sm text-gray-600">Analyzed Words</div>
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-red-600">
                           {assessmentResult.wordAccuracy?.incorrectWords || 0}
                         </div>
-                        <div className="text-sm text-gray-600">Incorrect Words</div>
+                        <div className="text-sm text-gray-600">Issues Found</div>
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-blue-600">
@@ -776,12 +807,12 @@ export default function AudioReadingAssessment() {
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-purple-600">
-                          {assessmentResult.wordAccuracy?.accuracyPercentage || 0}%
+                          {assessmentResult.wordAccuracy?.clarity || assessmentResult.wordAccuracy?.accuracyPercentage || 0}%
                         </div>
-                        <div className="text-sm text-gray-600">Accuracy</div>
+                        <div className="text-sm text-gray-600">Clarity</div>
                       </div>
                     </div>
-                    <Progress value={assessmentResult.wordAccuracy?.accuracyPercentage || 0} className="w-full" />
+                    <Progress value={assessmentResult.wordAccuracy?.clarity || assessmentResult.wordAccuracy?.accuracyPercentage || 0} className="w-full" />
                   </CardContent>
                 </Card>
 
@@ -872,11 +903,14 @@ export default function AudioReadingAssessment() {
                           <div className="flex items-center space-x-3">
                             <span className="text-xs text-gray-500 w-8">#{word.index}</span>
                             <span className="font-medium">{word.word}</span>
-                            {word.correct ? (
+                            {word.clarity === 'clear' ? (
                               <CheckCircle className="w-4 h-4 text-green-500" />
-                            ) : (
+                            ) : word.clarity === 'unclear' ? (
                               <AlertCircle className="w-4 h-4 text-red-500" />
+                            ) : (
+                              <AlertCircle className="w-4 h-4 text-yellow-500" />
                             )}
+                            <span className="text-xs bg-gray-200 px-1 rounded">{word.clarity}</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <span className="text-sm text-gray-600">{word.pronunciationScore}%</span>
