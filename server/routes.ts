@@ -59,9 +59,24 @@ const upload = multer({
   }
 });
 
-// Configure multer for audio uploads
+// Configure multer for audio uploads - save to disk for AI processing
 const audioUpload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      const uploadDir = './uploads/audio';
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+      // Generate unique filename with timestamp
+      const timestamp = Date.now();
+      const extension = file.originalname.split('.').pop() || 'webm';
+      cb(null, `audio_${timestamp}.${extension}`);
+    }
+  }),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit for audio files
   },
@@ -604,8 +619,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { language, grade, readingText, assessmentType } = req.body;
       const audioFile = req.file;
 
-      if (!audioFile) {
-        return res.status(400).json({ error: "Audio file is required" });
+      console.log("Audio file received:", audioFile ? {
+        filename: audioFile.filename,
+        path: audioFile.path,
+        size: audioFile.size,
+        mimetype: audioFile.mimetype
+      } : "No file");
+
+      if (!audioFile || !audioFile.path) {
+        return res.status(400).json({ 
+          error: "Audio file is required",
+          message: "Please upload a valid audio file for analysis"
+        });
       }
 
       // Define languages for reference
@@ -764,6 +789,12 @@ ${language === 'hindi' ? '• देवनागरी script reading shows good
       // Use real AI analysis instead of mock data
       try {
         console.log("Starting real AI analysis for audio file:", audioFile.path);
+        
+        // Verify file path exists
+        if (!audioFile.path) {
+          throw new Error("Audio file path is missing from uploaded file");
+        }
+        
         const analysis = await geminiEduService.analyzeAudioReading(
           audioFile.path,
           readingText.trim(),
@@ -772,9 +803,22 @@ ${language === 'hindi' ? '• देवनागरी script reading shows good
         );
         
         console.log("Real AI analysis completed successfully");
+        
+        // Clean up uploaded file after processing
+        if (fs.existsSync(audioFile.path)) {
+          fs.unlinkSync(audioFile.path);
+          console.log("Cleaned up uploaded audio file");
+        }
+        
         res.json(analysis);
       } catch (aiError) {
         console.error("AI analysis failed:", aiError);
+        
+        // Clean up uploaded file even on error
+        if (audioFile.path && fs.existsSync(audioFile.path)) {
+          fs.unlinkSync(audioFile.path);
+          console.log("Cleaned up uploaded audio file after error");
+        }
         
         // Provide informative error message instead of mock data
         return res.status(500).json({

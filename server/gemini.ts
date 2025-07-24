@@ -260,6 +260,13 @@ Ensure the plan is practical for Indian classroom contexts with limited resource
 
   async analyzeAudioReading(audioFilePath: string, readingText: string, language: string, grade: number): Promise<any> {
     try {
+      console.log("Attempting to read audio file:", audioFilePath);
+      
+      // Check if file exists
+      if (!fs.existsSync(audioFilePath)) {
+        throw new Error(`Audio file not found at path: ${audioFilePath}`);
+      }
+      
       // Read the audio file
       const audioBytes = fs.readFileSync(audioFilePath);
 
