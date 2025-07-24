@@ -422,8 +422,25 @@ export default function VideoGenerator() {
                             ? currentVideo.description.substring(0, 200) + "..." 
                             : currentVideo.description}
                         </p>
-                        <div className="mt-3 text-xs text-blue-600 font-medium">
-                          📄 {Math.ceil(currentVideo.description.length / 100)} sections of detailed educational content generated
+                        <div className="mt-3 flex items-center justify-between">
+                          <div className="text-xs text-blue-600 font-medium">
+                            📄 {Math.ceil(currentVideo.description.length / 100)} sections of detailed content
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              // Scroll to the full content section
+                              document.querySelector('.max-h-80')?.scrollIntoView({ behavior: 'smooth' });
+                              toast({
+                                title: "Content Location",
+                                description: "Scroll down to see the complete generated educational content",
+                              });
+                            }}
+                            className="text-xs px-2 py-1 h-6"
+                          >
+                            View Full Content ↓
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -447,17 +464,28 @@ export default function VideoGenerator() {
                         Your educational video concept includes detailed planning, structure, script, learning objectives, and production guidelines.
                       </p>
                       
-                      {/* Expandable full description */}
-                      <details className="bg-white rounded p-4 border border-green-200 shadow-sm" open>
-                        <summary className="cursor-pointer text-sm font-semibold text-green-800 hover:text-green-900 mb-3">
-                          📋 Complete Educational Video Blueprint & Script
-                        </summary>
-                        <div className="mt-3 pt-3 border-t border-green-100">
-                          <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto bg-gray-50 p-4 rounded border">
+                      {/* Full Content Preview */}
+                      <div className="bg-white rounded p-4 border border-green-200 shadow-sm">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-green-800">
+                            📋 Complete Educational Video Blueprint & Script
+                          </h4>
+                          <Badge variant="outline" className="text-xs">
+                            {Math.ceil(currentVideo.description.length / 100)} sections
+                          </Badge>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded border p-4 max-h-80 overflow-y-auto">
+                          <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                             {currentVideo.description}
                           </div>
                         </div>
-                      </details>
+                        
+                        <div className="mt-3 pt-3 border-t border-green-100 flex items-center justify-between text-xs text-gray-500">
+                          <span>Complete AI-generated educational content</span>
+                          <span>{currentVideo.description.length} characters</span>
+                        </div>
+                      </div>
                       
                       <div className="mt-3 flex items-center justify-between text-xs">
                         <span className="text-green-600">Video ID: {currentVideo.id}</span>
