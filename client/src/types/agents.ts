@@ -90,15 +90,15 @@ export const AGENTS: Agent[] = [
     features: ['Real-time Insights', 'Performance Tracking', 'Pacing Recommendations'],
     supportsGrades: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
   },
-  {
-    id: 'audio-assessment',
-    name: 'Audio Reading Assessment',
-    description: 'Evaluate pronunciation, fluency, and comprehension through voice analysis.',
-    icon: 'Mic',
-    color: 'from-teal-500 to-cyan-500',
-    features: ['Voice Recognition', 'Fluency Analysis', 'Pronunciation Check'],
-    supportsGrades: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-  },
+  // {
+  //   id: 'audio-assessment',
+  //   name: 'Audio Reading Assessment',
+  //   description: 'Evaluate pronunciation, fluency, and comprehension through voice analysis.',
+  //   icon: 'Mic',
+  //   color: 'from-teal-500 to-cyan-500',
+  //   features: ['Voice Recognition', 'Fluency Analysis', 'Pronunciation Check'],
+  //   supportsGrades: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  // },
   {
     id: 'master-chatbot',
     name: 'Master Agent Chatbot',

@@ -59,6 +59,22 @@ const upload = multer({
   }
 });
 
+// Configure multer for audio uploads
+const audioUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit for audio files
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow audio files
+    if (file.mimetype.startsWith('audio/') || file.mimetype === 'application/octet-stream') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only audio files are allowed'), false);
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // ========== NCERT TEXTBOOKS WITH POSTGRESQL (WORKING) ==========
@@ -583,7 +599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Audio Reading Assessment API
-  app.post("/api/agents/audio-reading-assessment/analyze", upload.single('audio'), async (req, res) => {
+  app.post("/api/agents/audio-reading-assessment/analyze", audioUpload.single('audio'), async (req, res) => {
     try {
       const { language, grade, readingText, assessmentType } = req.body;
       const audioFile = req.file;
