@@ -187,8 +187,8 @@ export default function VideoGenerator() {
                 <Video className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">AI Video Generator</h1>
-                <p className="text-gray-600">Create educational videos with Google Veo 3.0</p>
+                <h1 className="text-3xl font-bold text-gray-900">AI Educational Video Concept Generator</h1>
+                <p className="text-gray-600">Create detailed educational video concepts with Vertex AI & Gemini</p>
               </div>
             </div>
           </div>
@@ -204,8 +204,11 @@ export default function VideoGenerator() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Sparkles className="w-5 h-5 text-purple-600" />
-                  <span>Video Configuration</span>
+                  <span>Educational Video Concept Generator</span>
                 </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  Create detailed educational video concepts using Vertex AI and Gemini enhancement
+                </p>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Basic Settings */}
@@ -413,14 +416,28 @@ export default function VideoGenerator() {
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <div className="flex items-center space-x-2 text-green-800 mb-2">
                         <CheckCircle2 className="w-5 h-5" />
-                        <span className="font-medium">Video Concept Generated Successfully</span>
+                        <span className="font-medium">Educational Video Concept Ready</span>
                       </div>
-                      <p className="text-sm text-green-700">
+                      <p className="text-sm text-green-700 mb-3">
                         Your educational video concept has been created using Vertex AI and enhanced with Gemini. 
-                        This is a conceptual preview showing how your video would be structured.
+                        This includes detailed planning, structure, and educational content framework.
                       </p>
-                      <div className="mt-3 text-xs text-green-600">
-                        Video ID: {currentVideo.id}
+                      
+                      {/* Expandable full description */}
+                      <details className="bg-white rounded p-3 border border-green-200">
+                        <summary className="cursor-pointer text-sm font-medium text-green-800 hover:text-green-900">
+                          View Full Video Concept & Script
+                        </summary>
+                        <div className="mt-3 pt-3 border-t border-green-100">
+                          <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                            {currentVideo.description}
+                          </div>
+                        </div>
+                      </details>
+                      
+                      <div className="mt-3 flex items-center justify-between text-xs">
+                        <span className="text-green-600">Video ID: {currentVideo.id}</span>
+                        <span className="text-green-600">Status: {currentVideo.status}</span>
                       </div>
                     </div>
                     
@@ -429,15 +446,23 @@ export default function VideoGenerator() {
                         variant="outline" 
                         size="sm"
                         onClick={() => {
+                          // Create a downloadable text file with the concept
+                          const element = document.createElement("a");
+                          const file = new Blob([`${currentVideo.title}\n\nSubject: ${currentVideo.subject}\nGrade: ${currentVideo.grade}\nDuration: ${currentVideo.duration}\n\n${currentVideo.description}`], {type: 'text/plain'});
+                          element.href = URL.createObjectURL(file);
+                          element.download = `${currentVideo.subject}_Grade${currentVideo.grade}_Video_Concept.txt`;
+                          document.body.appendChild(element);
+                          element.click();
+                          document.body.removeChild(element);
                           toast({
-                            title: "Video Concept Ready",
-                            description: "This is an enhanced educational video concept created with Vertex AI",
+                            title: "Concept Downloaded",
+                            description: "Video concept saved as text file",
                           });
                         }}
                         className="flex-1"
                       >
-                        <Play className="w-4 h-4 mr-1" />
-                        View Concept
+                        <Download className="w-4 h-4 mr-1" />
+                        Save Concept
                       </Button>
                       <Button 
                         variant="outline" 
@@ -446,13 +471,13 @@ export default function VideoGenerator() {
                           navigator.clipboard.writeText(currentVideo.description);
                           toast({
                             title: "Copied to Clipboard",
-                            description: "Video concept description copied successfully",
+                            description: "Full video concept copied successfully",
                           });
                         }}
                         className="flex-1"
                       >
                         <Download className="w-4 h-4 mr-1" />
-                        Copy Details
+                        Copy Script
                       </Button>
                     </div>
                   </div>
