@@ -129,3 +129,6 @@ args = "sleep 2"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "NODE_ENV=development tsx server/index.ts"
+
+[agent]
+integrations = ["javascript_gemini==1.0.0"]

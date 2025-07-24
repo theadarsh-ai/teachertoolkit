@@ -408,7 +408,7 @@ export class PDFGeneratorService {
     return html;
   }
 
-  async generatePDF(options: PDFGenerationOptions): Promise<{ filePath: string; filename: string }> {
+  async generatePDF(options: PDFGenerationOptions): Promise<{ filePath: string; fileName: string }> {
     const html = this.generateHTMLTemplate(options);
     
     // Create unique filename
@@ -440,7 +440,7 @@ export class PDFGeneratorService {
       await fs.writeFile(filePath, pdfBuffer);
       
       console.log(`✅ PDF generated successfully: ${filename}`);
-      return { filePath, filename };
+      return { filePath, fileName: filename };
     } catch (error) {
       console.error('PDF generation error:', error);
       throw new Error(`Failed to generate PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
