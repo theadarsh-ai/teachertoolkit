@@ -37,7 +37,7 @@ export class VideoGeneratorService {
     this.ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
     
     // Set up Google Cloud credentials
-    const credentialsPath = path.join(__dirname, 'credentials', 'genzion-ai-service-account.json');
+    const credentialsPath = path.join(__dirname, 'credentials', 'genzion-ai-9d0b2290221b.json');
     process.env.GOOGLE_APPLICATION_CREDENTIALS = credentialsPath;
     
     // Initialize Vertex AI for video generation with proper credentials

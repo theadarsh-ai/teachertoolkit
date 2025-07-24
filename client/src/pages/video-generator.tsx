@@ -106,16 +106,23 @@ export default function VideoGenerator() {
   // Video generation mutation using the backend API
   const generateVideoMutation = useMutation({
     mutationFn: async (config: VideoGenerationRequest) => {
-      const response = await apiRequest("/api/agents/video-generator/generate", {
+      const response = await fetch("/api/agents/video-generator/generate", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
       
-      if (!response.success) {
-        throw new Error(response.error || 'Video generation failed');
+      if (!response.ok) {
+        throw new Error('Video generation failed');
       }
       
-      return response.video;
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Video generation failed');
+      }
+      
+      return data.video;
     },
     onSuccess: (video) => {
       setGeneratedVideos(prev => [video, ...prev]);
@@ -128,7 +135,7 @@ export default function VideoGenerator() {
     onError: (error) => {
       toast({
         title: "Video Generation Failed",
-        description: "Please check your Vertex AI configuration and try again.",
+        description: error instanceof Error ? error.message : "Please check your configuration and try again.",
         variant: "destructive",
       });
     }
