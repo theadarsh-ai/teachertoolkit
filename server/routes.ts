@@ -54,7 +54,7 @@ const upload = multer({
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed'), false);
+      cb(new Error('Only image files are allowed'));
     }
   }
 });
@@ -70,7 +70,7 @@ const audioUpload = multer({
     if (file.mimetype.startsWith('audio/') || file.mimetype === 'application/octet-stream') {
       cb(null, true);
     } else {
-      cb(new Error('Only audio files are allowed'), false);
+      cb(new Error('Only audio files are allowed'));
     }
   }
 });
