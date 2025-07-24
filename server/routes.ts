@@ -674,6 +674,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         
         console.log("Real AI analysis completed successfully");
+        console.log("AI Analysis Response:", JSON.stringify(analysis, null, 2));
         
         // Clean up uploaded file after processing
         if (fs.existsSync(audioFile.path)) {

@@ -306,6 +306,7 @@ export default function AudioReadingAssessment() {
     },
     onSuccess: (data) => {
       console.log("Assessment result received:", data);
+      console.log("Data structure:", JSON.stringify(data, null, 2));
       setAssessmentResult(data);
       setAnalysisProgress(100);
       setIsAnalyzing(false);
