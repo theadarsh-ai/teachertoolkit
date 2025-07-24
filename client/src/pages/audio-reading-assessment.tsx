@@ -15,8 +15,39 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 
+interface WordAnalysis {
+  word: string;
+  index: number;
+  correct: boolean;
+  pronunciationScore: number;
+  timingMs: number;
+  issues: string[];
+}
+
+interface Mistake {
+  word: string;
+  position: number;
+  type: string;
+  severity: 'high' | 'medium' | 'low';
+  suggestion: string;
+  correctPronunciation: string;
+}
+
 interface AudioAssessmentResult {
   overallScore: number;
+  wordAccuracy: {
+    totalWords: number;
+    correctWords: number;
+    incorrectWords: number;
+    accuracyPercentage: number;
+  };
+  transcript: {
+    original: string;
+    detected: string;
+    confidence: number;
+  };
+  wordAnalysis: WordAnalysis[];
+  mistakes: Mistake[];
   pronunciation: {
     score: number;
     feedback: string;
@@ -689,6 +720,148 @@ export default function AudioReadingAssessment() {
                     </Card>
                   )}
                 </div>
+
+                {/* Word Accuracy Summary */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Target className="w-5 h-5 text-blue-500" />
+                      <span>Word Accuracy</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{assessmentResult.wordAccuracy.correctWords}</div>
+                        <div className="text-sm text-gray-600">Correct Words</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-red-600">{assessmentResult.wordAccuracy.incorrectWords}</div>
+                        <div className="text-sm text-gray-600">Incorrect Words</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">{assessmentResult.wordAccuracy.totalWords}</div>
+                        <div className="text-sm text-gray-600">Total Words</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-600">{assessmentResult.wordAccuracy.accuracyPercentage}%</div>
+                        <div className="text-sm text-gray-600">Accuracy</div>
+                      </div>
+                    </div>
+                    <Progress value={assessmentResult.wordAccuracy.accuracyPercentage} className="w-full" />
+                  </CardContent>
+                </Card>
+
+                {/* Transcript Comparison */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Transcript Analysis</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-600 mb-1 block">Original Text:</label>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg text-sm">
+                          {assessmentResult.transcript.original}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-600 mb-1 block">
+                          Detected Speech (Confidence: {Math.round(assessmentResult.transcript.confidence)}%):
+                        </label>
+                        <div className="bg-blue-50 dark:bg-blue-900 p-3 rounded-lg text-sm">
+                          {assessmentResult.transcript.detected}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Mistakes and Corrections */}
+                {assessmentResult.mistakes.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <AlertCircle className="w-5 h-5 text-red-500" />
+                        <span>Identified Mistakes ({assessmentResult.mistakes.length})</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {assessmentResult.mistakes.map((mistake, index) => (
+                          <div key={index} className={`p-3 rounded-lg border-l-4 ${
+                            mistake.severity === 'high' ? 'border-red-500 bg-red-50 dark:bg-red-900/20' :
+                            mistake.severity === 'medium' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' :
+                            'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          }`}>
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium text-gray-900 dark:text-white">"{mistake.word}"</span>
+                                <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">
+                                  Position {mistake.position}
+                                </span>
+                                <span className={`text-xs px-2 py-1 rounded ${
+                                  mistake.severity === 'high' ? 'bg-red-200 text-red-800' :
+                                  mistake.severity === 'medium' ? 'bg-yellow-200 text-yellow-800' :
+                                  'bg-blue-200 text-blue-800'
+                                }`}>
+                                  {mistake.severity}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                              <strong>Issue:</strong> {mistake.type}
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                              <strong>Correct pronunciation:</strong> {mistake.correctPronunciation}
+                            </div>
+                            <div className="text-sm text-blue-700 dark:text-blue-300">
+                              <strong>Suggestion:</strong> {mistake.suggestion}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Word-by-Word Analysis */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Word-by-Word Analysis</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-2 max-h-64 overflow-y-auto">
+                      {assessmentResult.wordAnalysis.map((word, index) => (
+                        <div key={index} className={`flex items-center justify-between p-2 rounded ${
+                          word.correct ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'
+                        }`}>
+                          <div className="flex items-center space-x-3">
+                            <span className="text-xs text-gray-500 w-8">#{word.index}</span>
+                            <span className="font-medium">{word.word}</span>
+                            {word.correct ? (
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                            ) : (
+                              <AlertCircle className="w-4 h-4 text-red-500" />
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm text-gray-600">{word.pronunciationScore}%</span>
+                            {word.issues.length > 0 && (
+                              <div className="flex space-x-1">
+                                {word.issues.map((issue, i) => (
+                                  <span key={i} className="text-xs bg-red-200 text-red-800 px-1 py-0.5 rounded">
+                                    {issue}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Detailed Analysis */}
                 <Card>

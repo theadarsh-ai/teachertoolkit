@@ -622,16 +622,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { value: "urdu", label: "اردو (Urdu)" }
       ];
 
+      // Generate realistic word-level analysis
+      const sampleWords = readingText.split(/\s+/).filter(word => word.length > 0);
+      const totalWords = sampleWords.length;
+      const correctWords = Math.floor(totalWords * (0.75 + Math.random() * 0.2)); // 75-95% accuracy
+      const mistakes = [];
+      const wordAnalysis = [];
+      
+      // Generate word-by-word analysis
+      sampleWords.forEach((word, index) => {
+        const isCorrect = Math.random() > 0.15; // 85% chance of being correct
+        const pronunciationScore = isCorrect ? (85 + Math.random() * 15) : (40 + Math.random() * 40);
+        
+        const wordInfo = {
+          word: word,
+          index: index + 1,
+          correct: isCorrect,
+          pronunciationScore: Math.round(pronunciationScore),
+          timingMs: (index * 400) + Math.random() * 200, // Simulated timing
+          issues: isCorrect ? [] : [
+            Math.random() > 0.5 ? 'pronunciation' : 'stress',
+            Math.random() > 0.7 ? 'clarity' : 'pace'
+          ].filter(Boolean)
+        };
+        
+        wordAnalysis.push(wordInfo);
+        
+        if (!isCorrect) {
+          const mistakeTypes = [
+            'Mispronunciation',
+            'Wrong stress pattern', 
+            'Unclear articulation',
+            'Incorrect vowel sound',
+            'Silent letter not handled',
+            'Blending error'
+          ];
+          
+          mistakes.push({
+            word: word,
+            position: index + 1,
+            type: mistakeTypes[Math.floor(Math.random() * mistakeTypes.length)],
+            severity: Math.random() > 0.6 ? 'high' : 'medium',
+            suggestion: `Practice saying "${word}" with emphasis on ${Math.random() > 0.5 ? 'first' : 'second'} syllable`,
+            correctPronunciation: language === 'hindi' ? `${word} (हिंदी उच्चारण)` : `/${word}/`
+          });
+        }
+      });
+
       // Simulate comprehensive audio analysis
       const mockAnalysis = {
-        overallScore: Math.floor(Math.random() * 30) + 70, // 70-100
+        overallScore: Math.floor((correctWords / totalWords) * 100),
+        wordAccuracy: {
+          totalWords: totalWords,
+          correctWords: correctWords,
+          incorrectWords: totalWords - correctWords,
+          accuracyPercentage: Math.round((correctWords / totalWords) * 100)
+        },
+        transcript: {
+          original: readingText,
+          detected: sampleWords.map(word => 
+            Math.random() > 0.15 ? word : `[${word}?]`
+          ).join(' '),
+          confidence: 85 + Math.random() * 10
+        },
+        wordAnalysis: wordAnalysis,
+        mistakes: mistakes,
         pronunciation: {
           score: Math.floor(Math.random() * 35) + 65,
-          feedback: `Pronunciation is ${language === 'hindi' ? 'हिंदी में' : 'clear with'} good articulation. Some sounds need refinement for better clarity.`,
+          feedback: `Pronunciation shows ${correctWords}/${totalWords} words correct. ${language === 'hindi' ? 'हिंदी उच्चारण' : 'English pronunciation'} needs attention in specific areas.`,
           improvements: [
-            `Work on ${language === 'hindi' ? 'vowel sounds (स्वर)' : 'consonant blends'}`,
-            `Practice ${language === 'english' ? 'th-sounds' : 'aspirated consonants'}`,
-            "Focus on word stress patterns"
+            `Work on ${mistakes.length > 0 ? mistakes[0].word : 'consonant'} sounds`,
+            `Practice ${language === 'english' ? 'th-sounds and r-sounds' : 'aspirated consonants'}`,
+            "Focus on word stress patterns",
+            `Review ${mistakes.length} identified problem words`
           ]
         },
         fluency: {
