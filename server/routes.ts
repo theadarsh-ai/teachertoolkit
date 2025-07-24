@@ -310,7 +310,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { prompt, grades, languages, contentSource, userId, generatePDF = true } = req.body;
       
-      console.log("🎯 Starting content generation with PDF output...");
+      console.log("🎯 Starting content generation with PDF and HTML output...");
       
       const content = await geminiEduService.generateLocalizedContent({
         prompt,
@@ -320,20 +320,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contentSource
       });
       
-      // Generate PDF if requested (default behavior)
+      // Generate both PDF and HTML for download options
       if (generatePDF) {
-        console.log("📄 Generating PDF for content...");
+        console.log("📄 Generating PDF and HTML for content...");
         
-        const pdfResult = await pdfGenerator.generatePDF({
-          title: `Generated Educational Content: ${prompt.substring(0, 50)}...`,
-          content: content.content,
-          grades,
-          languages,
-          agentType: 'Hyper-Local Content Generator',
-          generatedAt: new Date()
-        });
+        const [pdfResult, htmlResult] = await Promise.all([
+          pdfGenerator.generatePDF({
+            title: `Generated Educational Content: ${prompt.substring(0, 50)}...`,
+            content: content.content,
+            grades,
+            languages,
+            agentType: 'Hyper-Local Content Generator',
+            generatedAt: new Date()
+          }),
+          htmlGenerator.generateHTML({
+            title: `Generated Educational Content: ${prompt.substring(0, 50)}...`,
+            content: content.content,
+            grades,
+            languages,
+            agentType: 'Hyper-Local Content Generator',
+            generatedAt: new Date()
+          })
+        ]);
         
-        // Store in database with PDF info
+        // Store in database with both PDF and HTML info
         const generatedContent = await storage.createGeneratedContent({
           userId: userId || 1,
           agentType: 'content-generation',
@@ -345,6 +355,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             contentSource,
             pdfFileName: pdfResult.fileName,
             pdfPath: pdfResult.filePath,
+            htmlFileName: htmlResult.fileName,
+            htmlPath: htmlResult.filePath,
             culturallyRelevant: content.metadata?.culturallyRelevant,
             ncertAligned: content.metadata?.ncertAligned
           }
@@ -357,6 +369,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pdf: {
             fileName: pdfResult.fileName,
             downloadUrl: `/api/download-pdf/${pdfResult.fileName}`
+          },
+          html: {
+            fileName: htmlResult.fileName,
+            downloadUrl: `/api/download-html/${htmlResult.fileName}`
           },
           metadata: content.metadata,
           generatedContent
@@ -372,6 +388,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: error instanceof Error ? error.message : 'Unknown error',
         details: error.stack
       });
+    }
+  });
+
+  // HTML Download route
+  app.get("/api/download-html/:fileName", async (req, res) => {
+    try {
+      const { fileName } = req.params;
+      
+      // Security check - ensure file exists and is HTML
+      if (!fileName.endsWith('.html')) {
+        return res.status(400).json({ error: "Invalid file type" });
+      }
+      
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Cache-Control', 'no-cache');
+      
+      // Send the HTML file
+      res.sendFile(fileName, { root: 'generated_htmls' }, (err) => {
+        if (err) {
+          console.error("HTML download error:", err);
+          if (!res.headersSent) {
+            res.status(404).json({ error: "HTML file not found" });
+          }
+        } else {
+          console.log(`✅ HTML downloaded: ${fileName}`);
+        }
+      });
+    } catch (error) {
+      console.error("HTML download route error:", error);
+      res.status(500).json({ error: "Failed to download HTML file" });
     }
   });
 
@@ -395,12 +442,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.setHeader('Cache-Control', 'no-cache');
       
+      // Determine the correct directory based on file type
+      const rootDir = fileName.endsWith('.html') ? 'generated_htmls' : 'generated_pdfs';
+      
       // Send the file
-      res.sendFile(fileName, { root: 'generated_pdfs' }, (err) => {
+      res.sendFile(fileName, { root: rootDir }, (err) => {
         if (err) {
-          console.error("PDF download error:", err);
+          console.error("File download error:", err);
           if (!res.headersSent) {
-            res.status(404).json({ error: "PDF file not found" });
+            res.status(404).json({ error: "File not found" });
           }
         } else {
           console.log(`✅ PDF downloaded: ${fileName}`);

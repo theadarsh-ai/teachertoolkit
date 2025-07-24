@@ -1,28 +1,44 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import { promises as fs } from 'fs';
+import path from 'path';
 
-interface HTMLGenerationOptions {
+export interface HTMLGenerationOptions {
   title: string;
   content: string;
   grades: number[];
   languages: string[];
+  subject?: string;
   agentType: string;
   generatedAt: Date;
   questionType?: string;
   questionCount?: number;
 }
 
-class HTMLGenerator {
-  private ensureOutputDirectory() {
-    const outputDir = 'generated_htmls';
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-      console.log(`✅ Created HTML output directory: ${outputDir}`);
+export class HTMLGeneratorService {
+  private readonly outputDir = path.join(process.cwd(), 'generated_htmls');
+
+  constructor() {
+    this.ensureOutputDirectory();
+  }
+
+  private async ensureOutputDirectory() {
+    try {
+      await fs.access(this.outputDir);
+    } catch {
+      await fs.mkdir(this.outputDir, { recursive: true });
     }
   }
 
-  private generateCSS(): string {
+  private generateHTMLTemplate(options: HTMLGenerationOptions): string {
+    const { title, content, grades, languages, subject, agentType, generatedAt } = options;
+    
     return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${title}</title>
+      <style>
         * {
           margin: 0;
           padding: 0;
@@ -93,145 +109,128 @@ class HTMLGenerator {
         }
         
         .metadata-value {
+          font-size: 1.1rem;
           font-weight: 600;
-          font-size: 1rem;
         }
         
-        .content-section {
+        .content {
           padding: 40px;
         }
         
-        .content-body {
-          font-size: 1.1rem;
-          line-height: 1.8;
-          color: #444;
+        .section {
+          margin-bottom: 30px;
+          padding: 25px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+          border-left: 5px solid #4f46e5;
         }
         
-        .content-body h2 {
+        .section h2 {
           color: #4f46e5;
-          margin: 30px 0 15px 0;
-          font-size: 1.8rem;
-          border-bottom: 3px solid #e5e7eb;
-          padding-bottom: 10px;
+          margin-bottom: 15px;
+          font-size: 1.5rem;
+          display: flex;
+          align-items: center;
+          gap: 10px;
         }
         
-        .content-body h3 {
+        .section h3 {
           color: #6366f1;
-          margin: 25px 0 12px 0;
-          font-size: 1.4rem;
-        }
-        
-        .content-body h4 {
-          color: #7c3aed;
           margin: 20px 0 10px 0;
           font-size: 1.2rem;
         }
         
-        .content-body p {
+        .section p {
           margin-bottom: 15px;
           text-align: justify;
         }
         
-        .content-body ul, .content-body ol {
-          margin: 15px 0;
-          padding-left: 25px;
+        .section ul {
+          margin-left: 20px;
+          margin-bottom: 15px;
         }
         
-        .content-body li {
+        .section li {
           margin-bottom: 8px;
         }
         
-        .worksheet-header {
-          text-align: center;
-          margin-bottom: 30px;
-          padding: 20px;
-          background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-          border-radius: 12px;
-          border: 2px solid #0ea5e9;
+        .cultural-context {
+          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          border-left-color: #f59e0b;
+          margin: 20px 0;
         }
         
-        .worksheet-info {
-          margin-top: 15px;
+        .learning-objectives {
+          background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+          border-left-color: #10b981;
         }
         
-        .worksheet-info p {
-          margin: 8px 0;
-          font-weight: 500;
+        .activities {
+          background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+          border-left-color: #3b82f6;
         }
         
-        .question-block {
-          margin: 25px 0;
-          padding: 20px;
-          background: #f8fafc;
-          border-radius: 12px;
-          border-left: 4px solid #4f46e5;
+        .assessment {
+          background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+          border-left-color: #ec4899;
         }
         
-        .question-text {
-          font-weight: 600;
-          margin: 10px 0 15px 0;
-          color: #1e293b;
+        .ncert-alignment {
+          background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+          border-left-color: #6366f1;
         }
         
-        .options {
-          margin-left: 20px;
-        }
-        
-        .option {
-          margin: 8px 0;
-          padding: 8px 12px;
-          background: white;
+        .highlight {
+          background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
+          padding: 15px;
           border-radius: 8px;
-          border: 1px solid #e2e8f0;
+          border: 1px solid #eab308;
+          margin: 15px 0;
         }
         
-        .highlight-box {
-          background: linear-gradient(135deg, #fef3c7, #fed7aa);
-          border: 2px solid #f59e0b;
-          border-radius: 12px;
-          padding: 20px;
-          margin: 25px 0;
+        .grade-badge {
+          display: inline-block;
+          background: #4f46e5;
+          color: white;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          margin: 2px;
         }
         
-        .activity-box {
-          background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-          border: 2px solid #22c55e;
-          border-radius: 12px;
-          padding: 20px;
-          margin: 25px 0;
-        }
-        
-        .cultural-reference {
-          background: linear-gradient(135deg, #fce7f3, #f3e8ff);
-          border: 2px solid #a855f7;
-          border-radius: 12px;
-          padding: 20px;
-          margin: 25px 0;
+        .language-badge {
+          display: inline-block;
+          background: #10b981;
+          color: white;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          margin: 2px;
         }
         
         .footer {
           background: #f8fafc;
-          padding: 30px;
+          padding: 20px;
           text-align: center;
-          border-top: 2px solid #e5e7eb;
+          color: #64748b;
+          border-top: 1px solid #e2e8f0;
         }
         
-        .footer .brand {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #4f46e5;
-          margin-bottom: 10px;
+        .agent-info {
+          background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          border: 1px solid #cbd5e1;
         }
         
-        .footer .tagline {
-          color: #666;
-          font-style: italic;
-        }
-        
-        .footer .generation-info {
-          margin-top: 20px;
-          font-size: 0.9rem;
-          color: #888;
+        .content-preview {
+          white-space: pre-wrap;
+          font-family: 'Georgia', serif;
+          line-height: 1.8;
+          font-size: 1.05rem;
         }
         
         @media print {
@@ -245,90 +244,126 @@ class HTMLGenerator {
             border-radius: 0;
           }
         }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>${title}</h1>
+          <div class="subtitle">Generated by ${agentType}</div>
+          
+          <div class="metadata">
+            <div class="metadata-grid">
+              <div class="metadata-item">
+                <div class="metadata-label">Subject</div>
+                <div class="metadata-value">${subject || 'General Education'}</div>
+              </div>
+              <div class="metadata-item">
+                <div class="metadata-label">Grades</div>
+                <div class="metadata-value">
+                  ${grades.map(grade => `<span class="grade-badge">${grade}</span>`).join('')}
+                </div>
+              </div>
+              <div class="metadata-item">
+                <div class="metadata-label">Languages</div>
+                <div class="metadata-value">
+                  ${languages.map(lang => `<span class="language-badge">${lang}</span>`).join('')}
+                </div>
+              </div>
+              <div class="metadata-item">
+                <div class="metadata-label">Generated</div>
+                <div class="metadata-value">${generatedAt.toLocaleDateString('en-IN')}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="agent-info">
+            <h3>🎯 About This Content</h3>
+            <p>This educational content has been generated using AI technology specifically designed for Indian multi-grade classrooms. The content includes cultural references, local examples, and is aligned with NCERT curriculum standards.</p>
+          </div>
+
+          <div class="section learning-objectives">
+            <h2>📚 Educational Content</h2>
+            <div class="content-preview">${this.formatContent(content)}</div>
+          </div>
+
+          <div class="cultural-context">
+            <h3>🇮🇳 Cultural Relevance</h3>
+            <p>This content incorporates Indian cultural context, festivals, local examples, and regional references to make learning more relatable and engaging for Indian students.</p>
+          </div>
+
+          <div class="ncert-alignment">
+            <h3>📖 NCERT Alignment</h3>
+            <p>The content is designed to align with NCERT curriculum standards and can be used to supplement official textbooks with localized examples and cultural context.</p>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p><strong>EduAI Platform</strong> - AI-Powered Educational Assistant for Indian Classrooms</p>
+          <p>Generated on ${generatedAt.toLocaleString('en-IN')} | Culturally Relevant • NCERT Aligned • Multi-Grade Optimized</p>
+        </div>
+      </div>
+    </body>
+    </html>
     `;
   }
 
-  async generateHTML(options: HTMLGenerationOptions): Promise<{ fileName: string; success: boolean }> {
-    try {
-      this.ensureOutputDirectory();
-      
-      const timestamp = Date.now();
-      const sanitizedTitle = options.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      const fileName = `${sanitizedTitle}_${timestamp}.html`;
-      const filePath = path.join('generated_htmls', fileName);
-      
-      const formattedDate = options.generatedAt.toLocaleDateString('en-GB');
-      
-      const htmlContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${options.title}</title>
-  <style>
-    ${this.generateCSS()}
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>${options.title}</h1>
-      <div class="subtitle">AI-Generated Educational Content for Multi-Grade Classrooms</div>
-      
-      <div class="metadata">
-        <div class="metadata-grid">
-          <div class="metadata-item">
-            <div class="metadata-label">Target Grades</div>
-            <div class="metadata-value">${options.grades.join(', ')}</div>
-          </div>
-          <div class="metadata-item">
-            <div class="metadata-label">Languages</div>
-            <div class="metadata-value">${options.languages.join(', ')}</div>
-          </div>
-          ${options.questionCount ? `
-          <div class="metadata-item">
-            <div class="metadata-label">Question Count</div>
-            <div class="metadata-value">${options.questionCount}</div>
-          </div>` : ''}
-          <div class="metadata-item">
-            <div class="metadata-label">Generated By</div>
-            <div class="metadata-value">${options.agentType}</div>
-          </div>
-          <div class="metadata-item">
-            <div class="metadata-label">Generated On</div>
-            <div class="metadata-value">${formattedDate}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="content-section">
-      <div class="content-body">
-        ${options.content}
-      </div>
-    </div>
-    
-    <div class="footer">
-      <div class="brand">EduAI Platform</div>
-      <div class="tagline">Empowering Teachers with AI-Powered Educational Tools</div>
-      <div class="generation-info">
-        Generated by Gemini AI • ${formattedDate} • Multi-Grade Classroom Support
-      </div>
-    </div>
-  </div>
-</body>
-</html>`;
+  private formatContent(content: string): string {
+    // Basic formatting for better display
+    return content
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/^/, '<p>')
+      .replace(/$/, '</p>');
+  }
 
-      fs.writeFileSync(filePath, htmlContent, 'utf8');
+  async generateHTML(options: HTMLGenerationOptions): Promise<{ filePath: string; fileName: string }> {
+    const html = this.generateHTMLTemplate(options);
+    
+    // Create unique filename
+    const timestamp = Date.now();
+    const sanitizedTitle = options.title.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    const filename = `${sanitizedTitle}_${timestamp}.html`;
+    const filePath = path.join(this.outputDir, filename);
+
+    try {
+      await fs.writeFile(filePath, html, 'utf8');
       
-      console.log(`✅ HTML generated successfully: ${fileName}`);
-      return { fileName, success: true };
-      
+      console.log(`✅ HTML generated successfully: ${filename}`);
+      return { filePath, fileName: filename };
     } catch (error) {
-      console.error('❌ HTML generation failed:', error);
-      return { fileName: '', success: false };
+      console.error('HTML generation error:', error);
+      throw new Error(`Failed to generate HTML: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Cleanup old files (optional)
+  async cleanupOldFiles(maxAgeHours: number = 24): Promise<void> {
+    try {
+      const files = await fs.readdir(this.outputDir);
+      const now = Date.now();
+      
+      for (const file of files) {
+        if (file.endsWith('.html')) {
+          const filePath = path.join(this.outputDir, file);
+          const stats = await fs.stat(filePath);
+          const ageHours = (now - stats.mtime.getTime()) / (1000 * 60 * 60);
+          
+          if (ageHours > maxAgeHours) {
+            await fs.unlink(filePath);
+            console.log(`🗑️ Cleaned up old HTML file: ${file}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('HTML cleanup error:', error);
     }
   }
 }
 
-export const htmlGenerator = new HTMLGenerator();
+// Export instance for use in routes
+export const htmlGenerator = new HTMLGeneratorService();

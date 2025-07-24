@@ -313,31 +313,52 @@ export default function ContentGenerator() {
                     </AlertDescription>
                   </Alert>
 
-                  {/* Document Download */}
-                  {generatedContent.pdf && (
-                    <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-green-100 dark:bg-green-800 rounded-full">
-                            <FileText className="w-5 h-5 text-green-600 dark:text-green-400" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-green-800 dark:text-green-200">Document Ready for Download</p>
-                            <p className="text-sm text-green-600 dark:text-green-400">
-                              Structured educational content with Indian cultural examples
-                            </p>
+                  {/* Document Downloads */}
+                  {(generatedContent.pdf || generatedContent.html) && (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="p-2 bg-green-100 dark:bg-green-800 rounded-full">
+                              <FileText className="w-5 h-5 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-green-800 dark:text-green-200">Documents Ready for Download</p>
+                              <p className="text-sm text-green-600 dark:text-green-400">
+                                Structured educational content with Indian cultural examples
+                              </p>
+                            </div>
                           </div>
                         </div>
-                        <Button 
-                          asChild 
-                          size="lg"
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          <a href={generatedContent.pdf.downloadUrl} download>
-                            <Download className="w-5 h-5 mr-2" />
-                            Download
-                          </a>
-                        </Button>
+                        
+                        {/* Download Options */}
+                        <div className="flex gap-3">
+                          {generatedContent.pdf && (
+                            <Button 
+                              asChild 
+                              size="default"
+                              className="bg-red-600 hover:bg-red-700 text-white flex-1"
+                            >
+                              <a href={generatedContent.pdf.downloadUrl} download>
+                                <Download className="w-4 h-4 mr-2" />
+                                PDF Format
+                              </a>
+                            </Button>
+                          )}
+                          
+                          {generatedContent.html && (
+                            <Button 
+                              asChild 
+                              size="default"
+                              className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
+                            >
+                              <a href={generatedContent.html.downloadUrl} download>
+                                <Download className="w-4 h-4 mr-2" />
+                                HTML Format
+                              </a>
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}

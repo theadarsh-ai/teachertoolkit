@@ -1,0 +1,277 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Generated Educational Content: Testing HTML and PDF dual download...</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          padding: 20px;
+        }
+        
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 15px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+          overflow: hidden;
+        }
+        
+        .header {
+          background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+        }
+        
+        .header h1 {
+          font-size: 2.5rem;
+          margin-bottom: 10px;
+          font-weight: 700;
+        }
+        
+        .header .subtitle {
+          font-size: 1.1rem;
+          opacity: 0.9;
+          margin-bottom: 20px;
+        }
+        
+        .metadata {
+          background: rgba(255,255,255,0.1);
+          padding: 15px;
+          border-radius: 10px;
+          margin-top: 20px;
+        }
+        
+        .metadata-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 15px;
+          text-align: center;
+        }
+        
+        .metadata-item {
+          background: rgba(255,255,255,0.1);
+          padding: 10px;
+          border-radius: 8px;
+        }
+        
+        .metadata-label {
+          font-size: 0.9rem;
+          opacity: 0.8;
+          margin-bottom: 5px;
+        }
+        
+        .metadata-value {
+          font-size: 1.1rem;
+          font-weight: 600;
+        }
+        
+        .content {
+          padding: 40px;
+        }
+        
+        .section {
+          margin-bottom: 30px;
+          padding: 25px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+          border-left: 5px solid #4f46e5;
+        }
+        
+        .section h2 {
+          color: #4f46e5;
+          margin-bottom: 15px;
+          font-size: 1.5rem;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        
+        .section h3 {
+          color: #6366f1;
+          margin: 20px 0 10px 0;
+          font-size: 1.2rem;
+        }
+        
+        .section p {
+          margin-bottom: 15px;
+          text-align: justify;
+        }
+        
+        .section ul {
+          margin-left: 20px;
+          margin-bottom: 15px;
+        }
+        
+        .section li {
+          margin-bottom: 8px;
+        }
+        
+        .cultural-context {
+          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          border-left-color: #f59e0b;
+          margin: 20px 0;
+        }
+        
+        .learning-objectives {
+          background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+          border-left-color: #10b981;
+        }
+        
+        .activities {
+          background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+          border-left-color: #3b82f6;
+        }
+        
+        .assessment {
+          background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+          border-left-color: #ec4899;
+        }
+        
+        .ncert-alignment {
+          background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+          border-left-color: #6366f1;
+        }
+        
+        .highlight {
+          background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
+          padding: 15px;
+          border-radius: 8px;
+          border: 1px solid #eab308;
+          margin: 15px 0;
+        }
+        
+        .grade-badge {
+          display: inline-block;
+          background: #4f46e5;
+          color: white;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          margin: 2px;
+        }
+        
+        .language-badge {
+          display: inline-block;
+          background: #10b981;
+          color: white;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          margin: 2px;
+        }
+        
+        .footer {
+          background: #f8fafc;
+          padding: 20px;
+          text-align: center;
+          color: #64748b;
+          border-top: 1px solid #e2e8f0;
+        }
+        
+        .agent-info {
+          background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          border: 1px solid #cbd5e1;
+        }
+        
+        .content-preview {
+          white-space: pre-wrap;
+          font-family: 'Georgia', serif;
+          line-height: 1.8;
+          font-size: 1.05rem;
+        }
+        
+        @media print {
+          body {
+            background: white;
+            padding: 0;
+          }
+          
+          .container {
+            box-shadow: none;
+            border-radius: 0;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Generated Educational Content: Testing HTML and PDF dual download...</h1>
+          <div class="subtitle">Generated by Hyper-Local Content Generator</div>
+          
+          <div class="metadata">
+            <div class="metadata-grid">
+              <div class="metadata-item">
+                <div class="metadata-label">Subject</div>
+                <div class="metadata-value">General Education</div>
+              </div>
+              <div class="metadata-item">
+                <div class="metadata-label">Grades</div>
+                <div class="metadata-value">
+                  <span class="grade-badge">5</span>
+                </div>
+              </div>
+              <div class="metadata-item">
+                <div class="metadata-label">Languages</div>
+                <div class="metadata-value">
+                  <span class="language-badge">English</span>
+                </div>
+              </div>
+              <div class="metadata-item">
+                <div class="metadata-label">Generated</div>
+                <div class="metadata-value">24/7/2025</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="agent-info">
+            <h3>🎯 About This Content</h3>
+            <p>This educational content has been generated using AI technology specifically designed for Indian multi-grade classrooms. The content includes cultural references, local examples, and is aligned with NCERT curriculum standards.</p>
+          </div>
+
+          <div class="section learning-objectives">
+            <h2>📚 Educational Content</h2>
+            <div class="content-preview"><p>Here is educational content for Grade 5, based on NCERT principles, focusing on culturally relevant examples and interactive elements.</p><p>---</p><p>## <strong>Jal Hi Jeevan Hai! (Water is Life!)</strong><br>### A Journey with Our Most Precious Resource</p><p><strong>Target Grades:</strong> 5<br><strong>Subject:</strong> Environmental Studies (EVS) / Science<br><strong>Language:</strong> English</p><p>---</p><p>### <strong>Namaste, Young Explorers! 👋</strong></p><p>Imagine a day without water. Can you? No drinking, no bathing, no cooking, no green plants, no playful splashes! It’s hard to imagine, right? That’s because <strong>water is life!</strong> In India, we say "<strong>Jal Hi Jeevan Hai</strong>" (जल ही जीवन है), meaning "Water is Life". Let's explore why water is so special and how we can protect it.</p><p>---</p><p>### <strong>1. Why is Water So Important?</strong></p><p>Water is absolutely essential for every living thing on Earth – humans, animals, and plants.</p><p><em>   <strong>For Us:</strong> We need water to drink, cook our delicious meals (like piping hot dal and rice!), bathe, wash our clothes, and clean our homes. Think about a cool glass of water after playing in the sun!<br></em>   <strong>For Animals:</strong> Animals also need water to drink and survive. Many animals like fish, frogs, and ducks even live <em>in</em> water!<br><em>   <strong>For Plants:</strong> Plants need water to grow. Without water, our fields won't grow grains, fruits, and vegetables, and our beautiful trees and flowers won't bloom.</p><p><strong>Think and Discuss:</strong> How many times a day do you use water? Make a list!</p><p>---</p><p>### <strong>2. Where Does Our Water Come From?</strong></p><p>Have you ever wondered where all the water we use comes from?</p><p></em>   <strong>Rain:</strong> The most important source of fresh water is rain. It fills up our rivers, lakes, ponds, and even goes deep into the ground.<br><em>   <strong>Rivers (Nadiyan):</strong> India is blessed with many mighty rivers like the <strong>Ganga</strong>, <strong>Yamuna</strong>, <strong>Brahmaputra</strong>, <strong>Godavari</strong>, <strong>Krishna</strong>, and <strong>Cauvery</strong>. These rivers are considered sacred in our culture and provide water for millions of people and vast farmlands.<br></em>   <strong>Lakes (Jheelen) & Ponds (Talab):</strong> Natural lakes and ponds collect rainwater and are home to many aquatic creatures. In places like Udaipur (Rajasthan), lakes are central to the city's beauty and water supply.<br><em>   <strong>Wells (Kuein) & Stepwells (Baolis):</strong> For centuries, people in India have dug wells and built beautiful stepwells (like the famous ones in Rajasthan and Gujarat) to access groundwater. These are amazing examples of traditional water harvesting.<br></em>   <strong>Handpumps & Taps:</strong> These bring groundwater or treated river/lake water directly to our homes and villages.</p><p><strong>Activity Time!</strong><br>Draw a picture of your favourite water source. Is it a river, a well, a tap, or something else?</p><p>---</p><p>### <strong>3. The Magical Journey of Water: The Water Cycle</strong></p><p>Have you ever noticed that water never seems to run out? That's thanks to the amazing <strong>Water Cycle</strong>! It's like water taking a journey from the Earth to the sky and back again.</p><p>1.  <strong>Evaporation (Vaashpeekaran):</strong> When the sun shines on water in rivers, lakes, and oceans, the water turns into invisible water vapour and rises into the sky. It's like water changing into steam when you boil it, but on a much bigger scale!<br>2.  <strong>Condensation (Saghanan):</strong> High up in the sky, the water vapour cools down and turns back into tiny water droplets, forming clouds.<br>3.  <strong>Precipitation (Varshan):</strong> When these clouds get too heavy, the water falls back to Earth as rain, snow, or hail.<br>4.  <strong>Collection:</strong> This water then collects in rivers, lakes, and oceans, or soaks into the ground, ready to start the journey again!</p><p>---</p><p>### <strong>4. Water and Our Culture</strong></p><p>In India, water is not just a resource; it's deeply connected to our culture, traditions, and spirituality.</p><p><em>   <strong>Sacred Rivers:</strong> Rivers like the Ganga are considered holy and are worshipped. Many festivals, like <strong>Ganga Dussehra</strong> and <strong>Chhath Puja</strong>, are celebrated on river banks to honour the water deity.<br></em>   <strong>Water Conservation in Ancient India:</strong> Our ancestors understood the importance of water. They built incredible systems like baolis (stepwells), johads (earthen check dams), and tanks to collect and store rainwater, showing great respect for this precious resource.<br><em>   <strong>"Jal Daan":</strong> Offering water to guests is a sign of respect and hospitality in India. Many people also offer water to plants and animals as an act of kindness.</p><p><strong>Did You Know?</strong> The famous <strong>Rani ki Vav</strong> (Queen's Stepwell) in Gujarat is a UNESCO World Heritage Site, showcasing the incredible engineering and artistic skill of ancient Indians in managing water.</p><p>---</p><p>### <strong>5. Be a Water Warrior: Let's Save Water!</strong></p><p>Even though water cycles, clean and fresh water can be scarce in many places. It's our duty to use water wisely and protect it. Every drop counts!</p><p><strong>Simple Ways to Be a Water Warrior:</strong></p><p></em>   <strong>Don't Waste:</strong> Turn off the tap while brushing your teeth or soaping your hands.<br><em>   <strong>Short Showers:</strong> Take quick showers instead of long baths.<br></em>   <strong>Fix Leaks:</strong> Ask an adult to fix any leaking taps or pipes at home. A single leak can waste many litres of water!<br><em>   <strong>Water Plants Smartly:</strong> Water plants in the morning or evening to reduce evaporation. Use a watering can instead of a hose pipe.<br></em>   <strong>Rainwater Harvesting:</strong> If possible, collect rainwater in buckets to water plants or clean. Many buildings now have systems to collect rainwater and store it for later use. This is called <strong>Rainwater Harvesting</strong>.<br>*   <strong>Educate Others:</strong> Tell your friends and family why it's important to save water.</p><p><strong>Interactive Challenge:</strong><br>Create a "Save Water" poster with a catchy slogan in English and Hindi (e.g., "Save Water, Save Life!" / "पानी बचाओ, जीवन बचाओ!") and draw pictures showing how to save water.</p><p>---</p><p>### <strong>Quiz Time!</strong></p><p>Let's see what you've learned!</p><p>1.  What is the Hindi phrase for "Water is Life"?<br>2.  Name two major rivers in India.<br>3.  What are stepwells also known as?<br>4.  Can you name one step of the Water Cycle?<br>5.  List two ways you can save water at home.</p><p>---</p><p>### <strong>Let's Make a Difference!</strong></p><p>Water is a gift of nature. By understanding its importance and taking small steps to conserve it, we can ensure that this precious resource is available for everyone, for generations to come.</p><p><strong>Remember:</strong> Be a <strong>Jal Rakshak</strong> (Water Protector)!</p><p>---</p></div>
+          </div>
+
+          <div class="cultural-context">
+            <h3>🇮🇳 Cultural Relevance</h3>
+            <p>This content incorporates Indian cultural context, festivals, local examples, and regional references to make learning more relatable and engaging for Indian students.</p>
+          </div>
+
+          <div class="ncert-alignment">
+            <h3>📖 NCERT Alignment</h3>
+            <p>The content is designed to align with NCERT curriculum standards and can be used to supplement official textbooks with localized examples and cultural context.</p>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p><strong>EduAI Platform</strong> - AI-Powered Educational Assistant for Indian Classrooms</p>
+          <p>Generated on 24/7/2025, 9:22:39 pm | Culturally Relevant • NCERT Aligned • Multi-Grade Optimized</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    
