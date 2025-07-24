@@ -137,10 +137,12 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                <i className="fas fa-graduation-cap text-white"></i>
-              </div>
-              <h1 className="ml-3 text-xl font-bold text-gray-900">EduAI Platform</h1>
+              <img 
+                src="/attached_assets/image_1753350466135.png" 
+                alt="Sahayak Platform Logo" 
+                className="w-10 h-10 rounded-lg object-contain"
+              />
+              <h1 className="ml-3 text-xl font-bold text-gray-900">Sahayak Platform</h1>
             </div>
             
             <div className="flex items-center space-x-4">

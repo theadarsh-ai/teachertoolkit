@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multiple Choice Questions - Grades 10</title>
+  <style>
+    
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          padding: 20px;
+        }
+        
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 15px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+          overflow: hidden;
+        }
+        
+        .header {
+          background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+        }
+        
+        .header h1 {
+          font-size: 2.5rem;
+          margin-bottom: 10px;
+          font-weight: 700;
+        }
+        
+        .header .subtitle {
+          font-size: 1.1rem;
+          opacity: 0.9;
+          margin-bottom: 20px;
+        }
+        
+        .metadata {
+          background: rgba(255,255,255,0.1);
+          padding: 15px;
+          border-radius: 10px;
+          margin-top: 20px;
+        }
+        
+        .metadata-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 15px;
+          text-align: center;
+        }
+        
+        .metadata-item {
+          background: rgba(255,255,255,0.1);
+          padding: 10px;
+          border-radius: 8px;
+        }
+        
+        .metadata-label {
+          font-size: 0.9rem;
+          opacity: 0.8;
+          margin-bottom: 5px;
+        }
+        
+        .metadata-value {
+          font-weight: 600;
+          font-size: 1rem;
+        }
+        
+        .content-section {
+          padding: 40px;
+        }
+        
+        .content-body {
+          font-size: 1.1rem;
+          line-height: 1.8;
+          color: #444;
+        }
+        
+        .content-body h2 {
+          color: #4f46e5;
+          margin: 30px 0 15px 0;
+          font-size: 1.8rem;
+          border-bottom: 3px solid #e5e7eb;
+          padding-bottom: 10px;
+        }
+        
+        .content-body h3 {
+          color: #6366f1;
+          margin: 25px 0 12px 0;
+          font-size: 1.4rem;
+        }
+        
+        .content-body h4 {
+          color: #7c3aed;
+          margin: 20px 0 10px 0;
+          font-size: 1.2rem;
+        }
+        
+        .content-body p {
+          margin-bottom: 15px;
+          text-align: justify;
+        }
+        
+        .content-body ul, .content-body ol {
+          margin: 15px 0;
+          padding-left: 25px;
+        }
+        
+        .content-body li {
+          margin-bottom: 8px;
+        }
+        
+        .worksheet-header {
+          text-align: center;
+          margin-bottom: 30px;
+          padding: 20px;
+          background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+          border-radius: 12px;
+          border: 2px solid #0ea5e9;
+        }
+        
+        .worksheet-info {
+          margin-top: 15px;
+        }
+        
+        .worksheet-info p {
+          margin: 8px 0;
+          font-weight: 500;
+        }
+        
+        .question-block {
+          margin: 25px 0;
+          padding: 20px;
+          background: #f8fafc;
+          border-radius: 12px;
+          border-left: 4px solid #4f46e5;
+        }
+        
+        .question-text {
+          font-weight: 600;
+          margin: 10px 0 15px 0;
+          color: #1e293b;
+        }
+        
+        .options {
+          margin-left: 20px;
+        }
+        
+        .option {
+          margin: 8px 0;
+          padding: 8px 12px;
+          background: white;
+          border-radius: 8px;
+          border: 1px solid #e2e8f0;
+        }
+        
+        .highlight-box {
+          background: linear-gradient(135deg, #fef3c7, #fed7aa);
+          border: 2px solid #f59e0b;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        
+        .activity-box {
+          background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+          border: 2px solid #22c55e;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        
+        .cultural-reference {
+          background: linear-gradient(135deg, #fce7f3, #f3e8ff);
+          border: 2px solid #a855f7;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+        }
+        
+        .footer {
+          background: #f8fafc;
+          padding: 30px;
+          text-align: center;
+          border-top: 2px solid #e5e7eb;
+        }
+        
+        .footer .brand {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #4f46e5;
+          margin-bottom: 10px;
+        }
+        
+        .footer .tagline {
+          color: #666;
+          font-style: italic;
+        }
+        
+        .footer .generation-info {
+          margin-top: 20px;
+          font-size: 0.9rem;
+          color: #888;
+        }
+        
+        @media print {
+          body {
+            background: white;
+            padding: 0;
+          }
+          
+          .container {
+            box-shadow: none;
+            border-radius: 0;
+          }
+        }
+    
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Multiple Choice Questions - Grades 10</h1>
+      <div class="subtitle">AI-Generated Educational Content for Multi-Grade Classrooms</div>
+      
+      <div class="metadata">
+        <div class="metadata-grid">
+          <div class="metadata-item">
+            <div class="metadata-label">Target Grades</div>
+            <div class="metadata-value">10</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Languages</div>
+            <div class="metadata-value">English</div>
+          </div>
+          
+          <div class="metadata-item">
+            <div class="metadata-label">Question Count</div>
+            <div class="metadata-value">25</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Generated By</div>
+            <div class="metadata-value">Differentiated Materials - Questions</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Generated On</div>
+            <div class="metadata-value">23/07/2025</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="content-section">
+      <div class="content-body">
+        <div class="worksheet-header">
+      <h1>📚 Multiple Choice Questions</h1>
+      <div class="worksheet-info">
+        <p><strong>Grade Levels:</strong> 10</p>
+        <p><strong>Number of Questions:</strong> 25</p>
+        <p><strong>Instructions:</strong> Choose the best answer for each question. Mark your answers clearly.</p>
+      </div>
+    </div><div class="question-block">
+        <h3>Question 1</h3>
+        <p class="question-text">The plant depicted in Figure 5.21, *Pisum sativum*, belongs to which family described on the page?</p><div class="options"><p class="option"><strong>A.</strong> Solanaceae</p><p class="option"><strong>B.</strong> Fabaceae</p><p class="option"><strong>C.</strong> Brassicaceae</p><p class="option"><strong>D.</strong> Poaceae</p></div></div><div class="question-block">
+        <h3>Question 2</h3>
+        <p class="question-text">The flower of the pea plant is described as 'zygomorphic'. What does this term signify about the flower's symmetry?</p><div class="options"><p class="option"><strong>A.</strong> It can be divided into two equal halves in any radial plane.</p><p class="option"><strong>B.</strong> It cannot be divided into any equal halves.</p><p class="option"><strong>C.</strong> It can be divided into two similar halves only in one particular vertical plane.</p><p class="option"><strong>D.</strong> The floral parts are arranged in a spiral.</p></div></div><div class="question-block">
+        <h3>Question 3</h3>
+        <p class="question-text">The corolla of a pea flower is described as 'papilionaceous'. Which of the following correctly identifies its parts?</p><div class="options"><p class="option"><strong>A.</strong> Five identical petals fused into a tube.</p><p class="option"><strong>B.</strong> A posterior standard, two lateral wings, and two anterior parts forming a keel.</p><p class="option"><strong>C.</strong> Five petals that are twisted in one direction.</p><p class="option"><strong>D.</strong> Two sets of petals forming an upper and lower lip.</p></div></div><div class="question-block">
+        <h3>Question 4</h3>
+        <p class="question-text">The term 'diadelphous', describing the androecium in the pea flower, means that the stamens are arranged in:</p><div class="options"><p class="option"><strong>A.</strong> A single bundle</p><p class="option"><strong>B.</strong> Two bundles</p><p class="option"><strong>C.</strong> Ten separate, free stamens</p><p class="option"><strong>D.</strong> Stamens attached to the petals</p></div></div><div class="question-block">
+        <h3>Question 5</h3>
+        <p class="question-text">In the floral formula for Fabaceae, % ⚥ K(5) C1+2+(2) A(9)+1 G1, what does the symbol 'G1' with a line underneath it represent?</p><div class="options"><p class="option"><strong>A.</strong> A gynoecium with a single, inferior ovary.</p><p class="option"><strong>B.</strong> A gynoecium with multiple, superior ovaries.</p><p class="option"><strong>C.</strong> A gynoecium with a single, superior ovary.</p><p class="option"><strong>D.</strong> A gynoecium that is fused with the androecium.</p></div></div><div class="question-block">
+        <h3>Question 6</h3>
+        <p class="question-text">The textbook lists several pulses of great economic importance in India. Which of the following pairs belongs to the family Fabaceae?</p><div class="options"><p class="option"><strong>A.</strong> Rice and Wheat</p><p class="option"><strong>B.</strong> Arhar and Moong</p><p class="option"><strong>C.</strong> Potato and Tomato</p><p class="option"><strong>D.</strong> Ginger and Turmeric</p></div></div><div class="question-block">
+        <h3>Question 7</h3>
+        <p class="question-text">What is the primary function of the 'keel' in a papilionaceous corolla?</p><div class="options"><p class="option"><strong>A.</strong> To attract insects with its bright color.</p><p class="option"><strong>B.</strong> To store nectar for pollinators.</p><p class="option"><strong>C.</strong> To protect the standard and wing petals.</p><p class="option"><strong>D.</strong> To enclose the essential organs, the stamens and pistil.</p></div></div><div class="question-block">
+        <h3>Question 8</h3>
+        <p class="question-text">According to the floral diagram (Figure 5.21 f), how are the sepals arranged?</p><div class="options"><p class="option"><strong>A.</strong> Five separate sepals (polysepalous)</p><p class="option"><strong>B.</strong> Two large and three small sepals</p><p class="option"><strong>C.</strong> Five fused sepals (gamosepalous)</p><p class="option"><strong>D.</strong> Sepals are absent</p></div></div><div class="question-block">
+        <h3>Question 9</h3>
+        <p class="question-text">The arrangement A(9)+1 in the floral formula specifically indicates:</p><div class="options"><p class="option"><strong>A.</strong> Ten stamens fused into one group.</p><p class="option"><strong>B.</strong> Ten stamens, with nine fused into a bundle and one remaining free.</p><p class="option"><strong>C.</strong> Ten stamens arranged in two whorls of five.</p><p class="option"><strong>D.</strong> Nine stamens and one staminode.</p></div></div><div class="question-block">
+        <h3>Question 10</h3>
+        <p class="question-text">The text states that the seeds of the pea family are 'non-endospermic'. This implies that the food reserves for the embryo are stored in the:</p><div class="options"><p class="option"><strong>A.</strong> Endosperm</p><p class="option"><strong>B.</strong> Perisperm</p><p class="option"><strong>C.</strong> Seed coat</p><p class="option"><strong>D.</strong> Cotyledons</p></div></div><div class="question-block">
+        <h3>Question 11</h3>
+        <p class="question-text">Which of these economically important products, mentioned in the text, is a dye obtained from a plant in the Fabaceae family?</p><div class="options"><p class="option"><strong>A.</strong> Groundnut oil</p><p class="option"><strong>B.</strong> Sunhemp fibre</p><p class="option"><strong>C.</strong> Indigofera</p><p class="option"><strong>D.</strong> Mullathi</p></div></div><div class="question-block">
+        <h3>Question 12</h3>
+        <p class="question-text">The family Solanaceae, introduced at the bottom of the page, is commonly referred to as:</p><div class="options"><p class="option"><strong>A.</strong> The 'pulse family'</p><p class="option"><strong>B.</strong> The 'potato family'</p><p class="option"><strong>C.</strong> The 'cereal family'</p><p class="option"><strong>D.</strong> The 'sunflower family'</p></div></div><div class="question-block">
+        <h3>Question 13</h3>
+        <p class="question-text">Based on the description, the fruit of the pea plant is a legume. A key characteristic of a legume is that it:</p><div class="options"><p class="option"><strong>A.</strong> Is a fleshy fruit with a hard stone</p><p class="option"><strong>B.</strong> Is a dry fruit that develops from a single carpel and typically dehisces (splits open) along two sides</p><p class="option"><strong>C.</strong> Develops from multiple ovaries</p><p class="option"><strong>D.</strong> Is a false fruit</p></div></div><div class="question-block">
+        <h3>Question 14</h3>
+        <p class="question-text">The aestivation (arrangement of sepals or petals in a floral bud) of the corolla in *Pisum sativum* is specifically known as:</p><div class="options"><p class="option"><strong>A.</strong> Valvate</p><p class="option"><strong>B.</strong> Twisted</p><p class="option"><strong>C.</strong> Imbricate</p><p class="option"><strong>D.</strong> Vexillary</p></div></div><div class="question-block">
+        <h3>Question 15</h3>
+        <p class="question-text">A plant is found to have a superior, monocarpellary, unilocular ovary with many ovules. To which family is it most likely to belong, based on the text?</p><div class="options"><p class="option"><strong>A.</strong> Solanaceae</p><p class="option"><strong>B.</strong> Brassicaceae</p><p class="option"><strong>C.</strong> Fabaceae</p><p class="option"><strong>D.</strong> Liliaceae</p></div></div><div class="question-block">
+        <h3>Question 16</h3>
+        <p class="question-text">Which medicinal plant from the Fabaceae family is mentioned in the text, commonly known as 'mullathi'?</p><div class="options"><p class="option"><strong>A.</strong> Trifolium</p><p class="option"><strong>B.</strong> Sesbania</p><p class="option"><strong>C.</strong> Lupin</p><p class="option"><strong>D.</strong> Glycyrrhiza</p></div></div><div class="question-block">
+        <h3>Question 17</h3>
+        <p class="question-text">The text describes the vegetative characters of Solanaceae. What is the typical habit of plants in this family?</p><div class="options"><p class="option"><strong>A.</strong> Mostly large trees</p><p class="option"><strong>B.</strong> Always aquatic herbs</p><p class="option"><strong>C.</strong> Mostly herbs, shrubs, and rarely small trees</p><p class="option"><strong>D.</strong> Only climbers with tendrils</p></div></div><div class="question-block">
+        <h3>Question 18</h3>
+        <p class="question-text">The symbol '%' at the beginning of the floral formula for Fabaceae represents:</p><div class="options"><p class="option"><strong>A.</strong> A bisexual flower</p><p class="option"><strong>B.</strong> An actinomorphic (radially symmetrical) flower</p><p class="option"><strong>C.</strong> An incomplete flower</p><p class="option"><strong>D.</strong> A zygomorphic (bilaterally symmetrical) flower</p></div></div><div class="question-block">
+        <h3>Question 19</h3>
+        <p class="question-text">Based on the text, which of the following is used as fodder for livestock?</p><div class="options"><p class="option"><strong>A.</strong> Soyabean</p><p class="option"><strong>B.</strong> Indigofera</p><p class="option"><strong>C.</strong> Trifolium</p><p class="option"><strong>D.</strong> Sweet pea</p></div></div><div class="question-block">
+        <h3>Question 20</h3>
+        <p class="question-text">According to the handwritten note, a 'tetramerous' flower (floral parts in multiples of four) is characteristic of which family?</p><div class="options"><p class="option"><strong>A.</strong> Solanaceae</p><p class="option"><strong>B.</strong> Fabaceae</p><p class="option"><strong>C.</strong> Brassica family (Brassicaceae)</p><p class="option"><strong>D.</strong> Monocots</p></div></div><div class="question-block">
+        <h3>Question 21</h3>
+        <p class="question-text">The handwritten note on the right lists several examples of monocots. Which of the following crops from that list is a staple food grain in both North and South India?</p><div class="options"><p class="option"><strong>A.</strong> Oats</p><p class="option"><strong>B.</strong> Daffodils</p><p class="option"><strong>C.</strong> Rice</p><p class="option"><strong>D.</strong> Pineapple</p></div></div><div class="question-block">
+        <h3>Question 22</h3>
+        <p class="question-text">Considering all the characteristics provided for the Fabaceae family, which of these plants would NOT belong to it?</p><div class="options"><p class="option"><strong>A.</strong> Gram (Chana)</p><p class="option"><strong>B.</strong> Groundnut (Mungphali)</p><p class="option"><strong>C.</strong> Potato (Aloo)</p><p class="option"><strong>D.</strong> Soyabean</p></div></div><div class="question-block">
+        <h3>Question 23</h3>
+        <p class="question-text">The distribution of the family Solanaceae is described as 'widely distributed in tropics, subtropics and even temperate zones'. What does this imply about the family's adaptability?</p><div class="options"><p class="option"><strong>A.</strong> It can only survive in very hot climates.</p><p class="option"><strong>B.</strong> It has a very narrow geographical range.</p><p class="option"><strong>C.</strong> It is restricted to a single continent.</p><p class="option"><strong>D.</strong> It can thrive in a wide variety of climatic conditions.</p></div></div><div class="question-block">
+        <h3>Question 24</h3>
+        <p class="question-text">A student finds a flower with 10 stamens. Nine are fused to form a sheath around the pistil, and the tenth is separate. This condition is a hallmark of which plant family described?</p><div class="options"><p class="option"><strong>A.</strong> Solanaceae</p><p class="option"><strong>B.</strong> Fabaceae</p><p class="option"><strong>C.</strong> Brassicaceae</p><p class="option"><strong>D.</strong> Monocot families like Poaceae</p></div></div><div class="question-block">
+        <h3>Question 25</h3>
+        <p class="question-text">The floral formula notation 'K(5)' indicates that the calyx is:</p><div class="options"><p class="option"><strong>A.</strong> Composed of five free sepals (polysepalous).</p><p class="option"><strong>B.</strong> Composed of five fused sepals (gamosepalous).</p><p class="option"><strong>C.</strong> Absent, but there are five bracts.</p><p class="option"><strong>D.</strong> Arranged in a spiral.</p></div></div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <div class="brand">EduAI Platform</div>
+      <div class="tagline">Empowering Teachers with AI-Powered Educational Tools</div>
+      <div class="generation-info">
+        Generated by Gemini AI • 23/07/2025 • Multi-Grade Classroom Support
+      </div>
+    </div>
+  </div>
+</body>
+</html>

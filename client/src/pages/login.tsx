@@ -107,7 +107,7 @@ export default function Login() {
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full animate-ping"></div>
               </div>
               <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-4">
-                EduAI Platform
+                Sahayak Platform
               </h1>
               <p className="text-xl text-white/80 font-light">
                 Transform Education with AI-Powered Teaching
@@ -148,7 +148,7 @@ export default function Login() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 text-center">
+            {/* <div className="grid grid-cols-3 gap-4 text-center">
               <div className="p-4 bg-white/5 rounded-xl">
                 <div className="text-2xl font-bold text-white">50K+</div>
                 <div className="text-white/70 text-sm">Teachers</div>
@@ -161,7 +161,7 @@ export default function Login() {
                 <div className="text-2xl font-bold text-white">95%</div>
                 <div className="text-white/70 text-sm">Success Rate</div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
