@@ -93,6 +93,8 @@ export default function GamifiedTeaching() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [timer, setTimer] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showBlast, setShowBlast] = useState(false);
+  const [blastPoints, setBlastPoints] = useState(0);
 
   // Game Generation Mutation
   const generateGameMutation = useMutation({
@@ -185,6 +187,11 @@ export default function GamifiedTeaching() {
     if (isCorrect) {
       newScore += currentQuestion.points;
       
+      // Trigger blast animation
+      setBlastPoints(currentQuestion.points);
+      setShowBlast(true);
+      setTimeout(() => setShowBlast(false), 2000);
+      
       // Check for rewards
       if (newScore > 0 && newScore % 100 === 0) {
         newRewards.push(`${newScore} Points Milestone`);
@@ -237,7 +244,57 @@ export default function GamifiedTeaching() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 p-6 relative">
+      {/* Blast Animation */}
+      {showBlast && (
+        <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
+          <div className="relative flex flex-col items-center justify-center">
+            {/* Multiple expanding circles */}
+            <div 
+              className="absolute w-48 h-48 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 rounded-full opacity-80"
+              style={{
+                animation: 'blast-scale 1.5s ease-out'
+              }}
+            />
+            <div 
+              className="absolute w-36 h-36 bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 rounded-full opacity-80"
+              style={{
+                animation: 'blast-scale 1.5s ease-out 0.2s'
+              }}
+            />
+            <div 
+              className="absolute w-24 h-24 bg-gradient-to-r from-pink-400 via-red-400 to-yellow-400 rounded-full opacity-80"
+              style={{
+                animation: 'blast-scale 1.5s ease-out 0.4s'
+              }}
+            />
+            
+            {/* Points text */}
+            <div 
+              className="text-6xl font-bold text-white z-10"
+              style={{
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                animation: 'points-popup 1.5s ease-out'
+              }}
+            >
+              +{blastPoints}
+            </div>
+            
+            {/* Success message */}
+            <div 
+              className="text-3xl font-bold text-white mt-4 z-10"
+              style={{
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                animation: 'success-fade 1.5s ease-out'
+              }}
+            >
+              🎉 CORRECT! 🎉
+            </div>
+          </div>
+        </div>
+      )}
+      
+
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
