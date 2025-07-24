@@ -158,6 +158,28 @@ async def analyze_performance(request: PerformanceAnalysisRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Performance analysis failed: {str(e)}")
 
+@app.post("/agents/knowledge-base/query")
+async def comprehensive_knowledge_query(request: AgentRequest):
+    """Comprehensive Q&A using NCERT textbooks and external sources"""
+    try:
+        agent = agents["knowledge-base"]
+        result = await agent.process_comprehensive_query(
+            question=request.prompt,
+            grades=request.grades,
+            languages=request.languages,
+            context=request.metadata
+        )
+        
+        return AgentResponse(
+            agent_type="knowledge-base",
+            content=result["content"],
+            metadata=result["metadata"],
+            workflow_steps=result["workflow_steps"]
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Knowledge base query failed: {str(e)}")
+
 @app.post("/agents/master-chatbot/chat")
 async def chat_with_master(request: AgentRequest):
     """Chat with the master agent for routing and context management"""

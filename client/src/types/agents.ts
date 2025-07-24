@@ -42,13 +42,14 @@ export const AGENTS: Agent[] = [
     supportsGrades: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
   },
   {
-    id: 'knowledge-base',
+    id: 'instant-knowledge',
     name: 'Instant Knowledge Base',
-    description: 'Bilingual Q&A engine with analogy-rich answers for teachers and students.',
+    description: 'Comprehensive Q&A system drawing from NCERT textbooks and external educational sources.',
     icon: 'Brain',
-    color: 'from-orange-500 to-red-500',
-    features: ['24/7 Available', 'Bilingual Support', 'Analogy-Rich Answers'],
-    supportedLanguages: ['Hindi', 'English', 'Regional Languages'],
+    color: 'from-blue-500 to-indigo-600',
+    badge: 'Enhanced',
+    features: ['NCERT Integration', 'External Sources', 'Analogy-Rich Answers', 'Multi-Language Support'],
+    supportedLanguages: ['Hindi', 'English', 'Tamil', 'Telugu', 'Marathi', 'Bengali'],
     supportsGrades: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
   },
   {

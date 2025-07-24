@@ -76,6 +76,9 @@ export default function Dashboard() {
     } else if (agent.id === 'video-generator') {
       // Direct navigation to Video Generator page
       setLocation('/video-generator');
+    } else if (agent.id === 'instant-knowledge') {
+      // Direct navigation to Instant Knowledge Base page
+      setLocation('/instant-knowledge');
     } else {
       setSelectedAgent(agent);
       setShowAgentModal(true);

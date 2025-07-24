@@ -15,6 +15,7 @@ import GamifiedTeaching from "@/pages/gamified-teaching";
 import AudioReadingAssessment from "@/pages/audio-reading-assessment";
 import ClassroomAnalytics from "@/pages/classroom-analytics";
 import VideoGenerator from "@/pages/video-generator";
+import InstantKnowledge from "@/pages/instant-knowledge";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -32,6 +33,7 @@ function Router() {
       <Route path="/audio-reading-assessment" component={AudioReadingAssessment} />
       <Route path="/classroom-analytics" component={ClassroomAnalytics} />
       <Route path="/video-generator" component={VideoGenerator} />
+      <Route path="/instant-knowledge" component={InstantKnowledge} />
       <Route component={NotFound} />
     </Switch>
   );
