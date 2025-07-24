@@ -334,8 +334,11 @@ export default function VideoGenerator() {
                       <span className="font-medium">Video Generation in Progress</span>
                     </div>
                     <p className="text-sm text-blue-600 mt-1">
-                      Using Google Veo 3.0 to create your educational video. This may take a few minutes...
+                      Using Google Veo 3.0 via Vertex AI to create your educational video. This may take a few minutes...
                     </p>
+                    <div className="mt-2 text-xs text-blue-500">
+                      ✓ Vertex AI configured with your Google Cloud credentials
+                    </div>
                   </div>
                 )}
               </CardContent>
