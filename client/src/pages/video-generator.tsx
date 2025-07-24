@@ -187,13 +187,13 @@ export default function VideoGenerator() {
                 <Video className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">AI Educational Video Concept Generator</h1>
-                <p className="text-gray-600">Create detailed educational video concepts with Vertex AI & Gemini</p>
+                <h1 className="text-3xl font-bold text-gray-900">AI Video Generator</h1>
+                <p className="text-gray-600">Create educational videos with Google Veo 3.0 & Gemini</p>
               </div>
             </div>
           </div>
           <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-            Powered by Vertex AI
+            Powered by Veo 3.0
           </Badge>
         </div>
 
@@ -460,9 +460,29 @@ export default function VideoGenerator() {
                           These comprehensive blueprints can be used by video creators to produce actual educational videos.
                         </p>
                       </div>
-                      <p className="text-sm text-green-700 mb-3">
-                        Your educational video concept includes detailed planning, structure, script, learning objectives, and production guidelines.
-                      </p>
+                      <div className="mb-3">
+                        {currentVideo.description.includes('🎬 Generated using Google Veo 3.0') ? (
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div className="flex items-center mb-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                              <span className="text-sm font-medium text-green-800">Real Veo 3.0 Video Generated</span>
+                            </div>
+                            <p className="text-xs text-green-700">
+                              This is an actual video file generated using Google's Veo 3.0 model. The video URL below contains a playable MP4 file.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <div className="flex items-center mb-2">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                              <span className="text-sm font-medium text-blue-800">Educational Video Concept</span>
+                            </div>
+                            <p className="text-xs text-blue-700">
+                              This includes detailed planning, structure, script, learning objectives, and production guidelines for video creation.
+                            </p>
+                          </div>
+                        )}
+                      </div>
                       
                       {/* Full Content Preview */}
                       <div className="bg-white rounded p-4 border border-green-200 shadow-sm">
