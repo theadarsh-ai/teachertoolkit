@@ -2098,32 +2098,45 @@ Game Requirements:
 - Educational focus: ${topic}
 - Grade level: ${grade}
 
-Generate:
-1. Game title (engaging and educational)
-2. Game description (2-3 sentences)
-3. 10 educational questions with:
-   - Clear question text
-   - 4 multiple choice options
-   - Correct answer index (0-3)
-   - Educational explanation
-   - Points value (10-50 based on difficulty)
-   - Time limit (15-45 seconds)
-4. 5 reward badges with names, descriptions, and rarity
-5. 3 challenge objectives with rewards
-
-Format as JSON with structure:
+Generate EXACTLY this JSON structure with real educational content:
 {
-  "title": "Game Title",
-  "description": "Description",
-  "questions": [...],
-  "rewards": [...],
-  "challenges": [...],
+  "title": "Engaging Game Title",
+  "description": "2-3 sentence game description",
+  "questions": [
+    {
+      "question": "Actual question text here (not 'Question 1')",
+      "options": ["Option A with real content", "Option B with real content", "Option C with real content", "Option D with real content"],
+      "correctAnswer": 0,
+      "explanation": "Educational explanation of the correct answer",
+      "points": 20,
+      "timeLimit": 30
+    }
+  ],
+  "rewards": [
+    {
+      "name": "Badge Name",
+      "description": "Badge description",
+      "rarity": "common"
+    }
+  ],
+  "challenges": [
+    {
+      "objective": "Challenge description",
+      "reward": "Reward description"
+    }
+  ],
   "metadata": {
     "estimatedTime": ${duration},
     "difficulty": "${difficulty}",
-    "points": totalMaxPoints
+    "points": 200
   }
-}`;
+}
+
+IMPORTANT: 
+- Create 10 questions with REAL question text, not placeholders
+- Each question must be educational and grade-appropriate
+- Options must be meaningful choices related to the topic
+- Provide actual educational content, not generic text`;
 
       const response = await geminiEduService.generateLocalizedContent({
         prompt: gamePrompt,
@@ -2151,7 +2164,7 @@ Format as JSON with structure:
           ...gameData,
           questions: gameData.questions?.map((q: any, index: number) => ({
             id: `q_${index}`,
-            question: q.questionText || q.question || `Question ${index + 1}`,
+            question: q.question || q.questionText || `Question ${index + 1}: Please provide actual question content`,
             options: q.options || ['Option A', 'Option B', 'Option C', 'Option D'],
             correctAnswer: q.correctAnswerIndex !== undefined ? q.correctAnswerIndex : (q.correctAnswer || 0),
             explanation: q.educationalExplanation || q.explanation || 'Explanation not provided',
