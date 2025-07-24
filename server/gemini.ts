@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import * as fs from "fs";
 
 // Gemini AI service for EduAI Platform
 // Supports multilingual content generation for Indian education context
@@ -254,6 +255,108 @@ Ensure the plan is practical for Indian classroom contexts with limited resource
       };
     } catch (error) {
       throw new Error(`Lesson planning failed: ${error}`);
+    }
+  }
+
+  async analyzeAudioReading(audioFilePath: string, readingText: string, language: string, grade: number): Promise<any> {
+    try {
+      // Read the audio file
+      const audioBytes = fs.readFileSync(audioFilePath);
+
+      const analysisPrompt = `You are an expert speech therapist and reading assessment specialist. Analyze this audio recording of a student reading aloud.
+
+READING TEXT:
+"${readingText}"
+
+STUDENT DETAILS:
+- Grade: ${grade}
+- Language: ${language}
+- Expected reading level: Grade ${grade} appropriate
+
+ANALYSIS REQUIREMENTS:
+1. Compare the audio against the provided reading text
+2. Identify specific words that were mispronounced or read incorrectly
+3. Provide word-by-word accuracy scoring
+4. Assess pronunciation, fluency, and comprehension
+5. Give specific, actionable improvement suggestions
+
+Please provide a detailed JSON response with this exact structure:
+{
+  "overallScore": number (0-100),
+  "wordAccuracy": {
+    "totalWords": number,
+    "correctWords": number,
+    "incorrectWords": number,
+    "accuracyPercentage": number
+  },
+  "transcript": {
+    "original": "exact reading text",
+    "detected": "what student actually said",
+    "confidence": number (0-100)
+  },
+  "wordAnalysis": [
+    {
+      "word": "string",
+      "index": number,
+      "correct": boolean,
+      "pronunciationScore": number (0-100),
+      "timingMs": number,
+      "issues": ["pronunciation", "stress", "clarity", "pace"]
+    }
+  ],
+  "mistakes": [
+    {
+      "word": "string",
+      "position": number,
+      "type": "string",
+      "severity": "high|medium|low",
+      "suggestion": "string",
+      "correctPronunciation": "string"
+    }
+  ],
+  "pronunciation": {
+    "score": number (0-100),
+    "feedback": "string",
+    "improvements": ["string"]
+  },
+  "fluency": {
+    "score": number (0-100),
+    "wpm": number,
+    "pace": "string",
+    "feedback": "string"
+  },
+  "comprehension": {
+    "score": number (0-100),
+    "accuracy": number,
+    "feedback": "string"
+  },
+  "detailedAnalysis": "string",
+  "recommendations": ["string"],
+  "nextSteps": ["string"]
+}`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-pro",
+        config: {
+          responseMimeType: "application/json"
+        },
+        contents: [
+          {
+            inlineData: {
+              data: audioBytes.toString("base64"),
+              mimeType: "audio/webm"
+            }
+          },
+          analysisPrompt
+        ]
+      });
+
+      const analysisResult = JSON.parse(response.text || "{}");
+      return analysisResult;
+
+    } catch (error) {
+      console.error("Audio analysis error:", error);
+      throw new Error(`Audio analysis failed: ${error}`);
     }
   }
 

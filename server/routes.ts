@@ -761,10 +761,29 @@ ${language === 'hindi' ? '• देवनागरी script reading shows good
         ]
       };
 
-      // Add processing delay to simulate real analysis
-      setTimeout(() => {
-        res.json(mockAnalysis);
-      }, 2000);
+      // Use real AI analysis instead of mock data
+      try {
+        console.log("Starting real AI analysis for audio file:", audioFile.path);
+        const analysis = await geminiEduService.analyzeAudioReading(
+          audioFile.path,
+          readingText.trim(),
+          language,
+          parseInt(grade)
+        );
+        
+        console.log("Real AI analysis completed successfully");
+        res.json(analysis);
+      } catch (aiError) {
+        console.error("AI analysis failed:", aiError);
+        
+        // Provide informative error message instead of mock data
+        return res.status(500).json({
+          error: "Audio analysis service unavailable",
+          message: "The AI audio analysis service is currently unavailable. Please ensure you have a valid Gemini API key configured.",
+          details: aiError instanceof Error ? aiError.message : 'Unknown AI error',
+          suggestion: "Please check your API configuration or try again later."
+        });
+      }
 
     } catch (error) {
       console.error("Audio assessment error:", error);
