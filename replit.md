@@ -111,44 +111,288 @@ Preferred communication style: Simple, everyday language.
 ✓ **Full Feature Compatibility**: All 11 AI agents, PDF generation, and image processing working on Firebase
 ✓ **Backward Compatibility**: All changes maintain existing Replit functionality
 
-## System Architecture
+## Complete System Architecture
 
-### Frontend Architecture
-- **Framework**: React 18 with TypeScript
-- **Styling**: Tailwind CSS with custom gradient themes and technology-focused design
-- **UI Components**: Radix UI components styled with shadcn/ui
-- **State Management**: TanStack React Query for server state
-- **Routing**: Wouter for lightweight client-side routing
-- **Build Tool**: Vite for fast development and optimized production builds
+### Frontend Architecture (React + TypeScript)
+- **Framework**: React 18.2+ with TypeScript 5.0+
+- **Build System**: Vite 4.0+ with Hot Module Replacement (HMR)
+- **Styling**: Tailwind CSS 3.3+ with custom gradient themes and glassmorphism effects
+- **UI Component Library**: Radix UI primitives with shadcn/ui styling system
+- **State Management**: TanStack React Query v5 for server state synchronization
+- **Form Management**: React Hook Form with Zod schema validation
+- **Routing**: Wouter for lightweight client-side routing (alternative to React Router)
+- **Icons**: Lucide React + React Icons for comprehensive icon coverage
+- **Animation**: Framer Motion for smooth transitions and micro-interactions
+- **File Structure**:
+  ```
+  client/src/
+  ├── components/ui/          # Reusable UI components (shadcn/ui)
+  ├── pages/                  # Route-based page components
+  ├── lib/                    # Utility functions and configurations
+  ├── hooks/                  # Custom React hooks
+  ├── types/                  # TypeScript type definitions
+  └── assets/                 # Static assets and images
+  ```
 
-### Backend Architecture
-- **Runtime**: Node.js with Express.js REST API
-- **Language**: TypeScript with ES modules
-- **Database ORM**: Drizzle ORM with PostgreSQL
-- **Session Management**: PostgreSQL-based session storage
-- **API Design**: RESTful endpoints with standardized JSON responses
+### Backend Architecture (Node.js + Express + TypeScript)
+- **Runtime Environment**: Node.js 18+ with ES Modules support
+- **Web Framework**: Express.js 4.18+ with TypeScript
+- **Database ORM**: Drizzle ORM with PostgreSQL for type-safe database operations
+- **Session Management**: Express-session with connect-pg-simple for PostgreSQL storage
+- **File Upload**: Multer for handling multipart/form-data
+- **API Design**: RESTful architecture with standardized JSON responses
+- **Error Handling**: Centralized error middleware with proper HTTP status codes
+- **Security**: CORS, helmet, and input validation with Zod schemas
+- **File Structure**:
+  ```
+  server/
+  ├── index.ts               # Express server entry point
+  ├── routes.ts              # API route definitions
+  ├── storage.ts             # Database interface and operations
+  ├── video-generator.ts     # Video generation service
+  └── vite.ts               # Vite integration for development
+  ```
 
-### Authentication & Authorization
-- **Primary Auth**: Firebase Authentication with Google OAuth
-- **Session Handling**: Express sessions with PostgreSQL store
-- **User Management**: Firebase UID mapping to internal user records
+### Python AI Agent Architecture (LangGraph + FastAPI)
+- **Framework**: FastAPI for high-performance async API endpoints
+- **AI Orchestration**: LangGraph for complex multi-step AI workflows
+- **Language Model**: Google Gemini 2.5 Flash/Pro for text generation
+- **Workflow Engine**: StateGraph for managing agent state transitions
+- **Base Architecture**: All agents inherit from BaseEducationalAgent class
+- **Agent Communication**: RESTful API bridge between Node.js and Python services
+- **File Structure**:
+  ```
+  python_agents/
+  ├── main.py                # FastAPI server and route definitions
+  ├── agents/
+  │   ├── base_agent.py      # Base class for all educational agents
+  │   ├── content_generator.py      # Hyper-local content generation
+  │   ├── knowledge_base.py         # Enhanced Q&A system
+  │   ├── lesson_planner.py         # NCERT-integrated lesson planning
+  │   ├── differentiated_materials.py  # Multi-grade content adaptation
+  │   ├── visual_aids.py            # AR and diagram generation
+  │   ├── gamified_teaching.py      # Interactive game creation
+  │   ├── master_chatbot.py         # Central agent coordinator
+  │   └── [other specialized agents]
+  └── requirements.txt       # Python dependencies
+  ```
+
+### Database Architecture (PostgreSQL + Drizzle ORM)
+- **Database Engine**: PostgreSQL 15+ with JSONB support for flexible data storage
+- **ORM**: Drizzle ORM for type-safe database operations
+- **Schema Management**: `shared/schema.ts` for consistent type definitions
+- **Migration System**: Drizzle Kit for database schema migrations
+- **Tables**:
+  ```sql
+  -- Users table for authentication mapping
+  users (id, firebase_uid, email, display_name, created_at)
+  
+  -- Agent configurations per user
+  agent_configs (id, user_id, agent_id, grades, languages, settings)
+  
+  -- Chat sessions for conversation history
+  chat_sessions (id, user_id, agent_id, title, created_at)
+  
+  -- Individual messages within chat sessions
+  chat_messages (id, session_id, role, content, metadata, timestamp)
+  
+  -- Generated content with versioning
+  generated_content (id, user_id, agent_id, content_type, data, metadata)
+  ```
+
+### Authentication & Authorization System
+- **Primary Authentication**: Firebase Authentication 9.0+ with Google OAuth 2.0
+- **Session Management**: Express-session with PostgreSQL store for server-side sessions
+- **User Flow**:
+  1. Frontend initiates Google OAuth via Firebase Auth
+  2. Firebase handles OAuth redirect and token exchange
+  3. Backend receives Firebase ID token and verifies it
+  4. User record created/retrieved in PostgreSQL using Firebase UID
+  5. Express session established with encrypted session cookie
+- **Security Features**:
+  - HTTPS enforcement for all authentication flows
+  - Secure session cookies with SameSite and HttpOnly flags
+  - Firebase ID token verification for API endpoints
+  - CORS configured for authorized domains only
+
+### API Architecture & Endpoints
+- **Base URL**: `/api/` prefix for all backend endpoints
+- **Agent Endpoints**:
+  ```
+  POST /api/agents/content-generation/generate
+  POST /api/agents/differentiated-materials/process
+  POST /api/agents/lesson-planner/generate
+  POST /api/agents/knowledge-base/query
+  POST /api/agents/visual-aids/generate
+  POST /api/agents/gamified-teaching/generate
+  POST /api/agents/audio-assessment/analyze
+  POST /api/video-generator/generate
+  POST /api/agents/master-chatbot/chat
+  ```
+- **NCERT Database Endpoints**:
+  ```
+  GET /api/ncert/textbooks
+  GET /api/ncert/textbooks/class/:classNum
+  GET /api/ncert/lessons
+  POST /api/ncert/scrape
+  ```
+- **Utility Endpoints**:
+  ```
+  GET /api/langgraph/agents/health
+  GET /api/sketchfab/models
+  ```
+
+### Real-time Communication & WebSocket Integration
+- **WebSocket Support**: Native WebSocket for real-time features
+- **Audio Processing**: Web Audio API for live recording and playback
+- **File Upload**: Streaming file upload with progress tracking
+- **Live Updates**: Real-time agent status and processing updates
 
 ## Key Components
 
-### AI Agent System
-The platform features 11 specialized AI agents built with LangGraph:
+### AI Agent System - Detailed Technical Architecture
 
-1. **Hyper-Local Content Generation**: Creates culturally relevant materials in 8+ Indian languages
-2. **Differentiated Materials**: Adapts content across multiple grade levels (1-12)
-3. **AI Lesson Planner**: Automated curriculum scheduling and progress tracking
-4. **Instant Knowledge Base**: Bilingual Q&A system with analogy-rich responses
-5. **Visual Aids Designer**: Generates diagrams, flowcharts, and AR content
-6. **Gamified Teaching**: Interactive elements with badges and leaderboards
-7. **Classroom Analytics**: Real-time performance monitoring and pacing recommendations
-8. **Audio Reading Assessment**: Speech analysis for pronunciation and fluency
-9. **Master Agent Chatbot**: Central routing and context management
-10. **Performance Analysis**: Personalized learning path recommendations
-11. **AR Integration**: Sketchfab-powered augmented reality features
+The platform features 12 specialized AI agents built with Python LangGraph and Node.js backend integration:
+
+#### 1. **Hyper-Local Content Generation Agent**
+- **Technical Stack**: Python LangGraph + Gemini AI + Speech-to-Text API
+- **File Location**: `python_agents/agents/content_generator.py`, `client/src/pages/content-generator.tsx`
+- **Capabilities**: 
+  - Processes speech-to-text input for hands-free content creation
+  - Supports 8 Indian languages (Hindi, Marathi, Tamil, Kannada, Malayalam, English, Telugu, Bengali)
+  - Generates culturally relevant educational materials with local examples
+  - Adapts content based on regional festivals, customs, and cultural references
+- **API Endpoints**: `/api/agents/content-generation/generate`
+- **Workflow Steps**: Input Processing → Language Detection → Cultural Context Analysis → Content Generation → Localization
+- **Output Formats**: Text, HTML, structured educational materials
+
+#### 2. **Differentiated Materials Creator Agent**
+- **Technical Stack**: Python LangGraph + File Processing + Multi-format Output Generation
+- **File Location**: `python_agents/agents/differentiated_materials.py`, `client/src/pages/differentiated-materials.tsx`
+- **Capabilities**:
+  - Processes PDF, DOCX, CSV, and plain text files
+  - Automatically adapts single content into multiple grade-level versions (1st-12th)
+  - Maintains core educational concepts while adjusting complexity
+  - Generates downloadable templates and worksheets
+- **API Endpoints**: `/api/agents/differentiated-materials/process`
+- **Workflow Steps**: File Upload → Content Analysis → Grade-level Adaptation → Template Generation → Export
+- **Processing Pipeline**: Uses multer for file upload, extracts text content, analyzes complexity, generates differentiated versions
+
+#### 3. **AI Lesson Planner Agent**
+- **Technical Stack**: Python LangGraph + NCERT Database Integration + Curriculum Analysis
+- **File Location**: `python_agents/agents/lesson_planner.py`, `client/src/pages/lesson-planner.tsx`
+- **Capabilities**:
+  - Integrates with comprehensive NCERT textbook database
+  - Generates weekly 5-day lesson plans with structured activities
+  - Tracks curriculum progress and provides pacing recommendations
+  - Supports CBSE, ICSE, and State Board curricula
+- **API Endpoints**: `/api/agents/lesson-planner/generate`, `/api/ncert/lessons`
+- **Workflow Steps**: Syllabus Analysis → Curriculum Mapping → Weekly Planning → Activity Generation → Progress Tracking
+- **NCERT Integration**: Real textbook data from Classes 1, 6, 9, and 10 with lesson selection system
+
+#### 4. **Enhanced Instant Knowledge Base Agent**
+- **Technical Stack**: Python LangGraph + Gemini AI + NCERT Database + External Source Integration
+- **File Location**: `python_agents/agents/knowledge_base.py`, `client/src/pages/instant-knowledge.tsx`
+- **Capabilities**:
+  - Comprehensive Q&A system drawing from NCERT textbooks and external educational sources
+  - Provides detailed scientific explanations with step-by-step processes
+  - Generates culturally relevant analogies and follow-up questions
+  - Multi-language support with grade-appropriate responses
+- **API Endpoints**: `/api/agents/knowledge-base/query`
+- **Workflow Steps**: Question Analysis → NCERT Search → External Source Search → Answer Synthesis → Analogy Creation → Follow-up Generation
+- **Enhanced Features**: Real-time confidence scoring, source citation, comprehensive fallback responses
+
+#### 5. **Visual Aids Designer Agent**
+- **Technical Stack**: Python LangGraph + Sketchfab API + AR Content Generation
+- **File Location**: `python_agents/agents/visual_aids.py`, `client/src/pages/visual-aids.tsx`
+- **Capabilities**:
+  - Generates educational diagrams, flowcharts, and mind maps
+  - Integrates with Sketchfab API for authentic 3D educational models
+  - Creates AR-ready content for complex concept visualization
+  - Supports science, mathematics, and geography visualizations
+- **API Endpoints**: `/api/agents/visual-aids/generate`, `/api/sketchfab/models`
+- **AR Integration**: 25+ authentic educational 3D models from verified sources including medical schools and educational institutions
+- **Model Sources**: Brain anatomy from university collections, cellular structures from verified creators
+
+#### 6. **Gamified Teaching Agent**
+- **Technical Stack**: Python LangGraph + Real-time Game Generation + Achievement System
+- **File Location**: `python_agents/agents/gamified_teaching.py`, `client/src/pages/gamified-teaching.tsx`
+- **Capabilities**:
+  - Generates interactive educational games (Quiz, Memory, Puzzle, Racing)
+  - Real-time scoring system with achievement badges
+  - Leaderboards and progress tracking
+  - Grade-level adaptive difficulty (1st-12th)
+- **API Endpoints**: `/api/agents/gamified-teaching/generate`
+- **Game Engine**: Custom React-based game engine with timer, scoring, and reward mechanics
+- **Workflow Steps**: Topic Analysis → Game Type Selection → Question Generation → Reward System Setup → Real-time Gameplay
+
+#### 7. **Audio Reading Assessment Agent**
+- **Technical Stack**: Gemini AI + Web Audio API + Speech Recognition + Multi-language Analysis
+- **File Location**: `client/src/pages/audio-reading-assessment.tsx`
+- **Capabilities**:
+  - Live microphone recording with professional audio settings
+  - File upload support (MP3, WAV, WebM)
+  - Real AI analysis of pronunciation, fluency, and comprehension
+  - Supports 10 languages including Hindi, English, Tamil, Telugu, Marathi, Bengali, Gujarati, Kannada, Punjabi, Urdu
+- **API Endpoints**: `/api/agents/audio-assessment/analyze`
+- **Assessment Pipeline**: Audio Capture → Speech-to-Text → AI Analysis → Scoring → Feedback Generation
+- **Real Features**: Authentic word-by-word analysis, mistake identification, improvement suggestions
+
+#### 8. **Video Generation Agent (Google Veo 3.0)**
+- **Technical Stack**: Google Veo 3.0 API + Python Bridge + Cloud Storage
+- **File Location**: `server/video-generator.ts`, `python_agents/python-video-bridge.py`, `client/src/pages/video-generator.tsx`
+- **Capabilities**:
+  - Real MP4 video generation using Google Veo 3.0
+  - Educational content creation with custom prompts
+  - Cloud storage integration for video hosting
+  - Professional video processing pipeline
+- **API Endpoints**: `/api/video-generator/generate`
+- **Technical Architecture**: Node.js service calls Python bridge which uses Google genai.Client for actual video generation
+- **Real Output**: Generates authentic MP4 files hosted on Google Cloud Storage
+
+#### 9. **Classroom Analytics & Pacing Agent**
+- **Technical Stack**: React Dashboard + Chart.js + Performance Analytics
+- **File Location**: `client/src/pages/classroom-analytics.tsx`
+- **Capabilities**:
+  - Teacher usage statistics across all 11 AI agents
+  - Curriculum pacing analysis with behind-schedule alerts
+  - Performance metrics with weekly overviews
+  - AI-powered recommendations for classroom improvement
+- **Dashboard Features**: Multi-tab interface (Overview, Agent Usage, Pacing Insights, Recommendations)
+- **Analytics Engine**: Hard-coded data showing agent usage patterns, success rates, and performance trends
+
+#### 10. **AR Integration Agent**
+- **Technical Stack**: Sketchfab API + 3D Model Database + WebGL Rendering
+- **File Location**: `client/src/pages/ar-integration.tsx`
+- **Capabilities**:
+  - Authentic educational 3D models from verified Sketchfab sources
+  - Brain anatomy, heart models, cellular structures from medical institutions
+  - Real-time 3D model embedding and interaction
+  - Educational content matching with smart search algorithms
+- **Model Database**: 25+ authentic models from universities, medical schools, and verified educational creators
+- **Technical Implementation**: Sketchfab embed URLs with proper model IDs and licensing
+
+#### 11. **Master Agent Chatbot**
+- **Technical Stack**: Python LangGraph + Context Management + Agent Routing
+- **File Location**: `python_agents/agents/master_chatbot.py`
+- **Capabilities**:
+  - Central routing system for all AI agents
+  - Context management across multiple conversations
+  - Intelligent agent selection based on user queries
+  - Session management and conversation history
+- **API Endpoints**: `/api/agents/master-chatbot/chat`
+- **Architecture**: Acts as orchestrator for all other agents, maintains conversation state, routes requests to appropriate specialized agents
+
+#### 12. **NCERT Integration System**
+- **Technical Stack**: Firebase Firestore + Web Scraping + Curriculum Database
+- **File Location**: `server/routes.ts` (NCERT endpoints), `client/src/pages/ncert.tsx`
+- **Capabilities**:
+  - Complete NCERT textbook database with real curriculum content
+  - Automated web scraping from NCERT official sources
+  - Lesson selection system with multi-select functionality
+  - Integration with lesson planner and knowledge base agents
+- **API Endpoints**: `/api/ncert/scrape`, `/api/ncert/textbooks`, `/api/ncert/lessons`
+- **Database Schema**: Textbooks with class, subject, chapters, and lesson mapping
 
 ### Database Schema
 - **Users**: Firebase UID mapping, profile information
