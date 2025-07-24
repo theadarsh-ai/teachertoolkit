@@ -2274,7 +2274,7 @@ IMPORTANT:
         style: style || "Educational Animation"
       };
 
-      const video = await videoGeneratorService.generateEducationalVideo(videoRequest);
+      const video = await videoGeneratorService.generateVideo(videoRequest);
       
       res.json({
         success: true,
