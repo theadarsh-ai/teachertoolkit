@@ -623,11 +623,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       // Generate realistic word-level analysis
-      const sampleWords = readingText.split(/\s+/).filter(word => word.length > 0);
+      console.log("Reading text received:", readingText);
+      
+      // Handle empty reading text
+      if (!readingText || readingText.trim().length === 0) {
+        return res.status(400).json({ 
+          error: "Reading text is required for analysis",
+          message: "Please provide the text that was read aloud for assessment." 
+        });
+      }
+      
+      const sampleWords = readingText.trim().split(/\s+/).filter(word => word.length > 0);
       const totalWords = sampleWords.length;
+      
+      if (totalWords === 0) {
+        return res.status(400).json({ 
+          error: "No words found in reading text",
+          message: "Please provide valid text content for analysis." 
+        });
+      }
+      
       const correctWords = Math.floor(totalWords * (0.75 + Math.random() * 0.2)); // 75-95% accuracy
       const mistakes = [];
       const wordAnalysis = [];
+      
+      console.log(`Processing ${totalWords} words from text: "${readingText.substring(0, 100)}..."`;
       
       // Generate word-by-word analysis
       sampleWords.forEach((word, index) => {

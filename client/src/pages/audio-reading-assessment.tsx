@@ -298,20 +298,24 @@ export default function AudioReadingAssessment() {
       return response.json();
     },
     onSuccess: (data) => {
+      console.log("Assessment result received:", data);
       setAssessmentResult(data);
       setAnalysisProgress(100);
+      setIsAnalyzing(false);
       toast({
         title: "Assessment Complete!",
-        description: "Your audio analysis is ready",
+        description: `Analysis completed for ${data.wordAccuracy?.totalWords || 0} words`,
       });
     },
     onError: (error) => {
+      console.error("Assessment error:", error);
+      setIsAnalyzing(false);
+      setAnalysisProgress(0);
       toast({
         title: "Analysis Failed",
         description: error instanceof Error ? error.message : 'Analysis failed',
         variant: "destructive",
       });
-      setAnalysisProgress(0);
     }
   });
 
@@ -484,13 +488,17 @@ export default function AudioReadingAssessment() {
 
                 {assessmentType === "reading" && (
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Reading Text</label>
+                    <label className="text-sm font-medium mb-2 block">Reading Text *</label>
                     <Textarea
                       placeholder="Enter the text that will be read aloud for assessment..."
                       value={readingText}
                       onChange={(e) => setReadingText(e.target.value)}
                       rows={4}
+                      className={readingText.trim().length === 0 ? "border-red-300" : ""}
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      This text will be used to analyze pronunciation and accuracy word-by-word
+                    </p>
                   </div>
                 )}
               </CardContent>
