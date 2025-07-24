@@ -578,20 +578,43 @@ export default function VideoGenerator() {
               </Card>
             )}
 
-            {/* Pro Tips */}
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-yellow-50 to-orange-50">
+            {/* System Information */}
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-orange-800">
+                <CardTitle className="flex items-center space-x-2 text-blue-800">
                   <AlertCircle className="w-5 h-5" />
-                  <span>Pro Tips</span>
+                  <span>About This Tool</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-orange-700 space-y-2">
+              <CardContent className="text-sm text-blue-700 space-y-3">
+                <div className="bg-white/70 p-3 rounded border border-blue-200">
+                  <h4 className="font-semibold mb-2 text-blue-800">What This Generates:</h4>
+                  <p>• Detailed educational video scripts & concepts</p>
+                  <p>• Complete production guidelines & visual descriptions</p>
+                  <p>• Learning objectives & pedagogical frameworks</p>
+                  <p>• Scene-by-scene breakdowns for video creators</p>
+                </div>
+                <div className="bg-yellow-50 p-3 rounded border border-yellow-200">
+                  <h4 className="font-semibold mb-2 text-yellow-800">Important Note:</h4>
+                  <p className="text-yellow-700">This creates comprehensive video concepts and scripts using Vertex AI - not playable video files. The generated content provides detailed blueprints for video production teams.</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Pro Tips */}
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-green-800">
+                  <Sparkles className="w-5 h-5" />
+                  <span>Content Tips</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-green-700 space-y-2">
                 <p>• Be specific about visual elements and educational concepts</p>
                 <p>• Include grade-appropriate language and examples</p>
                 <p>• Mention if you want labels, text, or narration</p>
                 <p>• Consider cultural context for Indian students</p>
-                <p>• Videos work best with clear learning objectives</p>
+                <p>• Concepts work best with clear learning objectives</p>
               </CardContent>
             </Card>
           </div>
