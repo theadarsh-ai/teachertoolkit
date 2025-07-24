@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Video Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    #video-container { margin-top: 20px; }
+    video { width: 100%; max-width: 800px; }
+  </style>
+</head>
+<body>
+  <h1>Generate Educational Video</h1>
+  <form id="videoForm">
+    <label for="prompt">Prompt:</label><br>
+    <textarea id="prompt" rows="4" cols="50">Generate the Animation video for working principle of water cycle for student understanding with labels.</textarea><br><br>
+
+    <button type="submit">Generate Video</button>
+  </form>
+
+  <div id="status"></div>
+  <div id="video-container"></div>
+
+  <script>
+    document.getElementById('videoForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      console.log('Thirumba Vanthuten')
+      const prompt = document.getElementById('prompt').value;
+
+      document.getElementById('status').innerText = "Video generation started. Please wait...";
+      
+        const response = await fetch('http://127.0.0.1:8000/generate-video/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({prompt})
+        });
+
+      console.log(response)
+        const result = (await response.json()).url;
+        console.log("ithu tan i recieved" + result)
+        publicUrl = "https://storage.googleapis.com" + result.slice(result.search('//')+1)
+
+        document.getElementById('video-container').innerHTML = `
+          <h2>Generated Video:</h2>
+          <video controls>
+            <source src="${publicUrl}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        `;
+       // Wait 60 seconds before showing video
+    });
+  </script>
+</body>
+</html>

@@ -70,12 +70,18 @@ export class VideoGeneratorService {
       });
       
       if (pythonResult.success && pythonResult.video_url) {
+        // Convert GCS URL to public HTTPS URL using your HTML logic
+        const gcsUrl = pythonResult.video_url;
+        const publicUrl = "https://storage.googleapis.com" + gcsUrl.slice(gcsUrl.search('//')+1);
+        
+        console.log(`🔄 Converting GCS URL: ${gcsUrl} -> ${publicUrl}`);
+        
         const video: GeneratedVideo = {
           id: videoId,
           title: `${request.subject} Educational Video - Grade ${request.grade}`,
-          description: `${enhancedPrompt}\n\n🎬 Generated using Google Veo 3.0 (Real Video)\n📹 Video URL: ${pythonResult.video_url}`,
-          videoUrl: pythonResult.video_url,
-          thumbnailUrl: pythonResult.video_url.replace('.mp4', '_thumb.jpg'),
+          description: `${enhancedPrompt}\n\n🎬 Generated using Google Veo 3.0 (Real Video)\n📹 Public URL: ${publicUrl}`,
+          videoUrl: publicUrl,  // Use public HTTPS URL instead of GCS URL
+          thumbnailUrl: publicUrl.replace('.mp4', '_thumb.jpg'),
           duration: request.duration,
           subject: request.subject,
           grade: request.grade,

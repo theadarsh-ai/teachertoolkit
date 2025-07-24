@@ -503,6 +503,49 @@ export default function VideoGenerator() {
                           </div>
                         )}
                       </div>
+
+                      {/* Video Player for Real Videos */}
+                      {currentVideo.description.includes('🎬 Generated using Google Veo 3.0') && currentVideo.videoUrl && (
+                        <div className="bg-black rounded-lg overflow-hidden border-2 border-green-200">
+                          <div className="bg-green-50 px-3 py-2 border-b border-green-200">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <span className="text-sm font-medium text-green-800">Real Veo 3.0 Video - Ready to Play</span>
+                              </div>
+                              <Badge variant="outline" className="text-xs text-green-700 border-green-300">
+                                MP4 Generated
+                              </Badge>
+                            </div>
+                          </div>
+                          <video 
+                            controls 
+                            className="w-full h-auto max-h-96"
+                            style={{ backgroundColor: '#000' }}
+                            poster="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDgwMCA0NTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjMTExODI3Ii8+CjxwYXRoIGQ9Ik0zNzUgMjAwTDQyNSAyMjVMMzc1IDI1MFYyMDBaIiBmaWxsPSIjMTA5OTgxIi8+Cjx0ZXh0IHg9IjQwMCIgeT0iMjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNjVBMEE5IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiPkVkdWNhdGlvbmFsIFZpZGVvIFJlYWR5PC90ZXh0Pgo8L3N2Zz4K"
+                          >
+                            <source src={currentVideo.videoUrl} type="video/mp4" />
+                            <p className="text-white text-center p-4">
+                              Your browser does not support the video tag.
+                              <br />
+                              <a href={currentVideo.videoUrl} className="text-green-400 underline">
+                                Download video directly
+                              </a>
+                            </p>
+                          </video>
+                          <div className="bg-gray-900 px-3 py-2 flex items-center justify-between text-xs">
+                            <span className="text-gray-300">Generated with Google Veo 3.0</span>
+                            <a 
+                              href={currentVideo.videoUrl} 
+                              download={`${currentVideo.subject}_Grade${currentVideo.grade}_Video.mp4`}
+                              className="text-green-400 hover:text-green-300 flex items-center space-x-1"
+                            >
+                              <Download className="w-3 h-3" />
+                              <span>Download MP4</span>
+                            </a>
+                          </div>
+                        </div>
+                      )}
                       
                       {/* Full Content Preview */}
                       <div className="bg-white rounded p-4 border border-green-200 shadow-sm">
