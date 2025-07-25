@@ -21,10 +21,15 @@ import {
   Book,
   Sparkles,
   Languages,
-  GraduationCap
+  GraduationCap,
+  History,
+  Clock,
+  HelpCircle,
+  BookOpenCheck
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface KnowledgeQuery {
   question: string;
@@ -38,6 +43,7 @@ interface KnowledgeQuery {
 interface KnowledgeResponse {
   question: string;
   answer: string;
+  explanation: string; // Detailed step-by-step explanation
   sources: {
     ncert: Array<{
       title: string;
@@ -59,6 +65,21 @@ interface KnowledgeResponse {
   gradeLevel: number;
 }
 
+interface HistoryItem {
+  id: number;
+  question: string;
+  answer: string;
+  explanation: string;
+  grade: number;
+  subject: string;
+  language: string;
+  confidence: number;
+  sources: KnowledgeResponse['sources'];
+  analogies: string[];
+  followUpQuestions: string[];
+  createdAt: string;
+}
+
 export default function InstantKnowledgePage() {
   const { toast } = useToast();
   
@@ -71,8 +92,11 @@ export default function InstantKnowledgePage() {
     searchExternal: true
   });
 
-  const [responses, setResponses] = useState<KnowledgeResponse[]>([]);
+  const [responses, setResponses] = useState<KnowledgeResponse[]>([]);  
   const [currentResponse, setCurrentResponse] = useState<KnowledgeResponse | null>(null);
+  const [historySearchQuery, setHistorySearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("ask");
+  const userId = 1; // In a real app, this would come from authentication
 
   // Sample knowledge base queries for suggestions
   const SAMPLE_QUERIES = {
@@ -117,6 +141,7 @@ export default function InstantKnowledgePage() {
           grade: queryData.grade,
           subject: queryData.subject,
           language: queryData.language,
+          userId: userId,
           options: {
             searchNCERT: queryData.searchNCERT,
             searchExternal: queryData.searchExternal
@@ -151,6 +176,28 @@ export default function InstantKnowledgePage() {
         description: error instanceof Error ? error.message : "Please check your question and try again.",
         variant: "destructive",
       });
+    }
+  });
+
+  // History query
+  const historyQuery = useQuery({
+    queryKey: ['/api/agents/knowledge-base/history', userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/agents/knowledge-base/history/${userId}`);
+      if (!response.ok) throw new Error("Failed to fetch history");
+      const result = await response.json();
+      return result.history as HistoryItem[];
+    },
+    enabled: activeTab === "history"
+  });
+
+  // Search history mutation
+  const searchHistoryMutation = useMutation({
+    mutationFn: async (searchQuery: string) => {
+      const response = await fetch(`/api/agents/knowledge-base/search/${userId}?q=${encodeURIComponent(searchQuery)}`);
+      if (!response.ok) throw new Error("Failed to search history");
+      const result = await response.json();
+      return result.results as HistoryItem[];
     }
   });
 
@@ -368,9 +415,22 @@ export default function InstantKnowledgePage() {
                     {/* Main Answer */}
                     <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                       <h4 className="font-semibold text-green-800 mb-3">💡 Comprehensive Answer:</h4>
-                      <div className="text-green-700 whitespace-pre-wrap leading-relaxed">
+                      <div className="text-green-700 whitespace-pre-wrap leading-relaxed mb-4">
                         {currentResponse.answer}
                       </div>
+                      
+                      {/* Detailed Step-by-Step Explanation */}
+                      {currentResponse.explanation && (
+                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 mt-4">
+                          <h4 className="font-semibold text-blue-800 mb-3 flex items-center">
+                            <BookOpenCheck className="w-4 h-4 mr-2" />
+                            📖 Step-by-Step Explanation
+                          </h4>
+                          <div className="text-blue-700 whitespace-pre-wrap leading-relaxed">
+                            {currentResponse.explanation}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Sources */}

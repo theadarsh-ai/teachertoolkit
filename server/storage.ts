@@ -5,6 +5,7 @@ import {
   chatMessages, 
   generatedContent,
   ncertTextbooks,
+  knowledgeBaseHistory,
   type User, 
   type InsertUser,
   type AgentConfiguration,
@@ -14,7 +15,9 @@ import {
   type ChatMessage,
   type InsertChatMessage,
   type GeneratedContent,
-  type InsertGeneratedContent
+  type InsertGeneratedContent,
+  type KnowledgeBaseHistory,
+  type InsertKnowledgeBaseHistory
 } from "@shared/schema";
 
 export interface IStorage {
@@ -44,6 +47,11 @@ export interface IStorage {
   getNCERTTextbooksByClass(classNum: number): Promise<any[]>;
   getNCERTTextbooksBySubject(subject: string): Promise<any[]>;
   storeNCERTTextbook(textbook: any): Promise<any>;
+  
+  // Knowledge Base History operations
+  createKnowledgeBaseHistory(data: InsertKnowledgeBaseHistory): Promise<KnowledgeBaseHistory>;
+  getKnowledgeBaseHistoryByUser(userId: number, limit?: number): Promise<KnowledgeBaseHistory[]>;
+  searchKnowledgeBaseHistory(userId: number, query: string): Promise<KnowledgeBaseHistory[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -53,12 +61,14 @@ export class MemStorage implements IStorage {
   private chatMessages: Map<number, ChatMessage>;
   private generatedContent: Map<number, GeneratedContent>;
   private ncertTextbooks: Map<number, any>; // NCERT textbooks storage
+  private knowledgeBaseHistory: Map<number, KnowledgeBaseHistory>;
   private currentUserId: number;
   private currentConfigId: number;
   private currentSessionId: number;
   private currentMessageId: number;
   private currentContentId: number;
   private currentTextbookId: number;
+  private currentKnowledgeHistoryId: number;
 
   constructor() {
     this.users = new Map();
@@ -67,12 +77,14 @@ export class MemStorage implements IStorage {
     this.chatMessages = new Map();
     this.generatedContent = new Map();
     this.ncertTextbooks = new Map();
+    this.knowledgeBaseHistory = new Map();
     this.currentUserId = 1;
     this.currentConfigId = 1;
     this.currentSessionId = 1;
     this.currentMessageId = 1;
     this.currentContentId = 1;
     this.currentTextbookId = 1;
+    this.currentKnowledgeHistoryId = 1;
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -202,6 +214,39 @@ export class MemStorage implements IStorage {
     };
     this.ncertTextbooks.set(id, storedTextbook);
     return storedTextbook;
+  }
+
+  // Knowledge Base History operations
+  async createKnowledgeBaseHistory(insertHistory: InsertKnowledgeBaseHistory): Promise<KnowledgeBaseHistory> {
+    const id = this.currentKnowledgeHistoryId++;
+    const history: KnowledgeBaseHistory = {
+      ...insertHistory,
+      id,
+      metadata: insertHistory.metadata || null,
+      createdAt: new Date()
+    };
+    this.knowledgeBaseHistory.set(id, history);
+    return history;
+  }
+
+  async getKnowledgeBaseHistoryByUser(userId: number, limit: number = 50): Promise<KnowledgeBaseHistory[]> {
+    const userHistory = Array.from(this.knowledgeBaseHistory.values())
+      .filter(history => history.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, limit);
+    return userHistory;
+  }
+
+  async searchKnowledgeBaseHistory(userId: number, query: string): Promise<KnowledgeBaseHistory[]> {
+    const searchTerm = query.toLowerCase();
+    return Array.from(this.knowledgeBaseHistory.values())
+      .filter(history => 
+        history.userId === userId && 
+        (history.question.toLowerCase().includes(searchTerm) || 
+         history.answer.toLowerCase().includes(searchTerm) ||
+         history.explanation.toLowerCase().includes(searchTerm))
+      )
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 }
 

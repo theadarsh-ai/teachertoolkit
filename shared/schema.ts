@@ -47,6 +47,37 @@ export const generatedContent = pgTable("generated_content", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Knowledge Base Q&A History Schema
+export const knowledgeBaseHistory = pgTable("knowledge_base_history", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  explanation: text("explanation").notNull(), // Detailed step-by-step explanation
+  grade: integer("grade").notNull(),
+  subject: text("subject").notNull(),
+  language: text("language").notNull(),
+  confidence: integer("confidence").notNull(), // 1-100 confidence score
+  sources: jsonb("sources").$type<{
+    ncert: Array<{
+      title: string;
+      class: number;
+      subject: string;
+      chapter: string;
+      page?: number;
+    }>;
+    external: Array<{
+      title: string;
+      url: string;
+      type: string;
+    }>;
+  }>().notNull(),
+  analogies: jsonb("analogies").$type<string[]>().notNull(),
+  followUpQuestions: jsonb("follow_up_questions").$type<string[]>().notNull(),
+  metadata: jsonb("metadata").$type<Record<string, any>>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // NCERT Textbooks Database Schema
 export const ncertTextbooks = pgTable("ncert_textbooks", {
   id: serial("id").primaryKey(),
@@ -155,6 +186,21 @@ export const insertNCERTTopicSchema = createInsertSchema(ncertTopics).pick({
   exercises: true,
 });
 
+export const insertKnowledgeBaseHistorySchema = createInsertSchema(knowledgeBaseHistory).pick({
+  userId: true,
+  question: true,
+  answer: true,
+  explanation: true,
+  grade: true,
+  subject: true,
+  language: true,
+  confidence: true,
+  sources: true,
+  analogies: true,
+  followUpQuestions: true,
+  metadata: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type AgentConfiguration = typeof agentConfigurations.$inferSelect;
@@ -165,3 +211,5 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type GeneratedContent = typeof generatedContent.$inferSelect;
 export type InsertGeneratedContent = z.infer<typeof insertGeneratedContentSchema>;
+export type KnowledgeBaseHistory = typeof knowledgeBaseHistory.$inferSelect;
+export type InsertKnowledgeBaseHistory = z.infer<typeof insertKnowledgeBaseHistorySchema>;

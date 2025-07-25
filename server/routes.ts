@@ -1128,6 +1128,37 @@ This topic is fundamental to understanding ${subject} and connects to many real-
 
       console.log(`✅ Knowledge Base Response: ${response.sources.ncert.length} NCERT + ${response.sources.external.length} external sources`);
 
+      // Generate detailed explanation using Gemini
+      const explanationResponse = await geminiEduService.generateEducationalContent({
+        prompt: `Provide a detailed step-by-step explanation for: ${question}. Include the reasoning process, key concepts, and how each step connects to the next. Make it suitable for grade ${grade} students in ${subject}.`,
+        agentType: 'knowledge-base-explanation',
+        grades: [grade],
+        languages: [language],
+        contentSource: 'prebook'
+      });
+
+      // Add explanation to response
+      response.explanation = explanationResponse.content;
+
+      // Save to knowledge base history
+      await storage.createKnowledgeBaseHistory({
+        userId: req.body.userId || 1,
+        question: question,
+        answer: response.answer,
+        explanation: response.explanation,
+        grade: grade,
+        subject: subject,
+        language: language,
+        confidence: response.confidence,
+        sources: response.sources,
+        analogies: response.analogies,
+        followUpQuestions: response.followUpQuestions,
+        metadata: {
+          searchNCERT: options.searchNCERT,
+          searchExternal: options.searchExternal
+        }
+      });
+
       res.json({
         success: true,
         response: response
@@ -1138,6 +1169,54 @@ This topic is fundamental to understanding ${subject} and connects to many real-
       res.status(500).json({ 
         success: false,
         error: error instanceof Error ? error.message : "Failed to process knowledge query" 
+      });
+    }
+  });
+
+  // Knowledge Base History Routes
+  app.get("/api/agents/knowledge-base/history/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const limit = parseInt(req.query.limit as string) || 50;
+      
+      const history = await storage.getKnowledgeBaseHistoryByUser(userId, limit);
+      
+      res.json({
+        success: true,
+        history: history
+      });
+    } catch (error) {
+      console.error("Knowledge Base History Error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+
+  app.get("/api/agents/knowledge-base/search/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const searchQuery = req.query.q as string;
+      
+      if (!searchQuery) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Search query is required" 
+        });
+      }
+      
+      const results = await storage.searchKnowledgeBaseHistory(userId, searchQuery);
+      
+      res.json({
+        success: true,
+        results: results
+      });
+    } catch (error) {
+      console.error("Knowledge Base Search Error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
       });
     }
   });
