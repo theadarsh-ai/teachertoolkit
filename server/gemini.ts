@@ -74,6 +74,11 @@ Generate educational content based on: ${prompt}`;
     }
   }
 
+  // Alias method for compatibility with knowledge base routes
+  async generateEducationalContent(options: ContentGenerationOptions): Promise<any> {
+    return this.generateLocalizedContent(options);
+  }
+
   async generateVisualAid(options: VisualAidsOptions): Promise<any> {
     const { prompt, style = 'educational', size = '1024x1024' } = options;
     
