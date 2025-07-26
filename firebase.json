@@ -12,7 +12,10 @@
     ]
   },
   "hosting": {
-    "public": "public",
+    "public": "dist",
+    "predeploy": [
+      "npm run build"
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -26,6 +29,17 @@
       {
         "source": "**",
         "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          }
+        ]
       }
     ]
   },
