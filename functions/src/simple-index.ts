@@ -147,6 +147,52 @@ app.get('/ncert/textbooks', (req, res) => {
   }
 });
 
+// Sketchfab models endpoint
+app.get('/sketchfab/models', (req, res) => {
+  try {
+    const { query } = req.query;
+    
+    // Sample educational 3D models
+    const models = [
+      {
+        id: 'brain-anatomy-1',
+        title: 'Human Brain Anatomy',
+        description: 'Detailed 3D model of human brain structure',
+        embedUrl: 'https://sketchfab.com/models/abc123/embed',
+        subject: 'Biology',
+        grade: [9, 10, 11, 12]
+      },
+      {
+        id: 'heart-model-1',
+        title: 'Human Heart Model',
+        description: 'Interactive heart anatomy with chambers',
+        embedUrl: 'https://sketchfab.com/models/def456/embed',
+        subject: 'Biology',
+        grade: [8, 9, 10]
+      },
+      {
+        id: 'dna-structure-1',
+        title: 'DNA Double Helix',
+        description: 'DNA structure showing base pairs',
+        embedUrl: 'https://sketchfab.com/models/ghi789/embed',
+        subject: 'Biology',
+        grade: [10, 11, 12]
+      }
+    ];
+    
+    res.json({
+      success: true,
+      count: models.length,
+      data: models
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to search Sketchfab models'
+    });
+  }
+});
+
 // Helper function to generate educational responses
 function generateEducationalResponse(question: string, grade: number, subject: string, language: string) {
   const content = `# ${question}
@@ -179,6 +225,14 @@ In the Indian context, this concept relates to:
 - Local examples from our environment (like monsoons, festivals, agriculture)
 - Innovations and discoveries by Indian scientists and scholars
 - Examples from Indian culture, mythology, and daily life
+
+## Analogies for Better Understanding
+
+Think of this concept like:
+- A familiar process from your daily routine
+- Something you observe in nature during different seasons
+- An activity you participate in during festivals or celebrations
+- A system you use in your home or school
 
 ## Interactive Learning Questions
 
@@ -235,6 +289,22 @@ Remember: Learning is a journey of discovery, and every question leads to new un
     sources
   };
 }
+
+// Default 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    error: 'Endpoint not found',
+    path: req.originalUrl,
+    availableEndpoints: [
+      'GET /health',
+      'POST /agents/knowledge-base/query',
+      'POST /video-generator/generate',
+      'GET /ncert/textbooks',
+      'GET /sketchfab/models'
+    ]
+  });
+});
 
 // Export the Firebase Function
 export const api = onRequest({

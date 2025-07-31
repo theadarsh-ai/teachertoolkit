@@ -1,37 +1,21 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-
-export interface HTMLGenerationOptions {
-  title: string;
-  content: string;
-  grades: number[];
-  languages: string[];
-  subject?: string;
-  agentType: string;
-  generatedAt: Date;
-  questionType?: string;
-  questionCount?: number;
-}
-
 export class HTMLGeneratorService {
-  private readonly outputDir = path.join(process.cwd(), 'generated_htmls');
-
-  constructor() {
-    this.ensureOutputDirectory();
-  }
-
-  private async ensureOutputDirectory() {
-    try {
-      await fs.access(this.outputDir);
-    } catch {
-      await fs.mkdir(this.outputDir, { recursive: true });
+    constructor() {
+        this.outputDir = path.join(process.cwd(), 'generated_htmls');
+        this.ensureOutputDirectory();
     }
-  }
-
-  private generateHTMLTemplate(options: HTMLGenerationOptions): string {
-    const { title, content, grades, languages, subject, agentType, generatedAt } = options;
-    
-    return `
+    async ensureOutputDirectory() {
+        try {
+            await fs.access(this.outputDir);
+        }
+        catch {
+            await fs.mkdir(this.outputDir, { recursive: true });
+        }
+    }
+    generateHTMLTemplate(options) {
+        const { title, content, grades, languages, subject, agentType, generatedAt } = options;
+        return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -308,62 +292,56 @@ export class HTMLGeneratorService {
     </body>
     </html>
     `;
-  }
-
-  private formatContent(content: string): string {
-    // Basic formatting for better display
-    return content
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/^/, '<p>')
-      .replace(/$/, '</p>');
-  }
-
-  async generateHTML(options: HTMLGenerationOptions): Promise<{ filePath: string; fileName: string }> {
-    const html = this.generateHTMLTemplate(options);
-    
-    // Create unique filename
-    const timestamp = Date.now();
-    const sanitizedTitle = options.title.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-    const filename = `${sanitizedTitle}_${timestamp}.html`;
-    const filePath = path.join(this.outputDir, filename);
-
-    try {
-      await fs.writeFile(filePath, html, 'utf8');
-      
-      console.log(`✅ HTML generated successfully: ${filename}`);
-      return { filePath, fileName: filename };
-    } catch (error) {
-      console.error('HTML generation error:', error);
-      throw new Error(`Failed to generate HTML: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }
-
-  // Cleanup old files (optional)
-  async cleanupOldFiles(maxAgeHours: number = 24): Promise<void> {
-    try {
-      const files = await fs.readdir(this.outputDir);
-      const now = Date.now();
-      
-      for (const file of files) {
-        if (file.endsWith('.html')) {
-          const filePath = path.join(this.outputDir, file);
-          const stats = await fs.stat(filePath);
-          const ageHours = (now - stats.mtime.getTime()) / (1000 * 60 * 60);
-          
-          if (ageHours > maxAgeHours) {
-            await fs.unlink(filePath);
-            console.log(`🗑️ Cleaned up old HTML file: ${file}`);
-          }
+    formatContent(content) {
+        // Basic formatting for better display
+        return content
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/^/, '<p>')
+            .replace(/$/, '</p>');
+    }
+    async generateHTML(options) {
+        const html = this.generateHTMLTemplate(options);
+        // Create unique filename
+        const timestamp = Date.now();
+        const sanitizedTitle = options.title.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+        const filename = `${sanitizedTitle}_${timestamp}.html`;
+        const filePath = path.join(this.outputDir, filename);
+        try {
+            await fs.writeFile(filePath, html, 'utf8');
+            console.log(`✅ HTML generated successfully: ${filename}`);
+            return { filePath, fileName: filename };
         }
-      }
-    } catch (error) {
-      console.error('HTML cleanup error:', error);
+        catch (error) {
+            console.error('HTML generation error:', error);
+            throw new Error(`Failed to generate HTML: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     }
-  }
+    // Cleanup old files (optional)
+    async cleanupOldFiles(maxAgeHours = 24) {
+        try {
+            const files = await fs.readdir(this.outputDir);
+            const now = Date.now();
+            for (const file of files) {
+                if (file.endsWith('.html')) {
+                    const filePath = path.join(this.outputDir, file);
+                    const stats = await fs.stat(filePath);
+                    const ageHours = (now - stats.mtime.getTime()) / (1000 * 60 * 60);
+                    if (ageHours > maxAgeHours) {
+                        await fs.unlink(filePath);
+                        console.log(`🗑️ Cleaned up old HTML file: ${file}`);
+                    }
+                }
+            }
+        }
+        catch (error) {
+            console.error('HTML cleanup error:', error);
+        }
+    }
 }
-
 // Export instance for use in routes
 export const htmlGenerator = new HTMLGeneratorService();
+//# sourceMappingURL=html-generator.js.map

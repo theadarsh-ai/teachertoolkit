@@ -1,0 +1,76 @@
+{
+	"motd": {
+		"cloudBuildErrorAfter": 1594252800000,
+		"cloudBuildWarnAfter": 1590019200000,
+		"defaultNode10After": 1594252800000,
+		"minVersion": "3.0.5",
+		"node8DeploysDisabledAfter": 1613390400000,
+		"node8RuntimeDisabledAfter": 1615809600000,
+		"node8WarnAfter": 1600128000000,
+		"fetched": 1753539984964
+	},
+	"gemini": true,
+	"usage": true,
+	"analytics-uuid": "0515cd09-ae00-426e-8819-28c12d9203c4",
+	"user": {
+		"iss": "accounts.google.com",
+		"azp": "563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com",
+		"aud": "563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com",
+		"sub": "104370079972202830702",
+		"email": "theadarsh.ai@gmail.com",
+		"email_verified": true,
+		"at_hash": "JS4sS6aJWYeJlEcRIlS10A",
+		"iat": 1753140481,
+		"exp": 1753144081
+	},
+	"tokens": {
+		"expires_at": 1753543583887,
+		"refresh_token": "1//05CrgHocuLMGSCgYIARAAGAUSNwF-L9IrWqkZOxhs6YD4aRkJ0t2h4DWTYayeQYH3oYZEV_P6J6Nk_xw60WicmQDPI_oNRf6afjI",
+		"scopes": [],
+		"access_token": "ya29.a0AS3H6NxGoJSLE4gq7qN7R_gQsQtqdtYyo_uLOmuJPgzVUn-N8mHUXOSncj8tI_8--re9bUcNidn-CLySqeCdL_zjkeuc7NxifWbMj038FdIS_GA8BA_ntJXgux0pmYTgSSQf69Nwulj9UJJP5ZCogWOqcvtW05KloJI-HkJs9yC5fpsaCgYKAf0SARUSFQHGX2Mie0zK6vxwEbMVow0PEInCPg0182",
+		"expires_in": 3599,
+		"scope": "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/cloudplatformprojects.readonly openid https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/firebase",
+		"token_type": "Bearer",
+		"id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImRkNTMwMTIwNGZjMWQ2YTBkNjhjNzgzYTM1Y2M5YzEwYjI1ZTFmNGEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJhY2NvdW50cy5nb29nbGUuY29tIiwiYXpwIjoiNTYzNTg0MzM1ODY5LWZncmhnbWQ0N2JxbmVraWo1aThiNXByMDNobzg0OWU2LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiNTYzNTg0MzM1ODY5LWZncmhnbWQ0N2JxbmVraWo1aThiNXByMDNobzg0OWU2LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTA0MzcwMDc5OTcyMjAyODMwNzAyIiwiZW1haWwiOiJ0aGVhZGFyc2guYWlAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJzY1ZFQW9VaGVSNV9Id1VYbEJzekx3IiwiaWF0IjoxNzUzNTM5OTg0LCJleHAiOjE3NTM1NDM1ODR9.cjG27u_OiHNgM_-x4pYNtoPS7ljir7y2mvnMfwjhjJxlhg9w39ovpZ3ziyTU8tXnLkYebLS_Yi9Gl56_hEmF_AWbTWG6l4tXlcne1dn9qj4xTPUawK9NXX1dhibkIAutjrerk0I-H8xmbghWbyBnLcW6T9rkNSGxMmciuD2vC133to8ztiYIMznbvBLXFeMPd7NKLD8v_U_QkwzUMJtfhpG0vC4D3bfZRC9CjWAzjAq2c8JeiSTQhYMgVkoC0LmHV0Wayp7GE3H3iLuYQsQoTZglrbQFpfMtUFcAQAgFZoqAvndZ3Sha7y6NWPZByyBJdWlYgTI5FXpkoGh1gryQOw"
+	},
+	"loginScopes": [
+		"email",
+		"openid",
+		"https://www.googleapis.com/auth/cloudplatformprojects.readonly",
+		"https://www.googleapis.com/auth/firebase",
+		"https://www.googleapis.com/auth/cloud-platform"
+	],
+	"activeProjects": {
+		"/home/runner/workspace": "genzion-ai"
+	},
+	"apiEnablementCache": {
+		"genzion-ai": {
+			"cloudresourcemanager.googleapis.com": true,
+			"cloudbuild.googleapis.com": true,
+			"artifactregistry.googleapis.com": true,
+			"cloudfunctions.googleapis.com": true,
+			"runtimeconfig.googleapis.com": true,
+			"firebaseextensions.googleapis.com": true
+		}
+	},
+	"emulator-analytics-clientId": "d6502dfa-2d55-4ca6-9987-5e198ed5ad4a",
+	"adminsdkconfig": {
+		"genzion-ai": {
+			"projectId": "genzion-ai",
+			"databaseURL": "https://genzion-ai-default-rtdb.firebaseio.com",
+			"storageBucket": "genzion-ai.firebasestorage.app"
+		}
+	},
+	"webconfig": {
+		"genzion-ai": {
+			"projectId": "genzion-ai",
+			"appId": "1:936601172271:web:200c358e1133352ce589da",
+			"databaseURL": "https://genzion-ai-default-rtdb.firebaseio.com",
+			"storageBucket": "genzion-ai.firebasestorage.app",
+			"apiKey": "AIzaSyD0PuSxGr7hUh4cpHagaFDKiWGTu_tjBIU",
+			"authDomain": "genzion-ai.firebaseapp.com",
+			"messagingSenderId": "936601172271",
+			"measurementId": "G-MR419KC9VG"
+		}
+	}
+}
