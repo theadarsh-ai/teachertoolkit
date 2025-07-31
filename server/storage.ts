@@ -220,8 +220,18 @@ export class MemStorage implements IStorage {
   async createKnowledgeBaseHistory(insertHistory: InsertKnowledgeBaseHistory): Promise<KnowledgeBaseHistory> {
     const id = this.currentKnowledgeHistoryId++;
     const history: KnowledgeBaseHistory = {
-      ...insertHistory,
       id,
+      userId: insertHistory.userId,
+      question: insertHistory.question,
+      answer: insertHistory.answer,
+      explanation: insertHistory.explanation,
+      grade: insertHistory.grade,
+      subject: insertHistory.subject,
+      language: insertHistory.language,
+      confidence: insertHistory.confidence,
+      sources: insertHistory.sources as any,
+      analogies: insertHistory.analogies as string[],
+      followUpQuestions: insertHistory.followUpQuestions as string[],
       metadata: insertHistory.metadata || null,
       createdAt: new Date()
     };

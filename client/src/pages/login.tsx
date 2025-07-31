@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { signInWithGoogle, handleRedirectResult, auth } from "@/lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { signInWithGoogle, handleRedirectResult, auth, isFirebaseConfigured } from "@/lib/firebase";
 import { 
   GraduationCap, Mail, Lock, Sparkles, Users, BookOpen, 
   Brain, Zap, ArrowRight, Shield, Globe, Award
@@ -19,19 +18,34 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Listen for auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('Auth state changed:', user ? user.email : 'No user');
-      if (user) {
-        toast({
-          title: "Welcome!",
-          description: `Successfully signed in as ${user.displayName || user.email}`,
-        });
-        setLocation("/dashboard");
-      }
+    // Only listen for auth state changes if Firebase is configured
+    if (!isFirebaseConfigured() || !auth) {
+      return;
+    }
+
+    const setupAuth = async () => {
+      const { onAuthStateChanged } = await import("firebase/auth");
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        console.log('Auth state changed:', user ? user.email : 'No user');
+        if (user) {
+          toast({
+            title: "Welcome!",
+            description: `Successfully signed in as ${user.displayName || user.email}`,
+          });
+          setLocation("/dashboard");
+        }
+      });
+      return unsubscribe;
+    };
+
+    let unsubscribe: (() => void) | undefined;
+    setupAuth().then(unsub => {
+      unsubscribe = unsub;
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe?.();
+    };
   }, [setLocation, toast]);
 
   const handleGoogleSignIn = async () => {

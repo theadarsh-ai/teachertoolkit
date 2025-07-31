@@ -1,27 +1,55 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebasestorage.app`,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+// Check if Firebase is properly configured
+const isFirebaseConfigured = () => {
+  return !!(
+    import.meta.env.VITE_FIREBASE_API_KEY &&
+    import.meta.env.VITE_FIREBASE_PROJECT_ID &&
+    import.meta.env.VITE_FIREBASE_APP_ID
+  );
 };
 
-console.log('Firebase Config:', {
-  apiKey: firebaseConfig.apiKey ? '✓ Set' : '✗ Missing',
-  projectId: firebaseConfig.projectId || '✗ Missing',
-  appId: firebaseConfig.appId ? '✓ Set' : '✗ Missing'
-});
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-key',
+  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || 'demo-project'}.firebaseapp.com`,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'demo-project',
+  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || 'demo-project'}.firebasestorage.app`,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || 'demo-app-id',
+};
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-provider.addScope('email');
-provider.addScope('profile');
+// Only log configuration status if Firebase is not configured
+if (!isFirebaseConfigured()) {
+  console.log('Firebase Config:', {
+    apiKey: firebaseConfig.apiKey !== 'demo-key' ? '✓ Set' : '✗ Missing (using demo values)',
+    projectId: firebaseConfig.projectId !== 'demo-project' ? '✓ Set' : '✗ Missing (using demo values)',
+    appId: firebaseConfig.appId !== 'demo-app-id' ? '✓ Set' : '✗ Missing (using demo values)',
+    note: 'Configure Firebase environment variables to enable authentication'
+  });
+}
+
+let app: any = null;
+let auth: any = null;
+let provider: GoogleAuthProvider | null = null;
+
+// Only initialize Firebase if properly configured
+if (isFirebaseConfigured()) {
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    provider = new GoogleAuthProvider();
+    provider.addScope('email');
+    provider.addScope('profile');
+  } catch (error) {
+    console.warn('Firebase initialization failed:', error);
+  }
+}
 
 export const signInWithGoogle = async () => {
+  if (!isFirebaseConfigured() || !auth || !provider) {
+    throw new Error('Firebase authentication is not configured. Please set up Firebase environment variables.');
+  }
+  
   try {
     const result = await signInWithPopup(auth, provider);
     console.log('Google sign-in successful:', result.user.email);
@@ -38,7 +66,10 @@ export const handleRedirectResult = () => {
 };
 
 export const signOutUser = () => {
+  if (!auth) {
+    return Promise.resolve();
+  }
   return signOut(auth);
 };
 
-export { auth };
+export { auth, isFirebaseConfigured };
