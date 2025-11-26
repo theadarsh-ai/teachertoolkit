@@ -2,7 +2,7 @@
 
 Edu-Platform is a comprehensive educational platform designed to provide a rich learning experience with various tools and features. This platform integrates AI-powered agents to assist in content generation, assessment, and providing a gamified learning environment.
 
-<img width="2505" height="1294" alt="image" src="https://github.com/user-attachments/assets/2c7ef4b3-8bbd-4926-b04a-b024899f5fbf" />
+<img width="1600" height="800" alt="image" src="https://github.com/user-attachments/assets/8a3ff363-d8e9-4d85-ace5-6f1fb87e22b2" />
 
 
 ## Features
@@ -14,6 +14,11 @@ Edu-Platform is a comprehensive educational platform designed to provide a rich 
 - **Real-time Analytics:** Offers insights into student performance and classroom engagement.
 - **Content Generation:** Automatically generates educational content, including quizzes and lesson plans.
 - **Video Generation:** Capable of generating video content for lessons.
+
+## Architecture Diagram
+
+<img width="2505" height="1294" alt="image" src="https://github.com/user-attachments/assets/00177b1c-9001-4335-a0f7-f1a0001c29cd" />
+
 
 ## Getting Started
 
